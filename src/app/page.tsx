@@ -6,6 +6,7 @@ import NeilAI from "@/components/os/NeilAI";
 import NavBar from "@/components/ui/NavBar";
 import TechStack from "@/components/sections/TechStack";
 import GlobalTelemetry from "@/components/sections/GlobalTelemetry";
+import Footer from "@/components/ui/Footer"; // Add this line
 
 export default function ExtravagantPortfolio() {
   return (
@@ -67,10 +68,11 @@ export default function ExtravagantPortfolio() {
           [ Awaiting ProRAW Dataset Uploads ]
         </div>
       </section>
-
       <GlobalTelemetry />
 
       <NeilAI />
+      
+      <Footer /> {/* Insert the footer here */}
     </main>
   );
 }
