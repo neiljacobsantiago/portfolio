@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/genai": "^2.25.0",
     "@google/generative-ai": "^0.24.1",
     "@react-spring/web": "^10.1.2",
     "@studio-freight/lenis": "^1.0.42",

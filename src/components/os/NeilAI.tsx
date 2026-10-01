@@ -15,7 +15,6 @@ export default function NeilAI() {
   const [isTyping, setIsTyping] = useState(false);
   const [input, setInput] = useState("");
   
-  // Warm, conversational intro messages
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       id: "welcome-1", 
@@ -67,8 +66,7 @@ export default function NeilAI() {
   ];
 
   return (
-    // 1. INCREASED Z-INDEX TO 9999 TO OVERRIDE THE TOP NAVBAR
-    <div className="fixed bottom-24 md:bottom-28 right-6 z-[9999] flex flex-col items-end font-sans">
+    <div className="fixed bottom-24 right-6 z-[9999] flex flex-col items-end pointer-events-none font-sans">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -76,9 +74,9 @@ export default function NeilAI() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="w-80 h-[500px] bg-marine/95 backdrop-blur-2xl border border-butter/20 mb-4 flex flex-col rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden relative"
+            className="w-80 max-h-[60vh] h-[500px] pointer-events-auto bg-marine/95 backdrop-blur-2xl border border-butter/20 mb-4 flex flex-col rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden relative origin-bottom-right"
           >
-            {/* 2. REFINED HEADER ALIGNMENT */}
+            {/* Header */}
             <div className="h-14 bg-black/40 border-b border-butter/10 flex justify-between items-center px-5 relative z-10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-accentRed flex items-center justify-center relative shadow-sm">
@@ -92,8 +90,8 @@ export default function NeilAI() {
               </button>
             </div>
             
-            {/* Chat Log (Apple iMessage aesthetic) */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar flex flex-col">
+            {/* Chat Log with overscroll-contain added */}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 custom-scrollbar flex flex-col">
               <AnimatePresence initial={false}>
                 {messages.map((msg) => (
                   <motion.div 
@@ -113,7 +111,6 @@ export default function NeilAI() {
                   </motion.div>
                 ))}
                 
-                {/* Bouncing Typing Indicator */}
                 {isTyping && (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
@@ -150,7 +147,7 @@ export default function NeilAI() {
               </motion.div>
             )}
 
-            {/* Rounded Input Area */}
+            {/* Input Area */}
             <div className="h-16 border-t border-butter/10 flex items-center px-3 bg-marine/50">
               <div className="flex-1 bg-black/40 border border-butter/20 rounded-full flex items-center px-4 h-10">
                 <input
@@ -175,10 +172,9 @@ export default function NeilAI() {
         )}
       </AnimatePresence>
 
-      {/* Modern Floating Action Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-accentRed flex items-center justify-center shadow-[0_10px_25px_rgba(229,26,26,0.4)] hover:scale-105 hover:bg-red-500 transition-all rounded-full cursor-none interactive border-2 border-marine"
+        className="w-14 h-14 bg-accentRed pointer-events-auto flex items-center justify-center shadow-[0_10px_25px_rgba(229,26,26,0.4)] hover:scale-105 hover:bg-red-500 transition-all rounded-full cursor-none interactive border-2 border-marine"
       >
         {isOpen ? <X className="text-butter w-6 h-6" /> : <MessageSquare className="text-butter w-6 h-6" />}
       </button>

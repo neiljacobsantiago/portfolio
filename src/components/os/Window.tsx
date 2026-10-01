@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useDragControls } from "framer-motion";
 import { ReactNode } from "react";
 import { X, Minus, Maximize2 } from "lucide-react";
 
@@ -22,12 +22,16 @@ export default function Window({
   defaultSize = { w: 800, h: 500 }, defaultPos = { x: 50, y: 50 } 
 }: WindowProps) {
   
+  // Initialize Framer Motion drag controls
+  const dragControls = useDragControls();
+
   if (!isOpen) return null;
 
   return (
     <motion.div
       drag
-      dragHandle=".drag-handle"
+      dragControls={dragControls}
+      dragListener={false} // Disables dragging from the window body
       dragMomentum={false}
       initial={{ opacity: 0, scale: 0.95, ...defaultPos }}
       animate={{ opacity: 1, scale: 1 }}
@@ -41,23 +45,26 @@ export default function Window({
       }}
       className={`flex flex-col bg-marine/80 backdrop-blur-xl border overflow-hidden shadow-2xl transition-colors duration-200 ${isActive ? 'border-butter/40' : 'border-butter/10'}`}
     >
-      {/* MAC-STYLE TITLE BAR */}
-      <div className="drag-handle w-full h-10 bg-black/40 border-b border-butter/10 flex items-center justify-between px-4 cursor-grab active:cursor-grabbing">
+      {/* MAC-STYLE TITLE BAR (Drag Target) */}
+      <div 
+        onPointerDown={(e) => dragControls.start(e)}
+        className="w-full h-10 bg-black/40 border-b border-butter/10 flex items-center justify-between px-4 cursor-grab active:cursor-grabbing touch-none"
+      >
         <div className="flex space-x-2">
-          <button onClick={() => onClose(id)} className="w-3 h-3 rounded-full bg-accentRed hover:bg-red-400 flex items-center justify-center group">
+          <button onClick={() => onClose(id)} className="w-3 h-3 rounded-full bg-accentRed hover:bg-red-400 flex items-center justify-center group cursor-none interactive">
             <X className="w-2 h-2 text-black opacity-0 group-hover:opacity-100" />
           </button>
-          <button className="w-3 h-3 rounded-full bg-butter hover:bg-yellow-200 flex items-center justify-center group">
+          <button className="w-3 h-3 rounded-full bg-butter hover:bg-yellow-200 flex items-center justify-center group cursor-none interactive">
             <Minus className="w-2 h-2 text-black opacity-0 group-hover:opacity-100" />
           </button>
-          <button className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center group">
+          <button className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-400 flex items-center justify-center group cursor-none interactive">
             <Maximize2 className="w-2 h-2 text-black opacity-0 group-hover:opacity-100" />
           </button>
         </div>
-        <span className="font-mono text-xs uppercase tracking-widest text-butter opacity-80 select-none">
+        <span className="font-mono text-xs uppercase tracking-widest text-butter opacity-80 select-none pointer-events-none">
           {title}
         </span>
-        <div className="w-12" /> {/* Spacer for centering */}
+        <div className="w-12" />
       </div>
 
       {/* APP CONTENT */}
