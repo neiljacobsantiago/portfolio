@@ -4,21 +4,19 @@ import { motion } from "framer-motion";
 import NetworkBackground from "@/components/ui/NetworkBackground";
 import NeilAI from "@/components/os/NeilAI";
 import NavBar from "@/components/ui/NavBar";
-import InfrastructureStack from "@/components/sections/InfrastructureStack";
-import SocialNodes from "@/components/sections/SocialNodes";
+import TechStack from "@/components/sections/TechStack";
+import GlobalTelemetry from "@/components/sections/GlobalTelemetry";
 
 export default function ExtravagantPortfolio() {
   return (
     <main className="relative w-full min-h-screen bg-marine text-butter font-sans overflow-x-hidden selection:bg-accentRed selection:text-marine">
       
-      {/* Background Topology */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
         <NetworkBackground />
       </div>
 
       <NavBar />
 
-      {/* Hero Section */}
       <section className="relative z-10 w-full h-screen flex flex-col justify-center px-6 md:px-16 pt-20 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }}>
           <p className="font-mono text-sm md:text-base tracking-[0.3em] text-accentRed mb-4 uppercase">
@@ -30,7 +28,6 @@ export default function ExtravagantPortfolio() {
         </motion.div>
       </section>
 
-      {/* Operator Bio Section */}
       <section id="about" className="relative z-10 w-full min-h-screen px-6 md:px-16 py-32 flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto border-t border-butter/10">
         <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8 }} className="w-full md:w-1/2 mb-16 md:mb-0">
           <h2 className="font-display text-5xl md:text-7xl font-bold leading-none mb-8">
@@ -57,24 +54,21 @@ export default function ExtravagantPortfolio() {
         </motion.div>
       </section>
 
-      {/* New Interactive Infrastructure Stack */}
-      <InfrastructureStack />
+      <TechStack />
 
-      {/* Media & Camera Gear Placeholder */}
-      <section id="media" className="relative z-10 w-full min-h-[50vh] px-6 md:px-16 py-32 flex flex-col items-center justify-center text-center max-w-7xl mx-auto">
-        <h2 className="font-display text-4xl md:text-6xl font-black uppercase mb-8 tracking-tight opacity-30">
+      <section id="media" className="relative z-10 w-full min-h-[40vh] px-6 md:px-16 py-24 flex flex-col items-center justify-center text-center max-w-7xl mx-auto">
+        <h2 className="font-display text-4xl md:text-6xl font-black uppercase mb-6 tracking-tight opacity-30">
           Visual Telemetry
         </h2>
         <div className="font-mono text-sm max-w-lg mx-auto opacity-70 mb-4">
           Nikon D780 / Canon EOS 1500D / iPhone 14 Pro Max
         </div>
-        <div className="font-mono text-accentRed uppercase tracking-widest text-xs border border-accentRed/30 bg-accentRed/5 px-6 py-3 rounded-full">
+        <div className="font-mono text-accentRed uppercase tracking-widest text-xs border border-accentRed/30 bg-accentRed/5 px-6 py-3 rounded-full cursor-none">
           [ Awaiting ProRAW Dataset Uploads ]
         </div>
       </section>
 
-      {/* New Social Nodes & Safe Telemetry */}
-      <SocialNodes />
+      <GlobalTelemetry />
 
       <NeilAI />
     </main>
