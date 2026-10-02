@@ -16,16 +16,8 @@ export default function NeilAI() {
   const [input, setInput] = useState("");
   
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      id: "welcome-1", 
-      sender: "ai", 
-      text: "Hi there! 👋 Welcome to Neil's portfolio. I'm NeilAI." 
-    },
-    { 
-      id: "welcome-2", 
-      sender: "ai", 
-      text: "I can answer questions about his rates, tech stack, or creative projects. What would you like to know?" 
-    }
+    { id: "welcome-1", sender: "ai", text: "Hi there! 👋 Welcome to Neil's portfolio. I'm NeilAI." },
+    { id: "welcome-2", sender: "ai", text: "I can answer questions about his rates, tech stack, or creative projects. What would you like to know?" }
   ]);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -39,34 +31,34 @@ export default function NeilAI() {
     if (!userMsg) return;
     
     const newMessageId = Date.now().toString();
-    setMessages(prev => [...prev, { id: newMessageId, sender: "user", text: userMsg }]);
+    const newMessages = [...messages, { id: newMessageId, sender: "user" as const, text: userMsg }];
+    
+    setMessages(newMessages);
     setInput("");
     setIsTyping(true);
 
     try {
+      const historyPayload = newMessages.slice(-6).map(m => ({ role: m.sender, text: m.text }));
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg })
+        body: JSON.stringify({ message: userMsg, history: historyPayload })
       });
 
       const data = await res.json();
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: "ai", text: data.reply }]);
     } catch (error) {
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: "ai", text: "Sorry, my connection dropped! Please try again." }]);
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: "ai", text: "Connection flatlined. Try again." }]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  const quickQuestions = [
-    "Who are you?",
-    "What are your rates?",
-    "What is your tech stack?"
-  ];
+  const quickQuestions = ["Who are you?", "What are your rates?", "What is your tech stack?"];
 
   return (
-    <div className="fixed bottom-24 right-6 z-[9999] flex flex-col items-end pointer-events-none font-sans">
+    <div className="fixed bottom-24 right-6 z-[9999] flex flex-col items-end font-sans">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -74,10 +66,9 @@ export default function NeilAI() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="w-80 max-h-[60vh] h-[500px] pointer-events-auto bg-marine/95 backdrop-blur-2xl border border-butter/20 mb-4 flex flex-col rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden relative origin-bottom-right"
+            className="w-80 max-h-[60vh] h-[500px] bg-marine/95 backdrop-blur-2xl border border-butter/20 mb-4 flex flex-col rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden origin-bottom-right"
           >
-            {/* Header */}
-            <div className="h-14 bg-black/40 border-b border-butter/10 flex justify-between items-center px-5 relative z-10">
+            <div className="h-14 bg-black/40 border-b border-butter/10 flex justify-between items-center px-5 shrink-0 pointer-events-auto">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-accentRed flex items-center justify-center relative shadow-sm">
                   <span className="text-butter font-display font-bold text-[10px]">AI</span>
@@ -90,15 +81,14 @@ export default function NeilAI() {
               </button>
             </div>
             
-            {/* Chat Log with overscroll-contain added */}
-            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 custom-scrollbar flex flex-col">
+            {/* Scroll fix: Explicitly enabled block scrolling */}
+            <div className="flex-1 overflow-y-scroll block p-4 space-y-4 custom-scrollbar pointer-events-auto bg-transparent">
               <AnimatePresence initial={false}>
                 {messages.map((msg) => (
                   <motion.div 
                     key={msg.id}
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div className={`px-4 py-2.5 max-w-[80%] text-[13px] leading-relaxed shadow-sm ${
@@ -112,12 +102,7 @@ export default function NeilAI() {
                 ))}
                 
                 {isTyping && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="flex justify-start"
-                  >
+                  <motion.div className="flex justify-start">
                     <div className="px-4 py-3 bg-black/50 border border-butter/10 rounded-2xl rounded-bl-sm flex items-center space-x-1.5">
                       <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1.5 h-1.5 bg-butter/60 rounded-full" />
                       <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-butter/60 rounded-full" />
@@ -129,12 +114,8 @@ export default function NeilAI() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Quick Action Chips */}
             {messages.length <= 2 && !isTyping && (
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-                className="px-3 pb-2 flex flex-wrap gap-2"
-              >
+              <motion.div className="px-3 pb-2 flex flex-wrap gap-2 shrink-0 pointer-events-auto">
                 {quickQuestions.map((q, idx) => (
                   <button 
                     key={idx}
@@ -147,8 +128,7 @@ export default function NeilAI() {
               </motion.div>
             )}
 
-            {/* Input Area */}
-            <div className="h-16 border-t border-butter/10 flex items-center px-3 bg-marine/50">
+            <div className="h-16 border-t border-butter/10 flex items-center px-3 bg-marine/50 shrink-0 pointer-events-auto">
               <div className="flex-1 bg-black/40 border border-butter/20 rounded-full flex items-center px-4 h-10">
                 <input
                   type="text"
@@ -163,9 +143,9 @@ export default function NeilAI() {
               <button 
                 onClick={() => handleSend()} 
                 disabled={isTyping || !input.trim()}
-                className="ml-2 w-10 h-10 rounded-full bg-accentRed flex items-center justify-center text-butter hover:bg-red-500 transition-colors disabled:opacity-50 disabled:hover:bg-accentRed cursor-none interactive"
+                className="ml-2 w-10 h-10 shrink-0 rounded-full bg-accentRed flex items-center justify-center text-butter hover:bg-red-500 transition-colors disabled:opacity-50 disabled:hover:bg-accentRed cursor-none interactive"
               >
-                <Send className="w-4 h-4 ml-1" />
+                <Send className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
@@ -174,7 +154,7 @@ export default function NeilAI() {
 
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-accentRed pointer-events-auto flex items-center justify-center shadow-[0_10px_25px_rgba(229,26,26,0.4)] hover:scale-105 hover:bg-red-500 transition-all rounded-full cursor-none interactive border-2 border-marine"
+        className="w-14 h-14 bg-accentRed flex items-center justify-center shadow-[0_10px_25px_rgba(229,26,26,0.4)] hover:scale-105 hover:bg-red-500 transition-all rounded-full cursor-none interactive border-2 border-marine pointer-events-auto"
       >
         {isOpen ? <X className="text-butter w-6 h-6" /> : <MessageSquare className="text-butter w-6 h-6" />}
       </button>

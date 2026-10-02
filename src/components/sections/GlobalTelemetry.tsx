@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { GitBranch, Star, Terminal, CloudLightning, Crosshair, Activity, Cpu, Link as LinkIcon, BadgeCheck } from "lucide-react";
+import { GitBranch, Star, Terminal, CloudLightning, Crosshair, Activity, Cpu, Link as LinkIcon, BadgeCheck, BookOpen, GitCommit, GitPullRequest } from "lucide-react";
 
 interface Repo { id: number; name: string; description: string; html_url: string; stargazers_count: number; language: string; }
 interface Weather { temperature: number; windspeed: number; }
@@ -15,41 +15,53 @@ export default function GlobalTelemetry() {
   const [visitor, setVisitor] = useState<Visitor | null>(null);
 
   useEffect(() => {
-    // Fetch GitHub Profile
     fetch("https://api.github.com/users/neiljacobsantiago")
       .then((res) => res.json())
       .then((data) => setGithubStats({ followers: data.followers, public_repos: data.public_repos }))
       .catch(console.error);
 
-    // Fetch Latest GitHub Repos
     fetch("https://api.github.com/users/neiljacobsantiago/repos?sort=updated&per_page=4")
       .then((res) => res.json())
       .then((data) => Array.isArray(data) && setRepos(data))
       .catch(console.error);
 
-    // Fetch Weather for San Jose City
     fetch("https://api.open-meteo.com/v1/forecast?latitude=15.79&longitude=120.99&current_weather=true")
       .then((res) => res.json())
       .then((data) => setWeather(data.current_weather))
       .catch(console.error);
 
-    // Fetch Visitor IP Trace
     fetch("https://ipapi.co/json/")
-      .then((res) => {
-        if (!res.ok) throw new Error("Rate Limited");
-        return res.json();
-      })
+      .then((res) => { if (!res.ok) throw new Error("Rate Limited"); return res.json(); })
       .then((data) => setVisitor({ ip: data.ip, city: data.city, org: data.org }))
       .catch(() => setVisitor({ ip: "192.168.1.1 (MASKED)", city: "LOCAL_HOST", org: "SECURE PROXY" }));
   }, []);
+
+  const activityGrid = Array.from({ length: 52 }, () =>
+    Array.from({ length: 7 }, () => {
+      const rand = Math.random();
+      if (rand > 0.9) return 4;
+      if (rand > 0.7) return 3;
+      if (rand > 0.4) return 2;
+      if (rand > 0.2) return 1;
+      return 0;
+    })
+  );
+
+  const getColorClass = (level: number) => {
+    switch (level) {
+      case 4: return "bg-[#39d353] shadow-[0_0_8px_rgba(57,211,83,0.4)]";
+      case 3: return "bg-[#26a641]";
+      case 2: return "bg-[#006d32]";
+      case 1: return "bg-[#0e4429]";
+      default: return "bg-black/40 border border-butter/5";
+    }
+  };
 
   const socials = [
     { name: "GitHub", label: "@neiljacobsantiago", url: "https://github.com/neiljacobsantiago", verified: true },
     { name: "Credly", label: "Cisco Certifications", url: "#", verified: true },
     { name: "LinkedIn", label: "Professional Intel", url: "#", verified: false },
-    { name: "X (Twitter)", label: "Micro-logs", url: "#", verified: false },
-    { name: "Instagram", label: "Visual Telemetry", url: "#", verified: false },
-    { name: "TikTok", label: "Media Directives", url: "#", verified: false }
+    { name: "X (Twitter)", label: "Micro-logs", url: "#", verified: false }
   ];
 
   return (
@@ -61,88 +73,77 @@ export default function GlobalTelemetry() {
           <h2 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tight">Global Telemetry</h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="w-full border border-butter/20 bg-black/40 p-6 md:p-8 mb-8">
+          <h3 className="font-mono text-xs tracking-widest uppercase text-accentRed mb-6 flex items-center gap-2 border-b border-butter/10 pb-4">
+            <Terminal className="w-4 h-4" /> 365-Day Contribution Matrix
+          </h3>
           
-          {/* LEFT: API Sniffers & GitHub Repos */}
-          <div className="lg:col-span-8 flex flex-col gap-8">
-            
-            {/* The GitHub Repositories Board */}
-            <div className="border border-butter/20 bg-black/40 p-6 flex-1">
-              <div className="flex justify-between items-center mb-6 border-b border-butter/10 pb-4">
-                <h3 className="font-mono text-xs tracking-widest uppercase text-accentRed flex items-center gap-2">
-                  <Terminal className="w-4 h-4" /> Live GitHub Commits
-                </h3>
-                <div className="font-mono text-[10px] uppercase flex gap-4 opacity-70">
-                  <span>Repos: <strong className="text-butter">{githubStats.public_repos}</strong></span>
-                </div>
-              </div>
-
-              {repos.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {repos.map((repo, i) => (
-                    <motion.a
-                      href={repo.html_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      key={repo.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="group flex flex-col justify-between border border-butter/10 bg-marine/50 p-5 hover:bg-butter/5 hover:border-accentRed transition-all interactive"
-                    >
-                      <div>
-                        <h4 className="font-display text-lg font-bold uppercase group-hover:text-accentRed transition-colors mb-2 truncate">
-                          {repo.name}
-                        </h4>
-                        <p className="font-sans opacity-60 text-xs line-clamp-2 mb-4 h-8">
-                          {repo.description || "System architecture data omitted. Root access only."}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between font-mono text-[10px] uppercase opacity-80 pt-3 border-t border-butter/10">
-                        <span className="flex items-center gap-1.5"><GitBranch className="w-3 h-3 text-accentRed" /> Main</span>
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1"><Star className="w-3 h-3 text-butter" /> {repo.stargazers_count}</span>
-                          <span className="text-butter">{repo.language || "Shell"}</span>
-                        </div>
-                      </div>
-                    </motion.a>
+          <div className="w-full overflow-x-auto custom-scrollbar pb-4 mb-8">
+            <div className="flex gap-1 min-w-[800px]">
+              {activityGrid.map((week, wIdx) => (
+                <div key={wIdx} className="flex flex-col gap-1">
+                  {week.map((day, dIdx) => (
+                    <div 
+                      key={dIdx} 
+                      className={`w-3 h-3 rounded-sm transition-colors duration-300 hover:scale-125 ${getColorClass(day)}`} 
+                      title={`Activity Level: ${day}`}
+                    />
                   ))}
                 </div>
-              ) : (
-                <div className="font-mono text-accentRed animate-pulse text-sm py-8 text-center border border-dashed border-accentRed/30">
-                  Synchronizing with GitHub API...
-                </div>
-              )}
-            </div>
-
-            {/* Social / External Nodes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {socials.map((social, i) => (
-                <motion.a 
-                  key={i} 
-                  href={social.url} 
-                  target="_blank"
-                  initial={{ opacity: 0, scale: 0.95 }} 
-                  whileInView={{ opacity: 1, scale: 1 }} 
-                  viewport={{ once: true }} 
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-center justify-between p-4 border border-butter/10 bg-black/40 hover:bg-butter/10 hover:border-butter/50 transition-all interactive group"
-                >
-                  <div>
-                    <h4 className="font-display font-bold uppercase text-sm group-hover:text-accentRed transition-colors flex items-center gap-2">
-                      {social.name} {social.verified && <BadgeCheck className="w-3 h-3 text-green-500" />}
-                    </h4>
-                    <p className="font-mono text-[9px] uppercase opacity-50 mt-1 tracking-widest">{social.label}</p>
-                  </div>
-                  <LinkIcon className="w-4 h-4 opacity-30 group-hover:opacity-100 group-hover:text-accentRed transition-all" />
-                </motion.a>
               ))}
             </div>
-
           </div>
 
-          {/* RIGHT: Passive Scanners */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-butter/10 pt-8">
+            <div>
+              <h4 className="font-display text-lg font-bold uppercase mb-4 text-butter flex items-center gap-2">
+                <BookOpen className="w-4 h-4" /> Activity Overview
+              </h4>
+              <p className="font-mono text-xs opacity-70 mb-4">Contributed to:</p>
+              <ul className="font-mono text-xs space-y-3">
+                <li><a href="#" className="text-accentRed hover:text-butter transition-colors interactive cursor-none">neiljacobsantiago/philmech-plant...</a></li>
+                <li><a href="#" className="text-accentRed hover:text-butter transition-colors interactive cursor-none">neiljacobsantiago/project1</a></li>
+                <li><a href="#" className="text-accentRed hover:text-butter transition-colors interactive cursor-none">eco-fashion/eco-fashion.github.io</a></li>
+                <li className="text-butter/50 mt-2 pt-2 border-t border-butter/5">and 16 other repositories</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col justify-center gap-6">
+              <div>
+                <div className="flex justify-between font-mono text-xs mb-2">
+                  <span className="flex items-center gap-2 uppercase opacity-80"><GitCommit className="w-4 h-4 text-accentRed"/> Commits</span>
+                  <span className="font-bold text-accentRed">97%</span>
+                </div>
+                <div className="w-full h-1.5 bg-marine rounded-full overflow-hidden border border-butter/10">
+                  <motion.div initial={{ width: 0 }} whileInView={{ width: "97%" }} viewport={{ once: true }} transition={{ duration: 1.5, delay: 0.2 }} className="h-full bg-accentRed shadow-[0_0_10px_rgba(229,26,26,0.8)]" />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between font-mono text-xs mb-2">
+                  <span className="flex items-center gap-2 uppercase opacity-80"><GitPullRequest className="w-4 h-4 text-butter"/> Pull Requests</span>
+                  <span className="font-bold text-butter">3%</span>
+                </div>
+                <div className="w-full h-1.5 bg-marine rounded-full overflow-hidden border border-butter/10">
+                  <motion.div initial={{ width: 0 }} whileInView={{ width: "3%" }} viewport={{ once: true }} transition={{ duration: 1.5, delay: 0.4 }} className="h-full bg-butter shadow-[0_0_10px_rgba(255,250,138,0.5)]" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {socials.map((social, i) => (
+              <motion.a key={i} href={social.url} target="_blank" initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="flex items-center justify-between p-4 border border-butter/10 bg-black/40 hover:bg-butter/10 hover:border-butter/50 transition-all interactive cursor-none group">
+                <div>
+                  <h4 className="font-display font-bold uppercase text-sm group-hover:text-accentRed transition-colors flex items-center gap-2">{social.name} {social.verified && <BadgeCheck className="w-3 h-3 text-green-500" />}</h4>
+                  <p className="font-mono text-[9px] uppercase opacity-50 mt-1 tracking-widest">{social.label}</p>
+                </div>
+                <LinkIcon className="w-4 h-4 opacity-30 group-hover:opacity-100 group-hover:text-accentRed transition-all" />
+              </motion.a>
+            ))}
+          </div>
+
           <div className="lg:col-span-4 flex flex-col gap-6">
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="border border-butter/20 bg-black/40 p-6 relative overflow-hidden group flex-1">
               <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity"><CloudLightning className="w-24 h-24 text-butter" /></div>
@@ -168,7 +169,6 @@ export default function GlobalTelemetry() {
               ) : (<div className="font-mono text-sm opacity-50 animate-pulse">Bypassing limiters...</div>)}
             </motion.div>
           </div>
-
         </div>
       </div>
     </section>

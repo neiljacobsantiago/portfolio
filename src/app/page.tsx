@@ -2,29 +2,24 @@
 
 import { motion } from "framer-motion";
 import NetworkBackground from "@/components/ui/NetworkBackground";
-import NeilAI from "@/components/os/NeilAI";
-import NavBar from "@/components/ui/NavBar";
 import TechStack from "@/components/sections/TechStack";
 import GlobalTelemetry from "@/components/sections/GlobalTelemetry";
-import Footer from "@/components/ui/Footer"; // Add this line
 
 export default function ExtravagantPortfolio() {
   return (
-    <main className="relative w-full min-h-screen bg-marine text-butter font-sans overflow-x-hidden selection:bg-accentRed selection:text-marine">
+    <main className="relative w-full min-h-screen overflow-x-hidden">
       
       <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
         <NetworkBackground />
       </div>
 
-      <NavBar />
-
-      <section className="relative z-10 w-full h-screen flex flex-col justify-center px-6 md:px-16 pt-20 max-w-7xl mx-auto">
+      <section id="top" className="relative z-10 w-full h-screen flex flex-col justify-center px-6 md:px-16 pt-20 max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }}>
           <p className="font-mono text-sm md:text-base tracking-[0.3em] text-accentRed mb-4 uppercase">
             Network Systems & Infrastructure Engineering
           </p>
-          <h1 className="font-display text-[12vw] md:text-[8vw] font-black leading-[0.85] tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-br from-butter to-butter/40">
-            Neil Jacob <br /> Santiago
+          <h1 className="font-display text-6xl md:text-8xl lg:text-[5.5vw] font-black leading-[0.95] tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-br from-butter to-butter/40">
+            NEIL JACOB <br /> SANTIAGO
           </h1>
         </motion.div>
       </section>
@@ -57,7 +52,7 @@ export default function ExtravagantPortfolio() {
 
       <TechStack />
 
-      <section id="media" className="relative z-10 w-full min-h-[40vh] px-6 md:px-16 py-24 flex flex-col items-center justify-center text-center max-w-7xl mx-auto">
+      <section id="media" className="relative z-10 w-full min-h-[40vh] px-6 md:px-16 py-24 flex flex-col items-center justify-center text-center max-w-7xl mx-auto border-t border-butter/10">
         <h2 className="font-display text-4xl md:text-6xl font-black uppercase mb-6 tracking-tight opacity-30">
           Visual Telemetry
         </h2>
@@ -68,11 +63,9 @@ export default function ExtravagantPortfolio() {
           [ Awaiting ProRAW Dataset Uploads ]
         </div>
       </section>
-      <GlobalTelemetry />
 
-      <NeilAI />
+      <GlobalTelemetry />
       
-      <Footer /> {/* Insert the footer here */}
     </main>
   );
 }
