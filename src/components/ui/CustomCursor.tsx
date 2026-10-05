@@ -4,32 +4,27 @@ import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 
 export default function CustomCursor() {
-  // useMotionValue tracks values outside of React's render cycle for extreme performance
   const cursorX = useMotionValue(-100);
-  const cursorXSpring = useSpring(cursorX, { damping: 30, stiffness: 700 });
-  
   const cursorY = useMotionValue(-100);
-  const cursorYSpring = useSpring(cursorY, { damping: 30, stiffness: 700 });
+  
+  const springConfig = { damping: 25, stiffness: 700 };
+  const cursorXSpring = useSpring(cursorX, springConfig);
+  const cursorYSpring = useSpring(cursorY, springConfig);
   
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
-      // Offset by a few pixels so the actual click point is exactly at the tip of the arrow
-      cursorX.set(e.clientX - 2); 
-      cursorY.set(e.clientY - 2);
+      // Offset by 6px to center the 12px dot exactly on the mouse coordinates
+      cursorX.set(e.clientX - 6); 
+      cursorY.set(e.clientY - 6);
       if (!isVisible) setIsVisible(true);
     };
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Triggers the animation when hovering over interactive elements
-      if (target.closest('.interactive, a, button, input, textarea')) {
-        setIsHovering(true);
-      } else {
-        setIsHovering(false);
-      }
+      setIsHovering(!!target.closest('.interactive, a, button, input, textarea'));
     };
 
     window.addEventListener("mousemove", moveCursor);
@@ -43,35 +38,21 @@ export default function CustomCursor() {
 
   return (
     <motion.div
-      className="fixed top-0 left-0 pointer-events-none z-[999999]"
+      className="fixed top-0 left-0 pointer-events-none z-[999999] flex items-center justify-center"
       style={{
         x: cursorXSpring,
         y: cursorYSpring,
-        opacity: isVisible ? 1 : 0 // Hides the cursor until the mouse first moves
+        opacity: isVisible ? 1 : 0
       }}
-      animate={{
-        scale: isHovering ? 1.4 : 1,
-        rotate: isHovering ? 15 : 0,
-      }}
-      transition={{ type: "tween", duration: 0.15 }}
     >
-      {/* Cyberpunk Arrowhead SVG */}
-      <svg 
-        width="28" 
-        height="28" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-[0_0_8px_rgba(229,26,26,0.8)]"
-      >
-        <path 
-          d="M3 2L21 12L3 22L7 12L3 2Z" 
-          fill="#E51A1A" 
-          stroke="#FFFA8A" 
-          strokeWidth="1" 
-          strokeLinejoin="round"
-        />
-      </svg>
+      <motion.div 
+        animate={{ 
+          scale: isHovering ? 2.5 : 1, 
+          opacity: isHovering ? 0.5 : 1 
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="w-3 h-3 bg-accentRed rounded-full shadow-[0_0_10px_rgba(229,26,26,0.8)]"
+      />
     </motion.div>
   );
 }

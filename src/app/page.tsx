@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import NetworkBackground from "@/components/ui/NetworkBackground";
 import TechStack from "@/components/sections/TechStack";
 import GlobalTelemetry from "@/components/sections/GlobalTelemetry";
+import SentinelEye from "@/components/ui/SentinelEye";
 
 export default function ExtravagantPortfolio() {
   return (
@@ -13,8 +15,16 @@ export default function ExtravagantPortfolio() {
         <NetworkBackground />
       </div>
 
-      <section id="top" className="relative z-10 w-full h-screen flex flex-col justify-center px-6 md:px-16 pt-20 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }}>
+      {/* Upgraded Split Hero Section */}
+      <section id="top" className="relative z-10 w-full min-h-screen flex flex-col md:flex-row items-center justify-center md:justify-between px-6 md:px-16 pt-20 pb-12 max-w-7xl mx-auto gap-12">
+        
+        {/* Left Side: Typography */}
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="w-full md:w-3/5 z-10"
+        >
           <p className="font-mono text-sm md:text-base tracking-[0.3em] text-accentRed mb-4 uppercase">
             Network Systems & Infrastructure Engineering
           </p>
@@ -22,8 +32,20 @@ export default function ExtravagantPortfolio() {
             NEIL JACOB <br /> SANTIAGO
           </h1>
         </motion.div>
+
+        {/* Right Side: Cursor Tracker (Hidden on very small mobile screens) */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          transition={{ duration: 1, delay: 0.3 }}
+          className="w-full md:w-2/5 hidden sm:flex justify-center md:justify-end z-10"
+        >
+          <SentinelEye />
+        </motion.div>
+
       </section>
 
+      {/* Operator Bio Section */}
       <section id="about" className="relative z-10 w-full min-h-screen px-6 md:px-16 py-32 flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto border-t border-butter/10">
         <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8 }} className="w-full md:w-1/2 mb-16 md:mb-0">
           <h2 className="font-display text-5xl md:text-7xl font-bold leading-none mb-8">
@@ -39,14 +61,36 @@ export default function ExtravagantPortfolio() {
           </p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 1 }} className="w-full md:w-1/3 aspect-square border border-butter/20 bg-black/30 backdrop-blur-sm relative flex items-center justify-center p-8 overflow-hidden group">
-          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,250,138,0.03)_10px,rgba(255,250,138,0.03)_20px)]" />
-          <div className="text-center relative z-10 group-hover:scale-105 transition-transform duration-700">
-            <span className="block font-mono text-[10px] tracking-widest text-accentRed mb-2 uppercase">Sys_Admin_Profile</span>
-            <span className="block font-display text-6xl font-black">N.J.S</span>
+        {/* Image Transition Profile Card */}
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 1 }} className="w-full md:w-1/3 aspect-square border border-butter/20 bg-black/30 backdrop-blur-sm relative flex items-center justify-center overflow-hidden group interactive">
+          
+          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accentRed z-30 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accentRed z-30 pointer-events-none" />
+          
+          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,250,138,0.03)_10px,rgba(255,250,138,0.03)_20px)] z-20 pointer-events-none mix-blend-overlay" />
+
+          {/* Default Image: njs_p.jpg */}
+          <Image 
+            src="/njs_p.jpg" 
+            alt="Sys_Admin Profile" 
+            fill 
+            className="object-cover transition-transform duration-700 group-hover:scale-105 z-0" 
+          />
+
+          {/* Hover Image: njs_p1.jpg */}
+          <Image 
+            src="/njs_p1.jpg" 
+            alt="Sys_Admin Profile Active" 
+            fill 
+            className="object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105 z-10" 
+          />
+
+          <div className="absolute bottom-4 left-4 z-30 pointer-events-none">
+            <span className="block font-mono text-[10px] tracking-widest text-accentRed bg-marine/90 border border-accentRed/30 px-2 py-1 uppercase shadow-[0_0_10px_rgba(0,0,0,0.8)]">
+              Sys_Admin // Active
+            </span>
           </div>
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accentRed" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accentRed" />
+          
         </motion.div>
       </section>
 
