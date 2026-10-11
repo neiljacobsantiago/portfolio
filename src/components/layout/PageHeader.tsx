@@ -15,8 +15,10 @@ export default function PageHeader({ eyebrow, title, lead, aside }: PageHeaderPr
     <header className="mx-auto grid max-w-[90rem] gap-10 px-5 pt-32 pb-14 md:grid-cols-12 md:px-10 md:pt-44 md:pb-20">
       <div className="md:col-span-9">
         <p className="label animate-rise-in text-ember">{eyebrow}</p>
-        <h1 className="mt-5 overflow-hidden font-display text-[clamp(2.9rem,9vw,8rem)] leading-[0.95] tracking-[-0.01em]">
-          <span className="animate-line-up block">{title}</span>
+        <h1 className="mt-5 font-display text-[clamp(2.9rem,9vw,8rem)] leading-[1] tracking-[-0.01em]">
+          <span className="line-mask">
+            <span className="animate-line-up block">{title}</span>
+          </span>
         </h1>
         {lead && (
           <p className="animate-rise-in mt-8 max-w-2xl font-serif text-xl leading-relaxed text-ink/80 md:text-2xl" style={{ animationDelay: "150ms" }}>

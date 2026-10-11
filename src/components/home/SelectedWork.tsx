@@ -13,7 +13,7 @@ export default function SelectedWork() {
       <div className="mb-12 grid gap-6 md:mb-16 md:grid-cols-12">
         <p className="label text-ember md:col-span-3">Selected work</p>
         <div className="md:col-span-9">
-          <h2 id="work-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none">
+          <h2 id="work-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
             Systems that hold up <em className="font-serif text-ember">under pressure.</em>
           </h2>
           <Link href="/work" className="label ulink mt-6 inline-block text-ink/70 hover:text-ink">

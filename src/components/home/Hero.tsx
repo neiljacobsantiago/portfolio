@@ -26,7 +26,7 @@ export default function Hero() {
         <h1 className="mt-8 font-display text-[clamp(3rem,11vw,6.75rem)] leading-[0.92] lg:text-[clamp(4rem,6.4vw,7rem)] tracking-[-0.015em]">
           <span className="sr-only">{site.name} — </span>
           {lines.map((line, i) => (
-            <span key={line} className="block overflow-hidden pb-[0.06em]">
+            <span key={line} className="line-mask">
               <span className="animate-line-up block" style={{ animationDelay: `${120 + i * 110}ms` }}>
                 {i === 2 ? (
                   <>

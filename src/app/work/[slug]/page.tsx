@@ -42,8 +42,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <Link href={`/work#${project.category}`} className="ulink hover:text-ink">{categories[project.category].label}</Link>
         </nav>
         <p className="label animate-rise-in mt-8 text-ember" style={{ animationDelay: "80ms" }}>{project.context}</p>
-        <h1 className="mt-4 overflow-hidden font-display text-[clamp(2.75rem,8vw,7.5rem)] leading-[0.95]">
-          <span className="animate-line-up block">{project.title}</span>
+        <h1 className="mt-4 font-display text-[clamp(2.75rem,8vw,7.5rem)] leading-[1]">
+          <span className="line-mask">
+            <span className="animate-line-up block">{project.title}</span>
+          </span>
         </h1>
         <p className="animate-rise-in mt-6 max-w-3xl font-serif text-2xl leading-snug text-ink/80 italic md:text-3xl" style={{ animationDelay: "200ms" }}>
           {project.plain}

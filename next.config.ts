@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
       { source: "/gear", destination: "/about#gear", permanent: true },
       { source: "/clearance", destination: "/about#credentials", permanent: true },
       { source: "/logs", destination: "/about", permanent: true },
+      { source: "/work/philmech-pathogen-classifier", destination: "/work/pathoscan", permanent: true },
     ];
   },
   async headers() {

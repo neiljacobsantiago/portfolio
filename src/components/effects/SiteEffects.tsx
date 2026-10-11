@@ -29,5 +29,30 @@ export default function SiteEffects() {
     };
   }, [finePointer, reducedMotion, lowPower]);
 
+  // Background colour fields lean gently toward the cursor.
+  useEffect(() => {
+    if (!finePointer || reducedMotion || lowPower) return;
+    const field = document.querySelector<HTMLElement>(".paper-field");
+    if (!field) return;
+    let frame = 0;
+    let mx = 0;
+    let my = 0;
+    const onMove = (e: PointerEvent) => {
+      mx = e.clientX / innerWidth - 0.5;
+      my = e.clientY / innerHeight - 0.5;
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          field.style.setProperty("--mx", mx.toFixed(3));
+          field.style.setProperty("--my", my.toFixed(3));
+        });
+    };
+    addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener("pointermove", onMove);
+    };
+  }, [finePointer, reducedMotion, lowPower]);
+
   return null;
 }

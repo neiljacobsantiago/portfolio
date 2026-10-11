@@ -1,10 +1,26 @@
 {
+  "wp-1.jpg": {
+    "title": "Studio Light",
+    "note": "Fashion portrait"
+  },
+  "wp-2.jpg": {
+    "title": "Corporate Sharp",
+    "note": "Fashion portrait"
+  },
+  "wp-3.jpg": {
+    "title": "Editorial Vibe",
+    "note": "Fashion portrait"
+  },
+  "wp-4.jpg": {
+    "title": "Editorial Duo",
+    "note": "Fashion portrait"
+  },
+  "wp-5.jpg": {
+    "title": "Casual Studio",
+    "note": "Fashion portrait"
+  },
   "photography-5.jpg": {
     "title": "Portrait Detail",
     "note": "Shot on iPhone 14 Pro Max"
-  },
-  "photography-9.jpg": {
-    "title": "White Lion Portrait",
-    "note": "Shot on Canon EOS 80D"
   }
 }

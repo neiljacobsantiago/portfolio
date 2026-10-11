@@ -3,22 +3,23 @@
 Each folder here is one series in the gallery (`/photography`). The folder
 name must match a `slug` in `src/content/series.ts`:
 
-| Folder       | Series on the site |
-| ------------ | ------------------ |
-| `concerts`   | Concerts           |
-| `portraits`  | Portraits          |
-| `astro`      | Night Sky          |
-| `events`     | Campus & Events    |
-| `field`      | Field Notes        |
+| Folder       | Collection on the site |
+| ------------ | ---------------------- |
+| `events`     | School Events          |
+| `portraits`  | Fashion Portraits      |
+| `landscapes` | Natural Landscapes     |
+| `concerts`   | Live Concerts & OPM    |
+| `astro`      | Astrophotography       |
 
 1. Export JPG/WebP images (2000–2400px on the long edge is plenty — Next.js
    makes smaller versions for phones automatically). HEIC isn't supported;
    export iPhone shots as JPG.
-2. Drop them into the right folder. They show in alphabetical order, so you
-   can keep your names (`amf-12.jpg`, `wp-1.jpg`, `StreetConcert-17.jpg`…) or
-   prefix numbers to control the order.
-3. Captions come from the file name unless you add them to `captions.json`
-   in the same folder:
+2. Drop them into the right folder, keeping your file names
+   (`amf-12.jpg`, `wp-1.jpg`, `StreetConcert-17.jpg`…).
+3. Captions come from `captions.json` in the same folder (already filled in
+   for your photos — e.g. `IMG_3854.JPG` → "Rico Blanco"). Matching ignores
+   upper/lower case and the extension. The **first entry is the big feature
+   photo** for that collection, and photos follow the order of the file:
 
    ```json
    {

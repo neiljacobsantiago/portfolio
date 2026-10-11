@@ -81,7 +81,7 @@ export default function Practices() {
     <section ref={sectionRef} aria-labelledby="practices-title" className={pinned ? "relative h-[380vh]" : "relative py-24"}>
       <div className={pinned ? "sticky top-0 flex h-[100svh] flex-col justify-center overflow-hidden" : ""}>
         <div className="mx-auto mb-10 flex w-full max-w-[90rem] items-end justify-between gap-6 px-5 md:px-10">
-          <h2 id="practices-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none">
+          <h2 id="practices-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
             Five practices, <em className="font-serif text-ember">one eye.</em>
           </h2>
           <p className="label hidden text-ink/60 md:block">{pinned ? "Keep scrolling →" : "Swipe →"}</p>

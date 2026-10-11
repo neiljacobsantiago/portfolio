@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import ContactForm from "@/components/contact/ContactForm";
+import ContactFormFromUrl from "@/components/contact/ContactFormFromUrl";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
 import { reveal } from "@/lib/reveal";
 import { site, socials } from "@/lib/site";
@@ -50,7 +52,9 @@ export default function ContactPage() {
           </div>
         </aside>
         <div {...reveal()} className="relative rounded-[2px] bg-paper/70 p-6 shadow-[0_30px_80px_-40px_rgb(0_48_73/0.45)] ring-1 ring-ink/10 md:col-span-8 md:p-12">
-          <ContactForm />
+          <Suspense fallback={<ContactForm />}>
+            <ContactFormFromUrl />
+          </Suspense>
         </div>
       </Container>
     </>

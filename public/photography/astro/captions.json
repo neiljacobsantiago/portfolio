@@ -1,14 +1,26 @@
 {
   "photography-6.jpg": {
-    "title": "Messier 31 \u2014 Andromeda",
-    "note": "Shot on Nikon D780"
+    "title": "Andromeda Galaxy",
+    "note": "Messier 31 · Shot on Nikon D780"
+  },
+  "NightSky-2.jpg": {
+    "title": "Deep Sky",
+    "note": "Astrophotography"
+  },
+  "Sky.jpg": {
+    "title": "Star Trails",
+    "note": "Astrophotography"
+  },
+  "20260401-IMG_1671.jpg": {
+    "title": "Lunar Detail",
+    "note": "April 1, 2026"
+  },
+  "photography-17.jpg": {
+    "title": "Blood Moon",
+    "note": "Total lunar eclipse · Shot on Canon EOS 1500D"
   },
   "photography-16.jpg": {
     "title": "Lunar Surface",
-    "note": "Shot on Canon EOS 1500D"
-  },
-  "photography-17.jpg": {
-    "title": "Total Lunar Eclipse",
     "note": "Shot on Canon EOS 1500D"
   }
 }
