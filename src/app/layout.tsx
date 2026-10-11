@@ -7,6 +7,7 @@ import ChatLauncher from "@/components/chat/ChatLauncher";
 import CustomCursor from "@/components/effects/CustomCursor";
 import PaperField from "@/components/effects/PaperField";
 import RevealObserver from "@/components/effects/RevealObserver";
+import PageTransition from "@/components/effects/PageTransition";
 import SiteEffects from "@/components/effects/SiteEffects";
 import { site, siteUrl } from "@/lib/site";
 
@@ -38,7 +39,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${display.variable} ${serif.variable} ${mono.variable}`} suppressHydrationWarning>
-      <body className="overflow-x-hidden antialiased">
+      <body className="overflow-x-hidden antialiased" suppressHydrationWarning>
         <a href="#main" className="label sr-only z-[100] bg-ember px-4 py-3 text-paper focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
           Skip to content
         </a>
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <CustomCursor />
         <RevealObserver />
         <SiteEffects />
+        <PageTransition />
       </body>
     </html>
   );

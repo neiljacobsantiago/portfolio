@@ -10,7 +10,7 @@ export default async function RightNow() {
   return (
     <section aria-labelledby="now-title" className="mx-auto max-w-[90rem] px-5 py-24 md:px-10 md:py-32">
       <div className="mb-12 flex items-end justify-between gap-6">
-        <h2 id="now-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none">
+        <h2 id="now-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
           Right <em className="font-serif text-ember">now.</em>
         </h2>
         <span className="label flex items-center gap-2 text-ink/60">

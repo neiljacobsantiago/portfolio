@@ -4,16 +4,16 @@ import { cn } from "@/lib/utils";
 
 /**
  * Cover art for a project: its screenshot/photo when there is one, a bespoke
- * "lab result" illustration for PhilMech (private repo, no public screenshots),
+ * "lab result" illustration for PathoScan (private repo, no public screenshots),
  * and a typographic plate otherwise.
  */
 export default function ProjectCover({ project, sizes, className, priority }: { project: Project; sizes: string; className?: string; priority?: boolean }) {
-  if (project.slug === "philmech-pathogen-classifier") return <PhilMechArt className={className} />;
+  if (project.slug === "pathoscan") return <PathoScanArt className={className} />;
 
   if (project.cover) {
     return (
       <div className={cn("relative overflow-hidden bg-paper-deep", className)}>
-        <Image src={project.cover} alt="" fill sizes={sizes} preload={priority} className="object-cover transition-transform duration-[1.2s] ease-[var(--ease-apple)] group-hover:scale-[1.04]" />
+        <Image src={project.cover} alt="" fill sizes={sizes} preload={priority} loading={priority ? "eager" : undefined} className="object-cover transition-transform duration-[1.2s] ease-[var(--ease-apple)] group-hover:scale-[1.04]" />
       </div>
     );
   }
@@ -35,22 +35,23 @@ export default function ProjectCover({ project, sizes, className, priority }: { 
   );
 }
 
-function PhilMechArt({ className }: { className?: string }) {
+function PathoScanArt({ className }: { className?: string }) {
   const bars = [
-    { label: "A. flavus", value: 94 },
-    { label: "A. niger", value: 4 },
-    { label: "A. tamarii", value: 2 },
+    { label: "A. tamarii", value: 98 },
+    { label: "A. flavus", value: 1 },
+    { label: "A. terreus", value: 1 },
   ];
   return (
     <div className={cn("relative overflow-hidden bg-[#0f3d2e] text-paper", className)} aria-hidden>
       <div className="absolute -top-16 -right-16 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgb(102_187_106/0.45),transparent)]" />
       <div className="absolute inset-0 flex items-center justify-center gap-[6%] p-[6%]">
         <div className="relative aspect-square w-[34%] shrink-0">
-          <Image src="/projects/philmech-logo.png" alt="" fill sizes="200px" className="object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.35)] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:rotate-[8deg]" />
+          <Image src="/projects/pathoscan-logo.png" alt="" fill sizes="200px" className="object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.35)] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:rotate-[8deg]" />
         </div>
         <div className="w-[50%] rounded-xl bg-paper/10 p-[4%] ring-1 ring-paper/15 backdrop-blur-sm">
           <p className="label text-[0.55rem] text-paper/70">Top match · on-device</p>
-          <p className="mt-1 font-display text-[clamp(0.9rem,2vw,1.6rem)] leading-tight italic">Aspergillus flavus</p>
+          <p className="mt-1 font-display text-[clamp(0.9rem,2vw,1.6rem)] leading-tight italic">Aspergillus tamarii</p>
+          <p className="label mt-1 text-[0.5rem] text-[#7bd88f]">Cleared · ≥ 90%</p>
           <div className="mt-3 space-y-2">
             {bars.map((b) => (
               <div key={b.label}>
@@ -64,7 +65,7 @@ function PhilMechArt({ className }: { className?: string }) {
               </div>
             ))}
           </div>
-          <p className="mt-3 font-mono text-[0.5rem] text-paper/50">Illustrative result · offline · 90% threshold</p>
+          <p className="mt-3 font-mono text-[0.5rem] text-paper/50">PathoScan · on-device · offline</p>
         </div>
       </div>
     </div>

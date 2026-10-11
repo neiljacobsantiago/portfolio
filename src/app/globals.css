@@ -71,6 +71,12 @@
   overflow: hidden;
   pointer-events: none;
 }
+.paper-field .orbs {
+  position: absolute;
+  inset: -8%;
+  transform: translate3d(calc(var(--mx, 0) * -36px), calc(var(--my, 0) * -36px), 0);
+  transition: transform 1.6s var(--ease-apple);
+}
 .paper-field .orb {
   position: absolute;
   border-radius: 9999px;
@@ -156,6 +162,16 @@ html.low-power .paper-field .grain {
 }
 [data-reveal="mask"] {
   clip-path: inset(0 0 0 0);
+}
+
+/* Masks for line-by-line headline reveals. Serif italics and descenders hang
+   outside their box, so the mask is padded (and the padding cancelled with
+   negative margins) to keep "g", "y", "f" and italic overhangs from clipping. */
+@utility line-mask {
+  display: block;
+  overflow: clip;
+  padding: 0.08em 0.18em 0.2em 0.04em;
+  margin: -0.08em -0.18em -0.2em -0.04em;
 }
 
 /* ---------- Micro-interactions ---------- */
@@ -288,8 +304,22 @@ html.low-power .paper-field .grain {
 @keyframes bounce-dot {
   50% { transform: translateY(-4px); }
 }
-@keyframes blink {
+@keyframes caret {
   50% { opacity: 0; }
+}
+@keyframes morph {
+  0%, 100% { border-radius: 42% 58% 63% 37% / 45% 42% 58% 55%; }
+  33% { border-radius: 60% 40% 38% 62% / 55% 60% 40% 45%; }
+  66% { border-radius: 38% 62% 55% 45% / 62% 38% 62% 38%; }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
 }
 @keyframes pop-in {
   from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.96); }
@@ -317,7 +347,17 @@ html.low-power .paper-field .grain {
   animation: bounce-dot 0.6s ease-in-out infinite;
 }
 @utility animate-blink {
-  animation: blink 1s steps(1) infinite;
+  animation: caret 1s steps(1) infinite;
+}
+@utility animate-morph {
+  animation: morph 7s ease-in-out infinite;
+}
+@utility animate-eye-blink {
+  animation: blink 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+@utility animate-wiggle {
+  animation: wiggle 0.5s var(--ease-spring);
 }
 @utility animate-pop-in {
   animation: pop-in 0.5s var(--ease-spring) both;

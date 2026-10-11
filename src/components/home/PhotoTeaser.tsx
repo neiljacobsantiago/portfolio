@@ -13,7 +13,7 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
       <div className="mx-auto grid max-w-[90rem] gap-8 px-5 md:grid-cols-12 md:px-10">
         <p className="label text-sky md:col-span-3">Photography</p>
         <div className="md:col-span-9">
-          <h2 id="photo-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none">
+          <h2 id="photo-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
             Light, caught <em className="font-serif text-ember">in passing.</em>
           </h2>
           <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed text-paper/80">

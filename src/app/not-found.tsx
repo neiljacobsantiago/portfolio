@@ -9,10 +9,10 @@ export default function NotFound() {
   return (
     <section className="mx-auto flex min-h-[100svh] max-w-[90rem] flex-col justify-center px-5 pt-28 pb-16 md:px-10">
       <p className="label animate-rise-in text-ember">Error 404 · Overexposed</p>
-      <h1 className="mt-6 overflow-hidden font-display text-[clamp(3.5rem,13vw,11rem)] leading-[0.9]">
-        <span className="animate-line-up block">
+      <h1 className="mt-6 font-display text-[clamp(3.5rem,13vw,11rem)] leading-[0.95]">
+        <span className="line-mask"><span className="animate-line-up block">
           This frame <em className="font-serif text-ember">didn&apos;t develop.</em>
-        </span>
+        </span></span>
       </h1>
       <p className="animate-rise-in mt-8 max-w-xl font-serif text-xl text-ink/80" style={{ animationDelay: "200ms" }}>
         Nothing lives at <code className="font-mono text-base text-ember"><CurrentPath /></code>. It may have moved when the site was redesigned.

@@ -26,7 +26,7 @@ export const education = [
 ];
 
 export const organizations = [
-  { name: "ITSC Media Group", short: "IMG", role: "Production Director", detail: "The media arm of the CLSU IT Student Council — coverage, reels and broadcasts.", logo: "IMG_LOGO_FINAL" },
+  { name: "ITSC Media Group", short: "IMG", role: "Production Director", detail: "The media arm of the CLSU IT Student Council (formerly the ITSC Multimedia Group, MMT) — coverage, reels and broadcasts.", logo: "IMG_LOGO_FINAL" },
   { name: "CLSU IT Student Council", short: "ITSC", role: "Officer · Media Group", detail: "Student government of the CLSU IT department.", logo: "ITSC" },
   { name: "Builders of Information Technology Society", short: "BITS", role: "Member", detail: "Student organization for IT builders at CLSU.", logo: "bits_logo" },
   { name: "Department of Information Technology", short: "DIT", role: "Student", detail: "CLSU College of Engineering.", logo: "Dept_Logo" },

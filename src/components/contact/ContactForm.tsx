@@ -1,32 +1,68 @@
 "use client";
 
 import { useState } from "react";
+import { bookingTerms, services } from "@/content/sessions";
+import { haptic } from "@/lib/haptics";
 
 type Status = { state: "idle" | "sending" | "success" } | { state: "error"; message: string };
 
 const topics = ["A network", "Security", "A website", "Photography", "Something else"];
+const PHOTO = "Photography";
 
 const field =
   "w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink outline-none transition-colors placeholder:text-ink/35 focus:border-ember disabled:opacity-60";
 
-export default function ContactForm() {
+/** Pre-selection from a deep link such as /contact?service=studio&package=studio_b. */
+export interface ContactPreset {
+  topic?: string | null;
+  service?: string | null;
+  package?: string | null;
+}
+
+export default function ContactForm({ preset }: { preset?: ContactPreset }) {
+  const presetService = services.find((s) => s.id === preset?.service);
+  const presetPackage = presetService?.packages.find((p) => p.id === preset?.package);
   const [status, setStatus] = useState<Status>({ state: "idle" });
-  const [topic, setTopic] = useState(topics[0]);
+  const [topic, setTopic] = useState(presetService || preset?.topic === "photography" ? PHOTO : topics[0]);
+  const [serviceId, setServiceId] = useState(presetService?.id ?? "");
+  const [packageId, setPackageId] = useState(presetPackage?.id ?? "");
   const sending = status.state === "sending";
+  const service = services.find((s) => s.id === serviceId);
+  const booking = topic === PHOTO;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
-    setStatus({ state: "sending" });
+    const pkg = service?.packages.find((p) => p.id === packageId);
 
+    const details = booking
+      ? [
+          `Service: ${service?.name ?? "—"}`,
+          `Package: ${pkg ? `${pkg.name} (${pkg.price})` : "—"}`,
+          `Date: ${data.date || "—"}${data.time ? ` at ${data.time}` : ""}`,
+          data.phone ? `Phone: ${data.phone}` : "",
+          "Agreed to: 30% downpayment, no RAW files.",
+          "",
+        ]
+          .filter((l) => l !== "")
+          .join("\n")
+      : "";
+
+    setStatus({ state: "sending" });
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, subject: `${topic}${data.name ? ` — ${data.name}` : ""}` }),
+        body: JSON.stringify({
+          email: data.email,
+          company: data.company,
+          subject: booking ? `Booking: ${service?.name ?? "Photography"}${data.name ? ` — ${data.name}` : ""}` : `${topic}${data.name ? ` — ${data.name}` : ""}`,
+          message: details ? `${details}\n\n${data.message}` : data.message,
+        }),
       });
       if (res.ok) {
+        haptic(15);
         form.reset();
         setStatus({ state: "success" });
       } else {
@@ -40,11 +76,11 @@ export default function ContactForm() {
 
   if (status.state === "success") {
     return (
-      <div className="py-12 text-center" role="status">
-        <p className="label text-ember">Message received</p>
+      <div className="animate-pop-in py-12 text-center" role="status">
+        <p className="label text-ember">{booking ? "Booking request received" : "Message received"}</p>
         <p className="mt-4 font-display text-5xl">Thank you.</p>
-        <p className="mx-auto mt-4 max-w-sm font-serif text-xl text-ink/75 italic">I read every message myself and usually reply within a couple of days.</p>
-        <button type="button" onClick={() => setStatus({ state: "idle" })} className="label mt-10 rounded-full border border-ink/25 px-6 py-3 hover:border-ink">
+        <p className="mx-auto mt-4 max-w-sm font-serif text-xl text-ink/75 italic">I read every message myself and reply within 24 hours.</p>
+        <button type="button" onClick={() => setStatus({ state: "idle" })} className="label press mt-10 rounded-full border border-ink/25 px-6 py-3 hover:border-ink">
           Send another
         </button>
       </div>
@@ -60,11 +96,14 @@ export default function ContactForm() {
             <button
               key={t}
               type="button"
-              onClick={() => setTopic(t)}
+              onClick={() => {
+                haptic();
+                setTopic(t);
+              }}
               aria-pressed={topic === t}
-              className="label rounded-full border border-ink/20 px-4 py-2.5 transition-colors hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
+              className="label press rounded-full border border-ink/20 px-4 py-2.5 hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
             >
-              {t}
+              {t === PHOTO ? "Book a photoshoot" : t}
             </button>
           ))}
         </div>
@@ -73,7 +112,7 @@ export default function ContactForm() {
       <div className="grid gap-10 sm:grid-cols-2">
         <label className="block">
           <span className="label text-ink/60">Your name</span>
-          <input name="name" autoComplete="name" maxLength={80} disabled={sending} className={field} placeholder="Juan Dela Cruz" />
+          <input name="name" autoComplete="name" maxLength={80} required={booking} disabled={sending} className={field} placeholder="Juan Dela Cruz" />
         </label>
         <label className="block">
           <span className="label text-ink/60">Email</span>
@@ -81,10 +120,89 @@ export default function ContactForm() {
         </label>
       </div>
 
+      {booking && (
+        <div className="animate-pop-in grid gap-10 rounded-[2px] bg-paper-deep/60 p-5 sm:grid-cols-2 sm:p-7">
+          <label className="block sm:col-span-2">
+            <span className="label text-ink/60">Service</span>
+            <select
+              required
+              value={serviceId}
+              onChange={(e) => {
+                setServiceId(e.target.value);
+                setPackageId("");
+              }}
+              className={`${field} cursor-pointer`}
+            >
+              <option value="" disabled>
+                Choose a service…
+              </option>
+              {services.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {service && (
+            <fieldset className="animate-pop-in sm:col-span-2">
+              <legend className="label mb-3 text-ink/60">Package</legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {service.packages.map((p) => (
+                  <label
+                    key={p.id}
+                    className="press flex cursor-pointer items-start justify-between gap-3 rounded-[2px] border border-ink/15 bg-paper/70 p-4 has-[:checked]:border-ember has-[:checked]:ring-1 has-[:checked]:ring-ember"
+                  >
+                    <span className="flex items-start gap-3">
+                      <input type="radio" name="package" value={p.id} required checked={packageId === p.id} onChange={() => setPackageId(p.id)} className="mt-1.5 accent-[var(--color-ember)]" />
+                      <span>
+                        <span className="block font-serif text-lg leading-snug">{p.name}</span>
+                        <span className="label text-[0.58rem] text-ink/55">{p.detail}</span>
+                      </span>
+                    </span>
+                    <span className="font-display text-lg">{p.price}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          <label className="block">
+            <span className="label text-ink/60">Target date</span>
+            <input type="date" name="date" required className={field} />
+          </label>
+          <label className="block">
+            <span className="label text-ink/60">Phone (optional)</span>
+            <input type="tel" name="phone" autoComplete="tel" inputMode="tel" maxLength={20} className={field} placeholder="09xx xxx xxxx" />
+          </label>
+        </div>
+      )}
+
       <label className="block">
-        <span className="label text-ink/60">Tell me about it</span>
-        <textarea required name="message" rows={5} minLength={10} maxLength={5000} disabled={sending} className={`${field} resize-y`} placeholder="Dates, places, what you have in mind…" />
+        <span className="label text-ink/60">{booking ? "Creative vision & notes" : "Tell me about it"}</span>
+        <textarea
+          required
+          name="message"
+          rows={5}
+          minLength={10}
+          maxLength={5000}
+          disabled={sending}
+          className={`${field} resize-y`}
+          placeholder={booking ? "The vibe, lighting, outfits, location ideas…" : "Dates, places, what you have in mind…"}
+        />
       </label>
+
+      {booking && (
+        <fieldset className="animate-pop-in space-y-3">
+          <legend className="label mb-2 text-ink/60">Terms</legend>
+          {bookingTerms.map((t) => (
+            <label key={t} className="flex cursor-pointer items-start gap-3 font-serif text-lg text-ink/80">
+              <input type="checkbox" required className="mt-1.5 h-4 w-4 accent-[var(--color-ember)]" />
+              <span>{t}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
 
       {/* Honeypot for bots — hidden from people and assistive tech */}
       <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
@@ -93,12 +211,8 @@ export default function ContactForm() {
       </div>
 
       <div className="flex flex-wrap items-center gap-6">
-        <button
-          type="submit"
-          disabled={sending}
-          className="label rounded-full bg-ember px-8 py-4 text-paper transition-colors hover:bg-ink disabled:opacity-60"
-        >
-          {sending ? "Sending…" : "Send message"}
+        <button type="submit" disabled={sending} className="btn bg-ember text-paper hover:bg-ink disabled:opacity-60">
+          {sending ? "Sending…" : booking ? "Request booking" : "Send message"} <span className="arrow">→</span>
         </button>
         <p aria-live="polite" className="font-serif text-ember italic">
           {status.state === "error" && status.message}
