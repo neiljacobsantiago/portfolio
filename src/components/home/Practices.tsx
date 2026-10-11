@@ -27,18 +27,27 @@ const practices = [
   },
   {
     n: "03",
+    title: "Web",
+    line: "Vibe-coded, yes — but always architected first.",
+    detail: "Planning the data, routes and components before a line is written, then iterating fast with React, Next.js and Tailwind.",
+    href: "/work#web",
+    tone: "bg-paper text-ink ring-1 ring-ink/10",
+    accent: "text-sky",
+  },
+  {
+    n: "04",
     title: "Photography",
     line: "Concert pits, campus stages and the slow light of distant galaxies.",
-    detail: "Nikon D780, Canon EOS 1500D and an iPhone shooting ProRAW in the field.",
+    detail: "Nikon, Canon, an iPhone in ProRAW and a DJI gimbal — from concert pits to a studio-style backdrop.",
     href: "/photography",
     tone: "bg-ember text-paper",
     accent: "text-paper-deep",
   },
   {
-    n: "04",
+    n: "05",
     title: "Direction",
     line: "Leading the people behind the cameras.",
-    detail: "Shot lists, screening tasks and live broadcast setups for the CLSU ITSC Media Group.",
+    detail: "Production Director of the ITSC Media Group: shot lists, team calls, reels and live broadcasts.",
     href: "/about",
     tone: "bg-sky text-ink",
     accent: "text-wine",
@@ -69,11 +78,11 @@ export default function Practices() {
   );
 
   return (
-    <section ref={sectionRef} aria-labelledby="practices-title" className={pinned ? "relative h-[320vh]" : "relative py-24"}>
+    <section ref={sectionRef} aria-labelledby="practices-title" className={pinned ? "relative h-[380vh]" : "relative py-24"}>
       <div className={pinned ? "sticky top-0 flex h-[100svh] flex-col justify-center overflow-hidden" : ""}>
         <div className="mx-auto mb-10 flex w-full max-w-[90rem] items-end justify-between gap-6 px-5 md:px-10">
           <h2 id="practices-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none">
-            Four practices, <em className="font-serif text-ember">one eye.</em>
+            Five practices, <em className="font-serif text-ember">one eye.</em>
           </h2>
           <p className="label hidden text-ink/60 md:block">{pinned ? "Keep scrolling →" : "Swipe →"}</p>
         </div>
@@ -95,8 +104,8 @@ export default function Practices() {
               )}
             >
               <div className="flex items-start justify-between">
-                <span className="label opacity-70">{p.n} / 04</span>
-                <Link href={p.href} className="label rounded-full border border-current px-4 py-2 opacity-80 transition-opacity hover:opacity-100" data-cursor="Open">
+                <span className="label opacity-70">{p.n} / 0{practices.length}</span>
+                <Link href={p.href} className="label press rounded-full border border-current px-4 py-2 opacity-80 hover:opacity-100" data-cursor="Open">
                   Explore
                 </Link>
               </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isActivePath, mainNav, site, socials } from "@/lib/site";
+import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 export default function NavBar() {
@@ -43,6 +44,7 @@ export default function NavBar() {
         open ? "bg-wine" : scrolled ? "border-b border-ink/10 bg-paper/95 md:bg-paper/80 md:backdrop-blur-md" : "border-b border-transparent",
       )}
     >
+      <span aria-hidden className="scroll-progress pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-ember" />
       <nav aria-label="Primary" className="mx-auto flex h-16 max-w-[90rem] items-center justify-between px-5 md:h-20 md:px-10">
         <Link href="/" className={cn("group flex items-baseline gap-2", open && "text-paper")} aria-label={`${site.name} — home`}>
           <span className="font-display text-2xl leading-none">Neil Jacob</span>
@@ -73,7 +75,10 @@ export default function NavBar() {
 
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            haptic();
+            setOpen((v) => !v);
+          }}
           aria-expanded={open}
           aria-controls="site-menu"
           className={cn("label -mr-2 flex h-11 items-center gap-2 px-2 md:hidden", open && "text-paper")}
@@ -93,7 +98,7 @@ export default function NavBar() {
       >
         <ul className="border-t border-paper/15">
           {[{ label: "Home", href: "/", description: "Start here" }, ...mainNav].map((item, i) => (
-            <li key={item.href} className="border-b border-paper/15">
+            <li key={item.href} className="animate-slide-in border-b border-paper/15" style={{ animationDelay: `${80 + i * 60}ms` }}>
               <Link
                 href={item.href}
                 aria-current={isActivePath(pathname, item.href) ? "page" : undefined}
@@ -105,14 +110,14 @@ export default function NavBar() {
             </li>
           ))}
         </ul>
-        <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3">
+        <div className="animate-slide-in mt-10 flex flex-wrap gap-x-6 gap-y-3" style={{ animationDelay: "420ms" }}>
           {socials.filter((s) => s.url).map((s) => (
             <a key={s.name} href={s.url!} target="_blank" rel="noopener noreferrer" className="label text-paper/70">
               {s.name} ↗
             </a>
           ))}
         </div>
-        <p className="mt-10 font-serif text-lg text-paper/70 italic">{site.tagline}</p>
+        <p className="animate-slide-in mt-10 font-serif text-lg text-paper/70 italic" style={{ animationDelay: "480ms" }}>{site.tagline}</p>
       </div>
     </header>
   );

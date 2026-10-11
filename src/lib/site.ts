@@ -4,16 +4,18 @@
 export const site = {
   name: "Neil Jacob Santiago",
   firstName: "Neil",
-  title: "Neil Jacob Santiago — Networks, Security & Photography",
+  title: "Neil Jacob Santiago — Networks, Web & Photography",
   description:
-    "Neil Jacob Santiago designs networks, audits systems and photographs the moments in between — concerts, campus events and the night sky. Based in San Jose City, Nueva Ecija.",
+    "Neil Jacob Santiago is a third-year BSIT student at Central Luzon State University who designs networks, builds web systems and photographs concerts, campus life and the night sky. Production Director of the ITSC Media Group.",
   tagline: "Structural logic. Editorial vision.",
   location: "San Jose City, Nueva Ecija",
   country: "Philippines",
   coordinates: "15.79° N, 120.99° E",
   timeZone: "Asia/Manila",
   school: "Central Luzon State University (CLSU)",
-  role: "Production Director, CLSU IT Services Center Media Group",
+  program: "BS Information Technology — Network Systems & Infrastructure Engineering",
+  year: "Third year",
+  role: "Production Director, ITSC Media Group (IMG)",
   rate: "₱15,000",
   githubUser: "neiljacobsantiago",
   /**
@@ -37,9 +39,9 @@ export interface NavItem {
 }
 
 export const mainNav: NavItem[] = [
-  { label: "Work", href: "/work", description: "Networks, security & systems" },
-  { label: "Photography", href: "/photography", description: "Concerts, events & the night sky" },
-  { label: "About", href: "/about", description: "Story, credentials & kit" },
+  { label: "Work", href: "/work", description: "Systems, web & productions" },
+  { label: "Photography", href: "/photography", description: "Concerts, people & the night sky" },
+  { label: "About", href: "/about", description: "Story, school & kit" },
   { label: "Contact", href: "/contact", description: "Start a project" },
 ];
 
@@ -53,10 +55,11 @@ export interface Social {
 }
 
 export const socials: Social[] = [
+  { name: "Instagram", handle: "@neilllll.jacob", url: "https://instagram.com/neilllll.jacob" },
   { name: "GitHub", handle: "@neiljacobsantiago", url: "https://github.com/neiljacobsantiago" },
-  { name: "Instagram", handle: "Photography", url: null },
+  { name: "TikTok", handle: "@neill.jacob", url: "https://tiktok.com/@neill.jacob" },
+  { name: "Facebook", handle: "neiljacobsantiago24", url: "https://facebook.com/neiljacobsantiago24" },
   { name: "LinkedIn", handle: "Professional", url: null },
-  { name: "Credly", handle: "Certifications", url: null },
 ];
 
 export function isActivePath(pathname: string, href: string) {

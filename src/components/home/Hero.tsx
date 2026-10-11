@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Magnetic from "@/components/ui/Magnetic";
 import { site } from "@/lib/site";
 import Darkroom from "./Darkroom";
 
@@ -40,17 +41,21 @@ export default function Hero() {
         </h1>
 
         <p className="animate-rise-in mt-10 max-w-xl font-serif text-xl leading-relaxed text-ink/80 md:text-[1.4rem]" style={{ animationDelay: "500ms" }}>
-          I&apos;m <strong className="font-medium text-ink">Neil Jacob Santiago</strong> — an IT student at CLSU who designs and secures networks by day,
-          and directs cameras at concerts, campus events and the night sky after.
+          I&apos;m <strong className="font-medium text-ink">Neil Jacob Santiago</strong> — a third-year BSIT student at CLSU who designs networks and builds
+          web systems by day, and directs the ITSC Media Group&apos;s cameras at concerts, campus events and the night sky after.
         </p>
 
         <div className="animate-rise-in mt-10 flex flex-wrap items-center gap-4" style={{ animationDelay: "620ms" }}>
-          <Link href="/work" className="label rounded-full bg-ink px-7 py-4 text-paper transition-colors hover:bg-ember">
-            See the work
-          </Link>
-          <Link href="/photography" className="label group flex items-center gap-3 rounded-full border border-ink/30 px-7 py-4 transition-colors hover:border-ink">
-            Browse photographs <span className="transition-transform group-hover:translate-x-1">→</span>
-          </Link>
+          <Magnetic>
+            <Link href="/work" className="btn bg-ink text-paper hover:bg-ember">
+              See the work
+            </Link>
+          </Magnetic>
+          <Magnetic>
+            <Link href="/photography" className="btn border border-ink/30 hover:border-ink">
+              Browse photographs <span className="arrow">→</span>
+            </Link>
+          </Magnetic>
         </div>
       </div>
 

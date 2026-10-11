@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: `Start a project with ${site.name} — networks, security audits, websites, event coverage and photography.`,
 };
 
-const services = ["Network design & setup", "Security audits", "Websites", "Event photography & coverage"];
+const services = ["Network design & setup", "Security audits", "Web systems & websites", "Event & concert coverage", "Portrait sessions"];
 
 export default function ContactPage() {
   return (

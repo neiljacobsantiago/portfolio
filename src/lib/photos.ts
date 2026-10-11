@@ -8,8 +8,12 @@ export interface Photo {
   width: number;
   height: number;
   alt: string;
+  /** Secondary caption, e.g. "Shot on Nikon D780". */
+  note?: string;
   series: string;
 }
+
+type Caption = string | { title: string; note?: string };
 
 export interface SeriesWithPhotos extends Series {
   photos: Photo[];
@@ -27,7 +31,8 @@ const altFromFile = (file: string) => {
 /**
  * Reads /public/photography/<series-slug>/ at build time. Drop photos into a
  * series folder and they appear in the gallery. Optional `captions.json`
- * ({ "file.jpg": "Caption" }) overrides the alt text derived from file names.
+ * ({ "file.jpg": "Caption" } or { "file.jpg": { "title": "…", "note": "Shot on …" } })
+ * overrides the alt text derived from file names.
  */
 async function loadSeries(series: Series): Promise<Photo[]> {
   const dir = path.join(ROOT, series.slug);
@@ -38,17 +43,20 @@ async function loadSeries(series: Series): Promise<Photo[]> {
     return [];
   }
 
-  let captions: Record<string, string> = {};
+  let captions: Record<string, Caption> = {};
   try {
     captions = JSON.parse(await readFile(path.join(dir, "captions.json"), "utf8"));
   } catch {}
 
   const photos = await Promise.all(
-    files.map(async (file) => {
+    files.map(async (file): Promise<Photo | null> => {
       try {
         const { width, height } = await imageSizeFromFile(path.join(dir, file));
         if (!width || !height) return null;
-        return { src: `/photography/${series.slug}/${file}`, width, height, alt: captions[file] ?? altFromFile(file), series: series.slug };
+        const caption = captions[file];
+        const alt = typeof caption === "string" ? caption : (caption?.title ?? altFromFile(file));
+        const note = typeof caption === "object" ? caption.note : undefined;
+        return { src: `/photography/${series.slug}/${file}`, width, height, alt, note, series: series.slug };
       } catch {
         return null;
       }
