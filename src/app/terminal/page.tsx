@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import { Terminal as TermIcon } from "lucide-react";
-import PageHeader, { PageShell } from "@/components/layout/PageHeader";
+import PageHeader, { Container } from "@/components/layout/PageHeader";
 import Terminal from "@/components/terminal/Terminal";
 
 export const metadata: Metadata = {
   title: "Terminal",
-  description: "An interactive shell for exploring the portfolio. Try 'help', 'ls' or 'cd systems'.",
+  description: "A small interactive shell for the curious. Try 'help', 'ls' or 'cd photography'.",
 };
 
 export default function TerminalPage() {
   return (
-    <PageShell>
+    <>
       <PageHeader
-        section="Terminal"
-        icon={<TermIcon />}
-        title="Root Terminal"
-        lead="Type 'help' for directives, 'ls' to list directories, or 'cd systems' to jump around the site."
+        eyebrow="For the curious"
+        title={<>The <em className="font-serif text-ember">back</em> room.</>}
+        lead="Where this site started: a command line. Type 'help' for commands, 'ls' to list pages, or 'cd photography' to jump around."
       />
-      <Terminal />
-    </PageShell>
+      <Container className="pb-24 md:pb-32">
+        <Terminal />
+      </Container>
+    </>
   );
 }

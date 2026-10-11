@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, X } from "lucide-react";
 
 interface ChatMessage {
   id: number;
@@ -10,11 +9,11 @@ interface ChatMessage {
 }
 
 const WELCOME: ChatMessage[] = [
-  { id: 1, sender: "ai", text: "Hi there! 👋 Welcome to Neil's portfolio. I'm NeilAI." },
-  { id: 2, sender: "ai", text: "I can answer questions about his rates, tech stack, or creative projects. What would you like to know?" },
+  { id: 1, sender: "ai", text: "Hi! I'm NeilAI — I know Neil's work inside out." },
+  { id: 2, sender: "ai", text: "Ask me about his photography, his network and security projects, his rates, or how to work with him." },
 ];
 
-const QUICK_QUESTIONS = ["Who are you?", "What are your rates?", "What is your tech stack?"];
+const QUICK_QUESTIONS = ["Who is Neil?", "Can he shoot my event?", "What are his rates?"];
 
 export default function NeilAI({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>(WELCOME);
@@ -69,31 +68,27 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
     <div
       id="neilai-panel"
       role="dialog"
-      aria-label="NeilAI chat"
+      aria-label="Chat about Neil"
       hidden={!open}
-      className="blur-panel mb-4 flex h-[min(500px,calc(100dvh-8rem))] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-3xl border border-butter/20 bg-marine/95 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+      data-lenis-prevent
+      className="mb-3 flex h-[min(520px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-[18px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15"
     >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-butter/10 bg-black/40 px-5">
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accentRed">
-            <span className="font-display text-[10px] font-bold text-butter">AI</span>
-            <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border border-marine bg-green-500" />
-          </div>
-          <span className="text-sm font-bold tracking-wide text-butter">NeilAI</span>
+      <div className="flex shrink-0 items-center justify-between bg-ink px-5 py-4 text-paper">
+        <div>
+          <p className="font-display text-xl leading-none">Ask about Neil</p>
+          <p className="label mt-1 text-[0.6rem] text-sky">An AI that knows his work</p>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close chat" className="interactive -mr-2 p-2 text-butter/60 transition-colors hover:text-accentRed">
-          <X className="h-5 w-5" />
+        <button type="button" onClick={onClose} aria-label="Close chat" className="-mr-2 p-2 font-display text-2xl leading-none text-paper/70 hover:text-paper">
+          ×
         </button>
       </div>
 
-      <div ref={scrollRef} className="custom-scrollbar flex-1 space-y-4 overflow-y-auto overscroll-contain p-4" aria-live="polite">
+      <div ref={scrollRef} className="thin-scrollbar flex-1 space-y-3 overflow-y-auto overscroll-contain p-4" aria-live="polite">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[85%] px-4 py-2.5 font-sans text-[13px] leading-relaxed whitespace-pre-line ${
-                msg.sender === "user"
-                  ? "rounded-2xl rounded-br-sm bg-accentRed text-butter"
-                  : "rounded-2xl rounded-bl-sm border border-butter/10 bg-black/50 text-butter/90"
+              className={`max-w-[85%] px-4 py-2.5 font-serif text-[1.02rem] leading-snug whitespace-pre-line ${
+                msg.sender === "user" ? "rounded-2xl rounded-br-sm bg-ember text-paper" : "rounded-2xl rounded-bl-sm bg-paper-deep text-ink"
               }`}
             >
               {msg.text}
@@ -101,10 +96,10 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
           </div>
         ))}
         {isTyping && (
-          <div className="flex justify-start" aria-label="NeilAI is typing">
-            <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-butter/10 bg-black/50 px-4 py-3">
+          <div className="flex justify-start" aria-label="Typing">
+            <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-paper-deep px-4 py-3">
               {[0, 150, 300].map((delay) => (
-                <span key={delay} className="animate-bounce-dot h-1.5 w-1.5 rounded-full bg-butter/60" style={{ animationDelay: `${delay}ms` }} />
+                <span key={delay} className="animate-bounce-dot h-1.5 w-1.5 rounded-full bg-ink/50" style={{ animationDelay: `${delay}ms` }} />
               ))}
             </div>
           </div>
@@ -112,13 +107,13 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       </div>
 
       {messages.length <= WELCOME.length && !isTyping && (
-        <div className="flex shrink-0 flex-wrap gap-2 px-3 pb-2">
+        <div className="flex shrink-0 flex-wrap gap-2 px-4 pb-3">
           {QUICK_QUESTIONS.map((q) => (
             <button
               type="button"
               key={q}
               onClick={() => send(q)}
-              className="interactive rounded-full bg-butter px-3 py-1.5 text-[11px] font-bold text-marine transition-colors hover:bg-white"
+              className="label rounded-full border border-ink/20 px-3 py-2 text-[0.62rem] transition-colors hover:border-ink hover:bg-ink hover:text-paper"
             >
               {q}
             </button>
@@ -131,25 +126,25 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
           e.preventDefault();
           send(input);
         }}
-        className="flex h-16 shrink-0 items-center gap-2 border-t border-butter/10 bg-marine/50 px-3"
+        className="flex shrink-0 items-center gap-2 border-t border-ink/10 p-3"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Message NeilAI..."
-          aria-label="Message NeilAI"
+          placeholder="Ask anything…"
+          aria-label="Your question"
           maxLength={1000}
           enterKeyHint="send"
-          className="h-10 min-w-0 flex-1 rounded-full border border-butter/20 bg-black/40 px-4 text-butter outline-none placeholder:text-butter/30 focus:border-accentRed"
+          className="h-11 min-w-0 flex-1 rounded-full bg-paper-deep/70 px-4 font-serif text-ink outline-none placeholder:text-ink/40 focus:ring-1 focus:ring-ember"
         />
         <button
           type="submit"
           disabled={isTyping || !input.trim()}
-          aria-label="Send message"
-          className="interactive flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accentRed text-butter transition-colors hover:bg-red-500 disabled:opacity-50"
+          aria-label="Send"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-paper transition-colors hover:bg-ink disabled:opacity-40"
         >
-          <Send className="h-4 w-4" />
+          ↑
         </button>
       </form>
     </div>

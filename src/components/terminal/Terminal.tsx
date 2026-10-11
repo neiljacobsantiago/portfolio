@@ -33,7 +33,7 @@ export default function Terminal() {
   const router = useRouter();
   const [input, setInput] = useState("");
   const [entries, setEntries] = useState<Entry[]>([
-    { id: 0, command: "sys_boot", output: "NEIL.OS v2.4 initialized. Type 'help' for available directives." },
+    { id: 0, command: "sys_boot", output: "Welcome, visitor. NEIL.OS v3 — the old terminal lives on. Type 'help' for available directives." },
   ]);
   const [recall, setRecall] = useState<string[]>([]);
   const [recallIndex, setRecallIndex] = useState(-1);
@@ -57,10 +57,10 @@ export default function Terminal() {
     switch (cmd) {
       case "help":
         return (
-          <ul className="mt-2 space-y-1 border-l-2 border-accentRed/30 pl-4 opacity-80">
+          <ul className="mt-2 space-y-1 border-l-2 border-ember/40 pl-4 opacity-80">
             {COMMANDS.map((c) => (
               <li key={c.name}>
-                <span className="text-accentRed">{c.name}</span> — {c.desc}
+                <span className="text-ember">{c.name}</span> — {c.desc}
               </li>
             ))}
           </ul>
@@ -70,12 +70,12 @@ export default function Terminal() {
       case "skills":
         return "Infrastructure auditing, OSPF/RIP routing, InfoSec (Kali, Nmap, Snort), Next.js, Python, multimedia direction.";
       case "rates":
-        return <span className="font-bold text-butter">Freelance retainer starts at {site.rate}. Connection refused for lower bids.</span>;
+        return <span className="font-bold text-paper">Freelance retainer starts at {site.rate}. Connection refused for lower bids.</span>;
       case "ls":
         return (
           <div className="flex flex-wrap gap-x-6 gap-y-1">
             {allRoutes.filter((r) => r.href !== "/").map((r) => (
-              <Link key={r.href} href={r.href} className="interactive text-accentRed underline-offset-4 hover:underline">
+              <Link key={r.href} href={r.href} className="interactive text-ember underline-offset-4 hover:underline">
                 {r.href.slice(1)}/
               </Link>
             ))}
@@ -95,7 +95,7 @@ export default function Terminal() {
               <li key={s.name}>
                 {s.name}:{" "}
                 {s.url ? (
-                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="interactive text-accentRed hover:underline">{s.url}</a>
+                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="interactive text-ember hover:underline">{s.url}</a>
                 ) : (
                   <span className="opacity-50">pending</span>
                 )}
@@ -107,11 +107,11 @@ export default function Terminal() {
         router.push("/contact");
         return `Location: ${site.location}. Opening secure channel ...`;
       case "sudo":
-        return <span className="text-accentRed">Permission denied. This incident will be reported.</span>;
+        return <span className="text-ember">Permission denied. This incident will be reported.</span>;
       case "clear":
         return null;
       default:
-        return <span className="text-accentRed">Command not recognized: {cmd}. Type &apos;help&apos;.</span>;
+        return <span className="text-ember">Command not recognized: {cmd}. Type &apos;help&apos;.</span>;
     }
   };
 
@@ -149,18 +149,18 @@ export default function Terminal() {
       onClick={() => {
         if (!getSelection()?.toString()) inputRef.current?.focus({ preventScroll: true });
       }}
-      className="custom-scrollbar flex h-[60dvh] min-h-80 cursor-text flex-col overflow-y-auto overscroll-contain border border-butter/20 bg-black/60 p-4 font-mono text-sm shadow-[0_0_30px_rgba(0,0,0,0.5)] sm:p-6"
+      className="thin-scrollbar flex h-[60dvh] min-h-80 cursor-text flex-col overflow-y-auto overscroll-contain rounded-[2px] bg-ink p-5 font-mono text-[0.95rem] text-paper shadow-[0_40px_80px_-30px_rgb(0_48_73/0.6)] sm:p-8"
     >
       {entries.map((entry) => (
         <div key={entry.id} className="mb-4 break-words">
-          <div className="text-accentRed">
-            root@neilos:~$ <span className="text-butter">{entry.command}</span>
+          <div className="text-ember">
+            root@neil:~$ <span className="text-paper">{entry.command}</span>
           </div>
-          <div className="mt-1 text-butter/80">{entry.output}</div>
+          <div className="mt-1 text-paper/80">{entry.output}</div>
         </div>
       ))}
-      <form onSubmit={handleSubmit} className="flex items-center text-accentRed">
-        <label htmlFor="cli-input" className="shrink-0">root@neilos:~$</label>
+      <form onSubmit={handleSubmit} className="flex items-center text-ember">
+        <label htmlFor="cli-input" className="shrink-0">root@neil:~$</label>
         <input
           ref={inputRef}
           id="cli-input"
@@ -173,7 +173,7 @@ export default function Terminal() {
           autoCorrect="off"
           spellCheck={false}
           enterKeyHint="go"
-          className="ml-2 min-w-0 flex-1 border-none bg-transparent text-butter outline-none"
+          className="ml-2 min-w-0 flex-1 border-none bg-transparent text-paper outline-none"
         />
       </form>
     </div>
