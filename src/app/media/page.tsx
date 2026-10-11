@@ -1,98 +1,89 @@
-"use client";
+import type { Metadata } from "next";
+import { Camera, Crosshair, Image as ImageIcon, Video } from "lucide-react";
+import PageHeader, { PageShell } from "@/components/layout/PageHeader";
+import { reveal } from "@/lib/reveal";
 
-import { motion } from "framer-motion";
-import { Camera, Video, Image as ImageIcon, Crosshair } from "lucide-react";
+export const metadata: Metadata = {
+  title: "Media",
+  description: "Event photography, live coverage, astrophotography and production direction by Neil Jacob Santiago.",
+};
 
 const mediaDeployments = [
   {
     title: "Aurora Music Festival 2026",
     role: "Live Performance Photography",
     gear: "iPhone 14 Pro Max // ProRAW // Lightroom Mobile",
-    description: "Executed rapid mobile media deployment during live music sets. Captured, processed, and color-graded high-contrast performance snapshots directly in the field.",
-    type: "photo"
+    description:
+      "Executed rapid mobile media deployment during live music sets. Captured, processed, and color-graded high-contrast performance snapshots directly in the field.",
+    type: "photo",
   },
   {
     title: "ITSC Recruitment Directives",
     role: "Production Director",
     gear: "Nikon D780 // Canon EOS 1500D // OBS Studio",
-    description: "Formulated comprehensive photo and videography guidelines for the ITSC Media Group. Designed screening tasks, shot lists, and dual-preview OBS broadcast configurations for live university operations.",
-    type: "video"
+    description:
+      "Formulated comprehensive photo and videography guidelines for the ITSC Media Group. Designed screening tasks, shot lists, and dual-preview OBS broadcast configurations for live university operations.",
+    type: "video",
   },
   {
     title: "IRCITE 2026 Live Coverage",
     role: "Media Operator",
     gear: "Custom Speedlite Sync // EF 50mm f/1.8",
-    description: "Provided continuous live event documentation. Managed optical performance, flash exposure setups, and tethered data transfers in high-pressure, fast-paced university environments.",
-    type: "photo"
+    description:
+      "Provided continuous live event documentation. Managed optical performance, flash exposure setups, and tethered data transfers in high-pressure, fast-paced university environments.",
+    type: "photo",
   },
   {
     title: "Deep-Sky Astrophotography",
     role: "Post-Processing & Stacking",
     gear: "Sequator // Adobe Lightroom Classic // RAW (.cr2)",
-    description: "Captured celestial bodies and the Andromeda Galaxy. Executed complex frame stacking protocols and tone curve adjustments to extract high-fidelity optical data from deep-sky targets.",
-    type: "photo"
-  }
-];
+    description:
+      "Captured celestial bodies and the Andromeda Galaxy. Executed complex frame stacking protocols and tone curve adjustments to extract high-fidelity optical data from deep-sky targets.",
+    type: "photo",
+  },
+] as const;
 
 export default function MediaPage() {
   return (
-    <main className="relative w-full min-h-screen pb-32">
-      <section className="relative z-10 w-full pt-40 pb-12 px-6 md:px-16 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-16 border-b border-butter/10 pb-8">
-          <span className="font-mono text-accentRed tracking-[0.2em] uppercase text-xs mb-4 flex items-center gap-2">
-            <Camera className="w-4 h-4" /> /Directory/Media
-          </span>
-          <h1 className="font-display text-5xl md:text-7xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-butter to-butter/40">
-            Visual Telemetry <br/> & Direction
-          </h1>
-        </motion.div>
+    <PageShell>
+      <PageHeader
+        section="Media"
+        icon={<Camera />}
+        title={<>Visual Telemetry <br /> & Direction</>}
+        lead="Nikon D780 / Canon EOS 1500D / iPhone 14 Pro Max"
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mediaDeployments.map((log, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="border border-butter/10 bg-black/40 flex flex-col group interactive hover:border-butter/50 transition-all overflow-hidden"
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {mediaDeployments.map((item, idx) => {
+          const Icon = item.type === "video" ? Video : ImageIcon;
+          return (
+            <article
+              key={item.title}
+              {...reveal("up", (idx % 2) * 100)}
+              className="group interactive flex flex-col overflow-hidden border border-butter/10 bg-black/40 transition-colors hover:border-butter/50"
             >
-              {/* Image Placeholder Area */}
-              <div className="w-full aspect-video bg-marine/40 border-b border-butter/10 relative flex items-center justify-center overflow-hidden">
+              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden border-b border-butter/10 bg-marine/40" aria-hidden>
                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,250,138,0.02)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px]" />
-                {log.type === "video" ? (
-                  <Video className="w-12 h-12 text-butter/20 group-hover:scale-110 transition-transform duration-700" />
-                ) : (
-                  <ImageIcon className="w-12 h-12 text-butter/20 group-hover:scale-110 transition-transform duration-700" />
-                )}
+                <Icon className="h-12 w-12 text-butter/20 transition-transform duration-700 group-hover:scale-110" />
                 <div className="absolute top-4 right-4 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-accentRed animate-pulse" />
-                  <span className="font-mono text-[9px] uppercase tracking-widest text-butter/50">REC</span>
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-accentRed" />
+                  <span className="font-mono text-[9px] tracking-widest text-butter/50 uppercase">REC</span>
                 </div>
-                <Crosshair className="absolute w-full h-full text-butter/5 opacity-50 scale-150" strokeWidth={0.5} />
+                <Crosshair className="absolute h-full w-full scale-150 text-butter/5 opacity-50" strokeWidth={0.5} />
               </div>
 
-              {/* Data Overlay */}
-              <div className="p-6 md:p-8 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-display text-xl md:text-2xl font-bold uppercase text-butter tracking-tight">
-                    {log.title}
-                  </h3>
-                </div>
-                <p className="font-mono text-[10px] text-accentRed uppercase tracking-widest mb-2">
-                  Role: {log.role}
-                </p>
-                <p className="font-mono text-xs text-butter/60 uppercase tracking-widest mb-6 border-l border-butter/20 pl-3">
-                  {log.gear}
-                </p>
-                <p className="font-sans text-sm text-butter/80 leading-relaxed mt-auto">
-                  {log.description}
-                </p>
+              <div className="flex flex-1 flex-col p-5 sm:p-6 md:p-8">
+                <h2 className="mb-4 font-display text-xl font-bold tracking-tight text-butter uppercase md:text-2xl">{item.title}</h2>
+                <p className="mb-2 font-mono text-[10px] tracking-widest text-accentRed uppercase">Role: {item.role}</p>
+                <p className="mb-6 border-l border-butter/20 pl-3 font-mono text-xs tracking-widest text-butter/60 uppercase">{item.gear}</p>
+                <p className="mt-auto font-sans text-sm leading-relaxed text-butter/80">{item.description}</p>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-    </main>
+            </article>
+          );
+        })}
+      </div>
+
+      <p className="mt-12 text-center font-mono text-xs tracking-widest text-accentRed uppercase">[ Awaiting ProRAW dataset uploads ]</p>
+    </PageShell>
   );
 }

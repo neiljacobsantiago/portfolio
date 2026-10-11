@@ -1,59 +1,51 @@
-"use client";
-
-import { motion } from "framer-motion";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Terminal, AlertTriangle, ShieldAlert } from "lucide-react";
-import NetworkBackground from "@/components/ui/NetworkBackground";
+import { ShieldAlert, Terminal } from "lucide-react";
+import CurrentPath from "@/components/effects/CurrentPath";
+import { primaryNav } from "@/lib/site";
+
+export const metadata: Metadata = { title: "404: Packet Dropped" };
 
 export default function NotFound() {
   return (
-    <main className="relative w-full h-screen bg-marine text-butter font-sans overflow-hidden selection:bg-accentRed flex flex-col items-center justify-center">
-      
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
-        <NetworkBackground />
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, type: "spring" }}
-        className="relative z-10 border border-accentRed/40 bg-black/60 backdrop-blur-md p-8 md:p-16 max-w-2xl w-[90%] text-center shadow-[0_0_50px_rgba(229,26,26,0.15)]"
-      >
-        <motion.div 
-          animate={{ y: [0, -10, 0] }} 
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="flex justify-center mb-6"
-        >
-          <ShieldAlert className="w-20 h-20 text-accentRed" />
-        </motion.div>
-
-        <h1 className="font-display text-5xl md:text-7xl font-black uppercase tracking-tighter text-accentRed mb-2">
-          404: Packet Dropped
-        </h1>
-        
-        <div className="font-mono text-xs tracking-[0.3em] uppercase text-butter/60 mb-8 border-b border-butter/10 pb-4">
-          Critical Routing Failure
+    <div className="relative flex min-h-[100svh] w-full flex-col items-center justify-center px-4 pt-24 pb-12">
+      <div className="animate-rise-in relative z-10 w-full max-w-2xl border border-accentRed/40 bg-black/60 p-6 text-center shadow-[0_0_50px_rgba(229,26,26,0.15)] sm:p-8 md:p-16">
+        <div className="animate-float mb-6 flex justify-center">
+          <ShieldAlert className="h-16 w-16 text-accentRed md:h-20 md:w-20" />
         </div>
 
-        <p className="font-sans text-lg opacity-80 mb-6 leading-relaxed">
-          We checked the routing tables. We pinged the DNS. We even asked the AI. 
-          This endpoint simply does not exist. You are currently drifting in the digital void.
+        <h1 className="mb-2 font-display text-[clamp(2.25rem,10vw,4.5rem)] leading-none font-black tracking-tighter text-accentRed uppercase">
+          404: Packet Dropped
+        </h1>
+        <p className="mb-8 border-b border-butter/10 pb-4 font-mono text-xs tracking-[0.3em] text-butter/60 uppercase">Critical Routing Failure</p>
+
+        <p className="mb-6 font-sans text-base leading-relaxed opacity-80 md:text-lg">
+          We checked the routing tables. We pinged the DNS. We even asked the AI. This endpoint simply does not exist.
         </p>
 
-        <div className="bg-marine/50 border border-butter/20 p-4 font-mono text-xs text-left mb-8 rounded-sm">
-          <span className="text-accentRed">root@neilos:~$</span> ping {typeof window !== "undefined" ? window.location.pathname : "/unknown"} <br/>
-          <span className="opacity-50">Destination Host Unreachable.</span><br/>
+        <div className="mb-8 rounded-sm border border-butter/20 bg-marine/50 p-4 text-left font-mono text-xs break-all">
+          <span className="text-accentRed">root@neilos:~$</span> ping <CurrentPath />
+          <br />
+          <span className="opacity-50">Destination Host Unreachable.</span>
+          <br />
           <span className="opacity-50">1 packets transmitted, 0 received, 100% packet loss.</span>
         </div>
 
-        <Link href="/">
-          <button className="group relative px-8 py-4 bg-accentRed text-butter font-display font-bold uppercase tracking-widest hover:bg-butter hover:text-marine transition-colors interactive overflow-hidden cursor-none">
-            <span className="relative z-10 flex items-center gap-2">
-              <Terminal className="w-4 h-4" /> Initialize Reroute
-            </span>
-          </button>
+        <Link
+          href="/"
+          className="interactive inline-flex items-center gap-2 bg-accentRed px-8 py-4 font-display font-bold tracking-widest text-butter uppercase transition-colors hover:bg-butter hover:text-marine"
+        >
+          <Terminal className="h-4 w-4" /> Initialize Reroute
         </Link>
-      </motion.div>
-    </main>
+
+        <nav aria-label="Suggested pages" className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 font-mono text-xs uppercase">
+          {primaryNav.map((item) => (
+            <Link key={item.href} href={item.href} className="interactive text-butter/60 hover:text-accentRed">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </div>
   );
 }

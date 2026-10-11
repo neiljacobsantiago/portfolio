@@ -1,115 +1,110 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Image from "next/image";
-import NetworkBackground from "@/components/ui/NetworkBackground";
-import TechStack from "@/components/sections/TechStack";
-import GlobalTelemetry from "@/components/sections/GlobalTelemetry";
-import SentinelEye from "@/components/ui/SentinelEye";
+import Link from "next/link";
+import NetworkBackground from "@/components/effects/NetworkBackground";
+import Sentinel from "@/components/effects/Sentinel";
+import Directory from "@/components/home/Directory";
+import GlobalTelemetry from "@/components/home/GlobalTelemetry";
+import TechStack from "@/components/home/TechStack";
+import { reveal } from "@/lib/reveal";
 
-export default function ExtravagantPortfolio() {
+// Re-generate the page (and its cached GitHub/weather telemetry) at most every 30 minutes.
+export const revalidate = 1800;
+
+export default function HomePage() {
   return (
-    <main className="relative w-full min-h-screen overflow-x-hidden">
-      
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
-        <NetworkBackground />
-      </div>
+    <div className="relative w-full overflow-x-clip">
+      <NetworkBackground className="opacity-40" />
 
-      {/* Upgraded Split Hero Section */}
-      <section id="top" className="relative z-10 w-full min-h-screen flex flex-col md:flex-row items-center justify-center md:justify-between px-6 md:px-16 pt-20 pb-12 max-w-7xl mx-auto gap-12">
-        
-        {/* Left Side: Typography */}
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="w-full md:w-3/5 z-10"
-        >
-          <p className="font-mono text-sm md:text-base tracking-[0.3em] text-accentRed mb-4 uppercase">
+      {/* Hero */}
+      <section
+        id="top"
+        className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col items-center justify-center gap-10 px-4 pt-24 pb-12 sm:px-6 md:flex-row md:justify-between md:gap-12 md:px-16"
+      >
+        <div className="animate-rise-in z-10 w-full md:w-3/5">
+          <p className="mb-4 font-mono text-xs tracking-[0.25em] text-accentRed uppercase sm:text-sm md:text-base md:tracking-[0.3em]">
             Network Systems & Infrastructure Engineering
           </p>
-          <h1 className="font-display text-6xl md:text-8xl lg:text-[5.5vw] font-black leading-[0.95] tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-br from-butter to-butter/40">
-            NEIL JACOB <br /> SANTIAGO
+          <h1 className="bg-gradient-to-br from-butter to-butter/40 bg-clip-text font-display text-[clamp(2.75rem,14vw,6rem)] leading-[0.95] font-black tracking-tighter text-transparent uppercase lg:text-[5.5vw]">
+            Neil Jacob <br /> Santiago
           </h1>
-        </motion.div>
+          <p className="mt-6 max-w-lg font-mono text-sm leading-relaxed text-butter/70">
+            Production Director · Network Engineer · Security Auditor. Building resilient systems and directing the media that documents them.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/systems"
+              className="interactive bg-accentRed px-6 py-3.5 font-display text-sm font-bold tracking-widest text-butter uppercase transition-colors hover:bg-butter hover:text-marine"
+            >
+              View Systems
+            </Link>
+            <Link
+              href="/contact"
+              className="interactive border border-butter/30 px-6 py-3.5 font-display text-sm font-bold tracking-widest text-butter uppercase transition-colors hover:border-butter hover:bg-butter/10"
+            >
+              Open a Channel
+            </Link>
+          </div>
+        </div>
 
-        {/* Right Side: Cursor Tracker (Hidden on very small mobile screens) */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          transition={{ duration: 1, delay: 0.3 }}
-          className="w-full md:w-2/5 hidden sm:flex justify-center md:justify-end z-10"
-        >
-          <SentinelEye />
-        </motion.div>
-
+        <div className="z-10 hidden w-full justify-center sm:flex md:w-2/5 md:justify-end">
+          <Sentinel />
+        </div>
       </section>
 
-      {/* Operator Bio Section */}
-      <section id="about" className="relative z-10 w-full min-h-screen px-6 md:px-16 py-32 flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto border-t border-butter/10">
-        <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8 }} className="w-full md:w-1/2 mb-16 md:mb-0">
-          <h2 className="font-display text-5xl md:text-7xl font-bold leading-none mb-8">
-            STRUCTURAL <span className="text-accentRed italic">LOGIC.</span><br />
+      {/* Operator bio */}
+      <section
+        id="about"
+        aria-labelledby="about-title"
+        className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-12 border-t border-butter/10 px-4 py-20 sm:px-6 md:flex-row md:px-16 md:py-32"
+      >
+        <div {...reveal("left")} className="w-full md:w-1/2">
+          <h2 id="about-title" className="mb-8 font-display text-[clamp(2.25rem,10vw,4.5rem)] leading-none font-bold">
+            STRUCTURAL <span className="text-accentRed italic">LOGIC.</span>
+            <br />
             EDITORIAL <span className="text-accentRed italic">VISION.</span>
           </h2>
-          <div className="w-24 h-1 bg-accentRed mb-8" />
-          <p className="text-lg md:text-xl font-light leading-relaxed max-w-xl opacity-80 mb-6">
+          <div className="mb-8 h-1 w-24 bg-accentRed" />
+          <p className="mb-6 max-w-xl text-lg leading-relaxed font-light opacity-80 md:text-xl">
             I balance the uncompromising logic of dynamic routing and vulnerability auditing with the fluid dynamics of multimedia direction.
           </p>
-          <p className="text-base md:text-lg font-mono text-accentRed leading-relaxed max-w-xl pl-6 border-l-2 border-accentRed/30">
+          <p className="max-w-xl border-l-2 border-accentRed/30 pl-6 font-mono text-base leading-relaxed text-accentRed md:text-lg">
             Operating at the intersection of rigid server architectures and high-end creative telemetry.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Image Transition Profile Card */}
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 1 }} className="w-full md:w-1/3 aspect-square border border-butter/20 bg-black/30 backdrop-blur-sm relative flex items-center justify-center overflow-hidden group interactive">
-          
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accentRed z-30 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accentRed z-30 pointer-events-none" />
-          
-          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,250,138,0.03)_10px,rgba(255,250,138,0.03)_20px)] z-20 pointer-events-none mix-blend-overlay" />
+        <div
+          {...reveal("scale")}
+          className="group interactive relative flex aspect-square w-full max-w-sm items-center justify-center overflow-hidden border border-butter/20 bg-black/30 md:w-1/3"
+        >
+          <div className="pointer-events-none absolute top-0 left-0 z-30 h-8 w-8 border-t-2 border-l-2 border-accentRed" />
+          <div className="pointer-events-none absolute right-0 bottom-0 z-30 h-8 w-8 border-r-2 border-b-2 border-accentRed" />
+          <div className="pointer-events-none absolute inset-0 z-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,250,138,0.03)_10px,rgba(255,250,138,0.03)_20px)] mix-blend-overlay" />
 
-          {/* Default Image: njs_p.jpg */}
-          <Image 
-            src="/njs_p.jpg" 
-            alt="Sys_Admin Profile" 
-            fill 
-            className="object-cover transition-transform duration-700 group-hover:scale-105 z-0" 
+          <Image
+            src="/njs_p.jpg"
+            alt="Portrait of Neil Jacob Santiago"
+            fill
+            sizes="(min-width: 768px) 33vw, (min-width: 640px) 384px, 100vw"
+            className="z-0 object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          {/* Hover variant: only exists for mouse users, so phones never download it */}
+          <Image
+            src="/njs_p1.jpg"
+            alt=""
+            fill
+            sizes="(min-width: 768px) 33vw, 384px"
+            className="pointer-fine:block z-10 hidden object-cover opacity-0 transition-all duration-700 group-hover:scale-105 group-hover:opacity-100"
           />
 
-          {/* Hover Image: njs_p1.jpg */}
-          <Image 
-            src="/njs_p1.jpg" 
-            alt="Sys_Admin Profile Active" 
-            fill 
-            className="object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105 z-10" 
-          />
-
-          <div className="absolute bottom-4 left-4 z-30 pointer-events-none">
-            <span className="block font-mono text-[10px] tracking-widest text-accentRed bg-marine/90 border border-accentRed/30 px-2 py-1 uppercase shadow-[0_0_10px_rgba(0,0,0,0.8)]">
-              Sys_Admin // Active
-            </span>
-          </div>
-          
-        </motion.div>
+          <span className="pointer-events-none absolute bottom-4 left-4 z-30 border border-accentRed/30 bg-marine/90 px-2 py-1 font-mono text-[10px] tracking-widest text-accentRed uppercase">
+            Sys_Admin // Active
+          </span>
+        </div>
       </section>
 
       <TechStack />
-
-      <section id="media" className="relative z-10 w-full min-h-[40vh] px-6 md:px-16 py-24 flex flex-col items-center justify-center text-center max-w-7xl mx-auto border-t border-butter/10">
-        <h2 className="font-display text-4xl md:text-6xl font-black uppercase mb-6 tracking-tight opacity-30">
-          Visual Telemetry
-        </h2>
-        <div className="font-mono text-sm max-w-lg mx-auto opacity-70 mb-4">
-          Nikon D780 / Canon EOS 1500D / iPhone 14 Pro Max
-        </div>
-        <div className="font-mono text-accentRed uppercase tracking-widest text-xs border border-accentRed/30 bg-accentRed/5 px-6 py-3 rounded-full cursor-none">
-          [ Awaiting ProRAW Dataset Uploads ]
-        </div>
-      </section>
-
+      <Directory />
       <GlobalTelemetry />
-      
-    </main>
+    </div>
   );
 }

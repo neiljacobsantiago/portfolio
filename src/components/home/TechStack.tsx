@@ -1,6 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
+import Link from "next/link";
+import { reveal } from "@/lib/reveal";
 
 const techBadges = [
   {
@@ -117,41 +116,41 @@ const techBadges = [
 
 export default function TechStack() {
   return (
-    <section id="systems" className="relative z-10 w-full min-h-[50vh] px-6 md:px-16 py-24 bg-black/40 border-y border-butter/10 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
-        
-        <div className="flex flex-col md:flex-row justify-between md:items-end mb-12 gap-4">
+    <section id="stack" aria-labelledby="stack-title" className="relative z-10 w-full overflow-hidden border-y border-butter/10 bg-black/40 px-4 py-16 sm:px-6 md:px-16 md:py-24">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex flex-col justify-between gap-4 md:mb-12 md:flex-row md:items-end">
           <div>
-            <span className="font-mono text-accentRed tracking-[0.2em] uppercase text-xs mb-2 block">Sys_Config //</span>
-            <h2 className="font-display text-4xl md:text-5xl font-black uppercase tracking-tight">
+            <span className="mb-2 block font-mono text-xs tracking-[0.2em] text-accentRed uppercase">Sys_Config //</span>
+            <h2 id="stack-title" className="font-display text-3xl font-black tracking-tight uppercase sm:text-4xl md:text-5xl">
               Technology Stack
             </h2>
           </div>
-          <p className="font-mono text-xs opacity-60 uppercase max-w-xs md:text-right">
-            Verified protocols and frameworks governing host operations.
-          </p>
+          <p className="max-w-xs font-mono text-xs uppercase opacity-60 md:text-right">Verified protocols and frameworks governing host operations.</p>
         </div>
 
-        {/* Dense Badge Wrapping Grid */}
-        <div className="flex flex-wrap gap-3 md:gap-4 justify-start items-center">
+        <ul className="flex flex-wrap items-center justify-start gap-2 sm:gap-3 md:gap-4">
           {techBadges.map((tech, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.03, type: "spring", stiffness: 200 }}
-              className="flex items-center gap-3 px-4 py-2.5 bg-marine/80 border border-butter/20 rounded-sm cursor-none interactive group hover:border-accentRed hover:bg-accentRed/5 hover:shadow-[0_0_15px_rgba(229,26,26,0.3)] transition-all duration-300"
+            <li
+              key={tech.name}
+              {...reveal("scale", i * 25)}
+              className="group interactive flex items-center gap-2.5 rounded-sm border border-butter/20 bg-marine/80 px-3 py-2 transition-colors duration-300 hover:border-accentRed hover:bg-accentRed/5 sm:gap-3 sm:px-4 sm:py-2.5"
             >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 text-butter group-hover:text-accentRed transition-colors">
+              <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 text-butter transition-colors group-hover:text-accentRed sm:h-5 sm:w-5">
                 {tech.svg}
               </svg>
-              <span className="font-mono text-xs font-bold uppercase tracking-wide text-butter/90 group-hover:text-butter transition-colors">
+              <span className="font-mono text-[11px] font-bold tracking-wide text-butter/90 uppercase transition-colors group-hover:text-butter sm:text-xs">
                 {tech.name}
               </span>
-            </motion.div>
+            </li>
           ))}
-        </div>
+        </ul>
+
+        <Link
+          href="/systems"
+          className="interactive mt-10 inline-flex items-center gap-2 border-b border-accentRed pb-1 font-mono text-xs tracking-widest text-accentRed uppercase transition-colors hover:text-butter"
+        >
+          See it deployed → /systems
+        </Link>
       </div>
     </section>
   );
