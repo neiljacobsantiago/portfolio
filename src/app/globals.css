@@ -1,31 +1,144 @@
 @import "tailwindcss";
 
-@theme {
+/* Devices with a real mouse/trackpad. Touch phones never see hover-only styling. */
+@custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
+
+@theme inline {
   --color-marine: #021124;
   --color-accentRed: #E51A1A;
   --color-butter: #FFFA8A;
-  
-  --font-sans: var(--font-sans), sans-serif;
-  --font-display: var(--font-display), sans-serif;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-marine text-butter overflow-x-hidden cursor-none;
-    /* Brutalist technical grid background */
-    background-image: linear-gradient(rgba(255, 250, 138, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 250, 138, 0.03) 1px, transparent 1px);
+    @apply bg-marine text-butter;
+    min-height: 100dvh;
+    /* Brutalist technical grid */
+    background-image:
+      linear-gradient(rgba(255, 250, 138, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 250, 138, 0.03) 1px, transparent 1px);
     background-size: 50px 50px;
   }
-  
+
   ::selection {
     @apply bg-accentRed text-marine;
   }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accentRed);
+    outline-offset: 3px;
+  }
+
+  /* 16px+ inputs stop iOS/Android from zooming the page on focus */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
 }
 
-/* Lenis Smooth Scrolling Defaults */
-html.lenis { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-stopped { overflow: hidden; }
-.lenis.lenis-scrolling iframe { pointer-events: none; }
+/* Custom cursor is opted into from JS, only on fine-pointer devices */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
+/* ---------- Reveal-on-scroll (see components/effects/RevealObserver) ----------
+   Pure CSS transitions toggled by one shared IntersectionObserver.
+   Without JS the content simply stays visible. */
+@media (scripting: enabled) {
+  [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  [data-reveal="left"]:not([data-revealed]) {
+    transform: translate3d(-24px, 0, 0);
+  }
+  [data-reveal="right"]:not([data-revealed]) {
+    transform: translate3d(24px, 0, 0);
+  }
+  [data-reveal="scale"]:not([data-revealed]) {
+    transform: scale(0.94);
+  }
+}
+
+[data-reveal] {
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translate3d(0, 32px, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+@keyframes float {
+  50% { transform: translateY(-10px); }
+}
+@keyframes bounce-dot {
+  50% { transform: translateY(-4px); }
+}
+
+@utility animate-page-in {
+  animation: page-in 0.35s ease-out both;
+}
+@utility animate-rise-in {
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@utility animate-blink {
+  animation: blink 1s steps(1) infinite;
+}
+@utility animate-float {
+  animation: float 2.4s ease-in-out infinite;
+}
+@utility animate-bounce-dot {
+  animation: bounce-dot 0.6s ease-in-out infinite;
+}
+
+/* ---------- Scrollbars ---------- */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(229, 26, 26, 0.6) transparent;
+}
+
+/* ---------- Accessibility & low-power ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+/* Touch devices: drop expensive backdrop blurs (a big scroll-jank source on budget Androids) */
+@media (pointer: coarse) {
+  .blur-panel {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
