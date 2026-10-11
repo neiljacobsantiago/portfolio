@@ -10,7 +10,7 @@ interface ChatMessage {
 
 const WELCOME: ChatMessage[] = [
   { id: 1, sender: "ai", text: "Hi! I'm NeilAI — I know Neil's work inside out." },
-  { id: 2, sender: "ai", text: "Ask me about his photography, his network and security projects, his rates, or how to work with him." },
+  { id: 2, sender: "ai", text: "Ask me about his photography, his projects (like the PhilMech pathogen classifier), school, rates, or how to work with him." },
 ];
 
 const QUICK_QUESTIONS = ["Who is Neil?", "Can he shoot my event?", "What are his rates?"];
@@ -21,6 +21,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
   const [isTyping, setIsTyping] = useState(false);
   const nextId = useRef(WELCOME.length + 1);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -33,6 +34,11 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  // Focus the input when the panel opens (keyboard users and desktop).
+  useEffect(() => {
+    if (open && matchMedia("(hover: hover) and (pointer: fine)").matches) inputRef.current?.focus({ preventScroll: true });
+  }, [open]);
 
   const push = (sender: ChatMessage["sender"], text: string) =>
     setMessages((prev) => [...prev, { id: nextId.current++, sender, text }]);
@@ -69,9 +75,11 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       id="neilai-panel"
       role="dialog"
       aria-label="Chat about Neil"
-      hidden={!open}
+      inert={!open}
+      aria-hidden={!open}
+      data-open={open}
       data-lenis-prevent
-      className="mb-3 flex h-[min(520px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-[18px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15"
+      className="mb-3 flex h-[min(520px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[18px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,transform,visibility] duration-500 ease-[var(--ease-spring)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-90 data-[open=false]:opacity-0 data-[open=false]:duration-300 data-[open=false]:ease-[var(--ease-apple)]"
     >
       <div className="flex shrink-0 items-center justify-between bg-ink px-5 py-4 text-paper">
         <div>
@@ -85,7 +93,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
 
       <div ref={scrollRef} className="thin-scrollbar flex-1 space-y-3 overflow-y-auto overscroll-contain p-4" aria-live="polite">
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+          <div key={msg.id} className={`animate-pop-in flex ${msg.sender === "user" ? "justify-end origin-bottom-right" : "justify-start origin-bottom-left"}`}>
             <div
               className={`max-w-[85%] px-4 py-2.5 font-serif text-[1.02rem] leading-snug whitespace-pre-line ${
                 msg.sender === "user" ? "rounded-2xl rounded-br-sm bg-ember text-paper" : "rounded-2xl rounded-bl-sm bg-paper-deep text-ink"
@@ -113,7 +121,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
               type="button"
               key={q}
               onClick={() => send(q)}
-              className="label rounded-full border border-ink/20 px-3 py-2 text-[0.62rem] transition-colors hover:border-ink hover:bg-ink hover:text-paper"
+              className="label press rounded-full border border-ink/20 px-3 py-2 text-[0.62rem] hover:border-ink hover:bg-ink hover:text-paper"
             >
               {q}
             </button>
@@ -129,6 +137,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
         className="flex shrink-0 items-center gap-2 border-t border-ink/10 p-3"
       >
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -142,7 +151,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
           type="submit"
           disabled={isTyping || !input.trim()}
           aria-label="Send"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-paper transition-colors hover:bg-ink disabled:opacity-40"
+          className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-paper hover:bg-ink disabled:opacity-40"
         >
           ↑
         </button>

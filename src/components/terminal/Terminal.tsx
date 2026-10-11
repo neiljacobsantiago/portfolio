@@ -66,7 +66,7 @@ export default function Terminal() {
           </ul>
         );
       case "whoami":
-        return `${site.name}. Production Director, IT Services Center. Network Systems & Infrastructure Engineering, CLSU.`;
+        return `${site.name}. Third-year BSIT (Network Systems & Infrastructure Engineering) at CLSU. Production Director, ITSC Media Group. BITS member.`;
       case "skills":
         return "Infrastructure auditing, OSPF/RIP routing, InfoSec (Kali, Nmap, Snort), Next.js, Python, multimedia direction.";
       case "rates":

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useDeviceProfile } from "@/lib/device";
+import { haptic } from "@/lib/haptics";
 
 /**
  * Interactive portrait: a duotone "negative" with a second, full-colour
@@ -60,7 +61,10 @@ export default function Darkroom() {
         ref={frameRef}
         onPointerMove={onPointerMove}
         onPointerLeave={() => (interacting.current = false)}
-        onClick={() => setDeveloped((v) => !v)}
+        onClick={() => {
+          haptic(12);
+          setDeveloped((v) => !v);
+        }}
         data-cursor={developed ? "Reset" : "Develop"}
         role="button"
         tabIndex={0}

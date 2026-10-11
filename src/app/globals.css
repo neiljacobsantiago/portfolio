@@ -17,6 +17,9 @@
   --font-mono: var(--font-courier-prime), "Courier New", monospace;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Apple's sheet/drawer curve, and a gentle overshoot for "pop" moments */
+  --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @layer base {
@@ -126,7 +129,7 @@ html.low-power .paper-field .grain {
 @media (scripting: enabled) {
   [data-reveal]:not([data-revealed]) {
     opacity: 0;
-    transform: translate3d(0, 28px, 0);
+    transform: translate3d(0, 28px, 0) scale(0.985);
   }
   [data-reveal="left"]:not([data-revealed]) {
     transform: translate3d(-28px, 0, 0);
@@ -146,13 +149,124 @@ html.low-power .paper-field .grain {
 }
 [data-reveal] {
   transition:
-    opacity 0.9s var(--ease-out-expo),
-    transform 0.9s var(--ease-out-expo),
-    clip-path 1.1s var(--ease-out-expo);
+    opacity 0.9s var(--ease-apple),
+    transform 1s var(--ease-apple),
+    clip-path 1.1s var(--ease-apple);
   transition-delay: var(--reveal-delay, 0ms);
 }
 [data-reveal="mask"] {
   clip-path: inset(0 0 0 0);
+}
+
+/* ---------- Micro-interactions ---------- */
+
+/* Springy press feedback for anything tappable */
+@utility press {
+  transition:
+    transform 0.45s var(--ease-spring),
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.4s var(--ease-apple);
+  &:active {
+    transform: scale(0.96);
+    transition-duration: 0.12s;
+  }
+}
+
+/* Pill buttons: lift on hover (mouse only), sink on press */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 9999px;
+  padding: 1rem 1.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition:
+    transform 0.45s var(--ease-spring),
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.45s var(--ease-apple);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -14px rgb(0 48 73 / 0.45);
+    }
+  }
+  &:active {
+    transform: scale(0.96);
+    transition-duration: 0.12s;
+  }
+  & .arrow {
+    transition: transform 0.45s var(--ease-spring);
+  }
+  &:hover .arrow {
+    transform: translateX(4px);
+  }
+}
+
+/* Text links: underline that draws in from the left and leaves to the right */
+@utility ulink {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 100% 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.5s var(--ease-apple), color 0.3s ease;
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 1px;
+    background-position: 0% 100%;
+  }
+}
+
+/* Logos sit quietly in ink, then bloom into colour */
+@utility logo-bloom {
+  filter: grayscale(1) contrast(1.05);
+  opacity: 0.75;
+  transition:
+    filter 0.5s var(--ease-apple),
+    opacity 0.5s var(--ease-apple),
+    transform 0.5s var(--ease-spring);
+  .group:hover &,
+  .group:focus-visible &,
+  .group[data-active="true"] & {
+    filter: none;
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+/* Thin reading-progress line under the header (CSS scroll timeline; no JS) */
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: grow-x linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Shared-element zoom for the lightbox (View Transitions API) */
+::view-transition-group(photo) {
+  animation-duration: 0.55s;
+  animation-timing-function: var(--ease-apple);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}
+
+/* Work grid filtering (components/work/WorkFilter) */
+[data-filter="systems"] [data-category]:not([data-category="systems"]),
+[data-filter="web"] [data-category]:not([data-category="web"]),
+[data-filter="media"] [data-category]:not([data-category="media"]) {
+  display: none;
 }
 
 /* ---------- Keyframes ---------- */
@@ -177,6 +291,12 @@ html.low-power .paper-field .grain {
 @keyframes blink {
   50% { opacity: 0; }
 }
+@keyframes pop-in {
+  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.96); }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translate3d(0, 40%, 0); }
+}
 
 @utility animate-page-in {
   animation: page-in 0.45s ease-out backwards;
@@ -198,6 +318,12 @@ html.low-power .paper-field .grain {
 }
 @utility animate-blink {
   animation: blink 1s steps(1) infinite;
+}
+@utility animate-pop-in {
+  animation: pop-in 0.5s var(--ease-spring) both;
+}
+@utility animate-slide-in {
+  animation: slide-in 0.7s var(--ease-apple) both;
 }
 
 /* ---------- Custom cursor (opt-in from JS, mouse users only) ---------- */

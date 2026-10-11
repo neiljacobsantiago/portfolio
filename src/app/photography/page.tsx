@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
 import Gallery from "@/components/photography/Gallery";
+import CountUp from "@/components/ui/CountUp";
+import Magnetic from "@/components/ui/Magnetic";
 import { getSeries } from "@/lib/photos";
 import { reveal } from "@/lib/reveal";
 import { site, socials } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Photography",
-  description: "Concert, event and astrophotography by Neil Jacob Santiago — Aurora Music Festival, IRCITE 2026, deep-sky work and the ITSC Media Group.",
+  description: "Concert, portrait, astro and event photography by Neil Jacob Santiago — Aurora Music Festival, studio sessions, Andromeda and CLSU campus life.",
 };
 
 export default async function PhotographyPage() {
@@ -22,16 +24,19 @@ export default async function PhotographyPage() {
       <PageHeader
         eyebrow="Photography"
         title={<>Light, caught <em className="font-serif text-ember">in passing.</em></>}
-        lead="Shot on a Nikon D780, a Canon EOS 1500D and — when the moment won't wait — an iPhone in ProRAW. Tap any frame to see it full screen."
+        lead="Canon and Nikon bodies, an iPhone in ProRAW, a DJI gimbal and a studio-style backdrop. Tap any frame to see it full screen — swipe or use the arrow keys to move through."
         aside={
-          <div className="space-y-4">
-            <p className="label leading-loose text-ink/60">
-              {series.length} series · {total} frames
+          <div className="space-y-5">
+            <p className="font-display text-6xl leading-none">
+              <CountUp value={total} />
+              <span className="label ml-2 align-middle text-ink/50">frames</span>
             </p>
             {external && (
-              <a href={external} target="_blank" rel="noopener noreferrer" className="label inline-flex rounded-full bg-ink px-5 py-3 text-paper transition-colors hover:bg-ember">
-                {site.photographySite.url ? site.photographySite.label : "More on Instagram"} ↗
-              </a>
+              <Magnetic>
+                <a href={external} target="_blank" rel="noopener noreferrer" className="btn bg-ink py-3 text-paper hover:bg-ember">
+                  {site.photographySite.url ? site.photographySite.label : "More on Instagram"} <span className="arrow">↗</span>
+                </a>
+              </Magnetic>
             )}
           </div>
         }
@@ -46,10 +51,9 @@ export default async function PhotographyPage() {
             {series.map((s, i) => (
               <article key={s.slug} id={s.slug} {...reveal("up", (i % 2) * 80)} className="scroll-mt-28">
                 <p className="label text-ink/50">
-                  {String(i + 1).padStart(2, "0")} · {s.category} · {s.year}
+                  {String(i + 1).padStart(2, "0")} · {s.year} · {s.photos.length} frames
                 </p>
                 <h3 className="mt-3 font-display text-4xl">{s.title}</h3>
-                <p className="mt-2 font-serif text-lg italic text-ember">{s.role}</p>
                 <p className="mt-4 font-serif text-lg leading-relaxed text-ink/80">{s.story}</p>
                 <p className="label mt-4 text-[0.65rem] text-ink/50">{s.gear}</p>
               </article>
@@ -64,14 +68,14 @@ export default async function PhotographyPage() {
           </h2>
           <div className="mt-10 flex flex-wrap gap-4">
             {site.photographySite.url ? (
-              <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className="label rounded-full bg-paper px-7 py-4 text-wine transition-colors hover:bg-sky hover:text-ink">
-                Visit the photography site ↗
+              <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className="btn bg-paper text-wine hover:bg-sky hover:text-ink">
+                Visit the photography site <span className="arrow">↗</span>
               </a>
             ) : (
               <span className="label rounded-full border border-paper/30 px-7 py-4 text-paper/70">Photography site — opening soon</span>
             )}
-            <Link href="/contact" className="label rounded-full border border-paper/40 px-7 py-4 transition-colors hover:border-paper">
-              Book a shoot
+            <Link href="/contact" className="btn border border-paper/40 hover:border-paper">
+              Book a shoot <span className="arrow">→</span>
             </Link>
           </div>
         </section>

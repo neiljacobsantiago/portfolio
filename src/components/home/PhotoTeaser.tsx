@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Plate from "@/components/photography/Plate";
+import Magnetic from "@/components/ui/Magnetic";
 import type { SeriesWithPhotos } from "@/lib/photos";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
@@ -16,7 +17,7 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
             Light, caught <em className="font-serif text-ember">in passing.</em>
           </h2>
           <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed text-paper/80">
-            Festival pits, research conferences, student broadcasts and long nights under Andromeda — four series, still growing.
+            Concert barricades, studio portraits, campus events and long nights under Andromeda — shot on Canon, Nikon and iPhone.
           </p>
         </div>
       </div>
@@ -26,7 +27,7 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
           const cover = s.photos[0];
           return (
             <li key={s.slug} {...reveal("up", i * 90)} className="w-[78vw] max-w-sm shrink-0 snap-start md:w-[24rem]">
-              <Link href={`/photography#${s.slug}`} data-cursor="View" className="group block">
+              <Link href={`/photography#${s.slug}`} data-cursor="View" className="group press block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[2px]">
                   {cover ? (
                     <Image src={cover.src} alt={cover.alt} fill sizes="(min-width: 768px) 24rem, 78vw" className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
@@ -36,9 +37,9 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
                 </div>
                 <div className="mt-4 flex items-baseline justify-between gap-4">
                   <h3 className="font-display text-2xl">{s.title}</h3>
-                  <span className="label text-[0.65rem] text-paper/60">{s.category}</span>
+                  <span className="label text-[0.65rem] text-paper/60">{s.photos.length} frames</span>
                 </div>
-                <p className="mt-1 font-serif italic text-paper/70">{s.role}</p>
+                <p className="mt-1 line-clamp-2 font-serif italic text-paper/70">{s.story}</p>
               </Link>
             </li>
           );
@@ -46,9 +47,11 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
       </ul>
 
       <div className="mx-auto mt-12 flex max-w-[90rem] flex-wrap gap-4 px-5 md:px-10">
-        <Link href="/photography" className="label rounded-full bg-paper px-7 py-4 text-ink transition-colors hover:bg-sky">
-          Open the gallery
-        </Link>
+        <Magnetic>
+          <Link href="/photography" className="btn bg-paper text-ink hover:bg-sky">
+            Open the gallery <span className="arrow">→</span>
+          </Link>
+        </Magnetic>
         {site.photographySite.url && (
           <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className="label rounded-full border border-paper/30 px-7 py-4 transition-colors hover:border-paper">
             {site.photographySite.label} ↗
