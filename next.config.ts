@@ -12,8 +12,18 @@ const nextConfig: NextConfig = {
   // Lets phones on the LAN load the dev server (e.g. testing on a real Android).
   allowedDevOrigins: ["192.168.100.182"],
   images: {
-    // AVIF first: roughly half the bytes of JPEG for the portrait photos.
+    // AVIF first: roughly half the bytes of JPEG for photos.
     formats: ["image/avif", "image/webp"],
+  },
+  // Routes from the previous version of the site, kept alive for old links.
+  async redirects() {
+    return [
+      { source: "/systems", destination: "/work", permanent: true },
+      { source: "/media", destination: "/photography", permanent: true },
+      { source: "/gear", destination: "/about#gear", permanent: true },
+      { source: "/clearance", destination: "/about#credentials", permanent: true },
+      { source: "/logs", destination: "/about", permanent: true },
+    ];
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

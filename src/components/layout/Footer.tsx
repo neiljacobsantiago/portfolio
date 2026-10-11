@@ -1,64 +1,68 @@
 import Link from "next/link";
-import { Command, ShieldCheck } from "lucide-react";
-import { allRoutes, site, socials } from "@/lib/site";
+import { mainNav, site, socials } from "@/lib/site";
 
 export default function Footer() {
-  const linked = socials.filter((s) => s.url);
-
   return (
-    <footer className="relative z-10 mt-20 w-full border-t border-butter/10 bg-black/80 px-4 pt-12 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 md:px-16">
-      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[2fr_1fr_1fr]">
-        <div>
-          <div className="mb-4 flex items-center gap-2">
-            <Command className="h-5 w-5 text-accentRed" />
-            <span className="font-display text-xl font-black tracking-tighter text-butter uppercase">Neil.Jacob</span>
+    <footer className="relative overflow-hidden bg-ink px-5 pt-20 pb-[max(2rem,env(safe-area-inset-bottom))] text-paper md:px-10 md:pt-28">
+      <div className="mx-auto max-w-[90rem]">
+        <p className="label text-sky">Have something in mind?</p>
+        <Link href="/contact" className="group mt-4 inline-block" data-cursor="Write">
+          <span className="font-display text-[clamp(3.25rem,13vw,11rem)] leading-[0.9]">
+            Let&apos;s <span className="font-serif italic text-ember transition-colors group-hover:text-sky">talk.</span>
+          </span>
+        </Link>
+
+        <div className="mt-16 grid gap-10 border-t border-paper/15 pt-10 sm:grid-cols-2 md:mt-24 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <p className="max-w-sm font-serif text-lg leading-relaxed text-paper/80">
+              {site.name} — networks, security and photography from {site.location}, {site.country}.
+            </p>
+            <p className="label mt-4 text-paper/40">{site.coordinates}</p>
           </div>
-          <p className="max-w-sm font-mono text-xs leading-relaxed opacity-60">
-            Operating at the intersection of rigid server architectures and high-end creative telemetry. {site.location}.
-          </p>
+
+          <nav aria-label="Footer">
+            <p className="label mb-4 text-paper/40">Pages</p>
+            <ul className="space-y-2 font-serif text-lg">
+              {mainNav.map((r) => (
+                <li key={r.href}>
+                  <Link href={r.href} className="transition-colors hover:text-sky">{r.label}</Link>
+                </li>
+              ))}
+              {site.photographySite.url && (
+                <li>
+                  <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-sky">
+                    Photo archive ↗
+                  </a>
+                </li>
+              )}
+            </ul>
+          </nav>
+
+          <div>
+            <p className="label mb-4 text-paper/40">Elsewhere</p>
+            <ul className="space-y-2 font-serif text-lg">
+              {socials.map((s) => (
+                <li key={s.name}>
+                  {s.url ? (
+                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-sky">
+                      {s.name} ↗
+                    </a>
+                  ) : (
+                    <span className="text-paper/35">{s.name} <span className="label text-[0.6rem]">soon</span></span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        <nav aria-label="Footer">
-          <p className="mb-3 font-mono text-[10px] tracking-[0.3em] text-accentRed uppercase">Directory</p>
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-xs uppercase">
-            {allRoutes.map((r) => (
-              <li key={r.href}>
-                <Link href={r.href} className="interactive opacity-60 transition-opacity hover:opacity-100">
-                  {r.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div>
-          <p className="mb-3 font-mono text-[10px] tracking-[0.3em] text-accentRed uppercase">Channels</p>
-          <ul className="space-y-2 font-mono text-xs uppercase">
-            {linked.map((s) => (
-              <li key={s.name}>
-                <a href={s.url!} target="_blank" rel="noopener noreferrer" className="interactive opacity-60 transition-opacity hover:opacity-100">
-                  {s.name} ↗
-                </a>
-              </li>
-            ))}
-            <li>
-              <Link href="/contact" className="interactive opacity-60 transition-opacity hover:opacity-100">
-                Secure transmission
-              </Link>
-            </li>
-          </ul>
+        <div className="mt-16 flex flex-col gap-3 border-t border-paper/15 pt-6 text-paper/45 md:flex-row md:items-center md:justify-between">
+          <span className="label">© {new Date().getFullYear()} {site.name}</span>
+          <span className="font-serif text-sm italic">Set in Gloock, Newsreader &amp; Courier Prime.</span>
+          <Link href="/terminal" className="label transition-colors hover:text-sky">
+            root@neil:~$ <span className="animate-blink">_</span>
+          </Link>
         </div>
-      </div>
-
-      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-2 border-t border-butter/5 pt-4 font-mono text-[10px] tracking-widest uppercase md:flex-row md:items-center md:justify-between">
-        <span className="flex items-center gap-2 text-xs tracking-normal text-accentRed normal-case">
-          root@neilos:~/portfolio/end_of_file$
-          <span className="animate-blink inline-block h-3 w-2 bg-accentRed" />
-        </span>
-        <span className="flex items-center gap-2 text-green-400">
-          <ShieldCheck className="h-3 w-3" /> Secure connection established
-        </span>
-        <span className="opacity-50">© {new Date().getFullYear()} {site.name}</span>
       </div>
     </footer>
   );

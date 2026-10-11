@@ -1,34 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Courier_Prime, Gloock, Newsreader } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/layout/NavBar";
 import Footer from "@/components/layout/Footer";
-import CustomCursor from "@/components/effects/CustomCursor";
-import RevealObserver from "@/components/effects/RevealObserver";
 import ChatLauncher from "@/components/chat/ChatLauncher";
+import CustomCursor from "@/components/effects/CustomCursor";
+import PaperField from "@/components/effects/PaperField";
+import RevealObserver from "@/components/effects/RevealObserver";
+import SiteEffects from "@/components/effects/SiteEffects";
 import { site, siteUrl } from "@/lib/site";
 
-const fontDisplay = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  weight: ["400", "700"],
-});
-
-const fontMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  weight: ["400", "700"],
-});
+const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-gloock" });
+const serif = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-newsreader" });
+const mono = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-courier-prime" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
-  title: { default: `${site.shortName} // ${site.name}`, template: `%s // ${site.shortName}` },
+  title: { default: site.title, template: `%s — ${site.name}` },
   description: site.description,
-  applicationName: site.shortName,
+  applicationName: site.name,
   authors: [{ name: site.name }],
   openGraph: {
     type: "website",
-    siteName: site.shortName,
+    siteName: site.name,
     title: site.title,
     description: site.description,
     images: [{ url: "/njs_p.jpg", alt: site.name }],
@@ -37,20 +31,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#021124",
-  colorScheme: "dark",
+  themeColor: "#fdf0d5",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${fontDisplay.variable} ${fontMono.variable}`} suppressHydrationWarning>
-      <body className="overflow-x-hidden font-mono antialiased">
-        <a
-          href="#main"
-          className="sr-only z-[100] bg-accentRed px-4 py-2 font-mono text-xs text-butter uppercase focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
-        >
+    <html lang="en" className={`${display.variable} ${serif.variable} ${mono.variable}`} suppressHydrationWarning>
+      <body className="overflow-x-hidden antialiased">
+        <a href="#main" className="label sr-only z-[100] bg-ember px-4 py-3 text-paper focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
           Skip to content
         </a>
+        <PaperField />
         <NavBar />
         <main id="main" tabIndex={-1} className="outline-none">
           {children}
@@ -59,6 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ChatLauncher />
         <CustomCursor />
         <RevealObserver />
+        <SiteEffects />
       </body>
     </html>
   );

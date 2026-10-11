@@ -3,43 +3,48 @@
 /* Devices with a real mouse/trackpad. Touch phones never see hover-only styling. */
 @custom-variant pointer-fine (@media (hover: hover) and (pointer: fine));
 
+/* Palette: coolors.co/palette/780000-c1121f-fdf0d5-003049-669bbc */
 @theme inline {
-  --color-marine: #021124;
-  --color-accentRed: #E51A1A;
-  --color-butter: #FFFA8A;
+  --color-wine: #780000;
+  --color-ember: #c1121f;
+  --color-paper: #fdf0d5;
+  --color-ink: #003049;
+  --color-sky: #669bbc;
+  --color-paper-deep: #f6e3bd;
 
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: var(--font-gloock), "Iowan Old Style", Georgia, serif;
+  --font-serif: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+  --font-mono: var(--font-courier-prime), "Courier New", monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 5rem;
+    scroll-padding-top: 6rem;
     -webkit-tap-highlight-color: transparent;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
-    @apply bg-marine text-butter;
+    @apply bg-paper font-serif text-ink;
     min-height: 100dvh;
-    /* Brutalist technical grid */
-    background-image:
-      linear-gradient(rgba(255, 250, 138, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 250, 138, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
+    font-size: 1.0625rem;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    @apply bg-accentRed text-marine;
+    @apply bg-ember text-paper;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accentRed);
+    outline: 2px solid var(--color-ember);
     outline-offset: 3px;
   }
 
-  /* 16px+ inputs stop iOS/Android from zooming the page on focus */
+  /* 16px+ inputs stop phones from zooming the page on focus */
   input,
   textarea,
   select {
@@ -47,80 +52,188 @@
   }
 }
 
-/* Custom cursor is opted into from JS, only on fine-pointer devices */
-html.has-custom-cursor,
-html.has-custom-cursor * {
-  cursor: none !important;
+/* Small typewriter labels used across the site */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-/* ---------- Reveal-on-scroll (see components/effects/RevealObserver) ----------
-   Pure CSS transitions toggled by one shared IntersectionObserver.
-   Without JS the content simply stays visible. */
+/* ---------- Lively paper: drifting colour fields + film grain ---------- */
+.paper-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.paper-field .orb {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.paper-field .orb-a {
+  width: 70vmax;
+  height: 70vmax;
+  left: -20vmax;
+  top: -25vmax;
+  background: radial-gradient(closest-side, rgb(102 155 188 / 0.38), transparent);
+  animation: drift-a 28s ease-in-out infinite alternate;
+}
+.paper-field .orb-b {
+  width: 60vmax;
+  height: 60vmax;
+  right: -22vmax;
+  top: 20vh;
+  background: radial-gradient(closest-side, rgb(193 18 31 / 0.16), transparent);
+  animation: drift-b 34s ease-in-out infinite alternate;
+}
+.paper-field .orb-c {
+  width: 55vmax;
+  height: 55vmax;
+  left: 10vw;
+  bottom: -35vmax;
+  background: radial-gradient(closest-side, rgb(0 48 73 / 0.14), transparent);
+  animation: drift-c 40s ease-in-out infinite alternate;
+}
+.paper-field .grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.09;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html.low-power .paper-field .orb {
+  animation: none;
+}
+html.low-power .paper-field .grain {
+  mix-blend-mode: normal;
+  opacity: 0.05;
+}
+
+@keyframes drift-a {
+  to { transform: translate3d(18vw, 22vh, 0) scale(1.15); }
+}
+@keyframes drift-b {
+  to { transform: translate3d(-24vw, 30vh, 0) scale(0.9); }
+}
+@keyframes drift-c {
+  to { transform: translate3d(20vw, -25vh, 0) scale(1.1); }
+}
+
+/* ---------- Reveal-on-scroll (components/effects/RevealObserver) ---------- */
 @media (scripting: enabled) {
   [data-reveal]:not([data-revealed]) {
     opacity: 0;
-    transform: translate3d(0, 24px, 0);
+    transform: translate3d(0, 28px, 0);
   }
   [data-reveal="left"]:not([data-revealed]) {
-    transform: translate3d(-24px, 0, 0);
+    transform: translate3d(-28px, 0, 0);
   }
   [data-reveal="right"]:not([data-revealed]) {
-    transform: translate3d(24px, 0, 0);
+    transform: translate3d(28px, 0, 0);
   }
   [data-reveal="scale"]:not([data-revealed]) {
-    transform: scale(0.94);
+    transform: scale(0.96);
+  }
+  /* Lines of a heading slide up from behind a mask */
+  [data-reveal="mask"]:not([data-revealed]) {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 100% 0);
   }
 }
-
 [data-reveal] {
   transition:
-    opacity 0.6s ease-out,
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo),
+    clip-path 1.1s var(--ease-out-expo);
   transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal="mask"] {
+  clip-path: inset(0 0 0 0);
 }
 
 /* ---------- Keyframes ---------- */
 @keyframes page-in {
   from { opacity: 0; }
-  to { opacity: 1; }
 }
 @keyframes rise-in {
-  from { opacity: 0; transform: translate3d(0, 32px, 0); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translate3d(0, 40px, 0); }
 }
-@keyframes blink {
-  50% { opacity: 0; }
+@keyframes line-up {
+  from { transform: translate3d(0, 105%, 0); }
 }
-@keyframes float {
-  50% { transform: translateY(-10px); }
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes marquee {
+  to { transform: translate3d(-50%, 0, 0); }
 }
 @keyframes bounce-dot {
   50% { transform: translateY(-4px); }
 }
+@keyframes blink {
+  50% { opacity: 0; }
+}
 
 @utility animate-page-in {
-  animation: page-in 0.35s ease-out both;
+  animation: page-in 0.45s ease-out backwards;
 }
 @utility animate-rise-in {
-  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise-in 1s var(--ease-out-expo) both;
 }
-@utility animate-blink {
-  animation: blink 1s steps(1) infinite;
+@utility animate-line-up {
+  animation: line-up 1.1s var(--ease-out-expo) both;
 }
-@utility animate-float {
-  animation: float 2.4s ease-in-out infinite;
+@utility animate-spin-slow {
+  animation: spin-slow 60s linear infinite;
+}
+@utility animate-marquee {
+  animation: marquee 40s linear infinite;
 }
 @utility animate-bounce-dot {
   animation: bounce-dot 0.6s ease-in-out infinite;
 }
-
-/* ---------- Scrollbars ---------- */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(229, 26, 26, 0.6) transparent;
+@utility animate-blink {
+  animation: blink 1s steps(1) infinite;
 }
 
-/* ---------- Accessibility & low-power ---------- */
+/* ---------- Custom cursor (opt-in from JS, mouse users only) ---------- */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
+/* ---------- Lenis smooth scrolling (desktop only) ---------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------- Scrollbars ---------- */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(193 18 31 / 0.6) transparent;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- Accessibility ---------- */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -132,13 +245,5 @@ html.has-custom-cursor * {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0ms !important;
-  }
-}
-
-/* Touch devices: drop expensive backdrop blurs (a big scroll-jank source on budget Androids) */
-@media (pointer: coarse) {
-  .blur-panel {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
   }
 }

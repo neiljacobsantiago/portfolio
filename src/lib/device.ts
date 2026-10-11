@@ -6,20 +6,20 @@ export interface DeviceProfile {
   /** Mouse/trackpad user: enables the custom cursor and hover-only effects. */
   finePointer: boolean;
   reducedMotion: boolean;
-  /** Budget hardware, Data Saver, or reduced motion: skip WebGL and ambient animation. */
+  /** Budget hardware, Data Saver, or reduced motion: skip ambient animation. */
   lowPower: boolean;
-  /** Wide enough to show the 3D sentinel next to the hero. */
-  wide: boolean;
+  /** Laptop/desktop width: enables pinned, scroll-driven scenes. */
+  desktop: boolean;
 }
 
-// Server render and first client render assume the cheapest experience,
+// Server render and first client render assume the simplest experience,
 // so nothing heavy flashes in before the real profile is known.
-const SERVER_PROFILE: DeviceProfile = { finePointer: false, reducedMotion: false, lowPower: true, wide: false };
+const SERVER_PROFILE: DeviceProfile = { finePointer: false, reducedMotion: false, lowPower: true, desktop: false };
 
 const QUERIES = {
   finePointer: "(hover: hover) and (pointer: fine)",
   reducedMotion: "(prefers-reduced-motion: reduce)",
-  wide: "(min-width: 640px)",
+  desktop: "(min-width: 1024px)",
 };
 
 let cached: DeviceProfile | null = null;
@@ -30,13 +30,13 @@ function readProfile(): DeviceProfile {
     connection?: { saveData?: boolean; effectiveType?: string };
   };
   const reducedMotion = matchMedia(QUERIES.reducedMotion).matches;
-  const weakHardware = (nav.deviceMemory ?? 8) <= 4 || (nav.hardwareConcurrency ?? 8) <= 4;
+  const weakHardware = (nav.deviceMemory ?? 8) <= 2 || (nav.hardwareConcurrency ?? 8) <= 2;
   const constrainedNetwork = !!nav.connection?.saveData || /(^|-)2g$/.test(nav.connection?.effectiveType ?? "");
   return {
     finePointer: matchMedia(QUERIES.finePointer).matches,
     reducedMotion,
     lowPower: reducedMotion || weakHardware || constrainedNetwork,
-    wide: matchMedia(QUERIES.wide).matches,
+    desktop: matchMedia(QUERIES.desktop).matches,
   };
 }
 

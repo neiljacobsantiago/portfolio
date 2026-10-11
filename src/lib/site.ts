@@ -1,16 +1,26 @@
-// Single source of truth for navigation, identity and outbound links.
-// Pages, the footer, the terminal, the sitemap and NeilAI all read from here.
+// Single source of truth for identity, navigation and outbound links.
+// The header, footer, terminal, sitemap and NeilAI all read from here.
 
 export const site = {
   name: "Neil Jacob Santiago",
-  shortName: "NEIL.OS",
-  title: "Neil Jacob Santiago — Network Systems & Media",
+  firstName: "Neil",
+  title: "Neil Jacob Santiago — Networks, Security & Photography",
   description:
-    "Portfolio of Neil Jacob Santiago: network systems & infrastructure engineering, security auditing, and multimedia production direction.",
-  location: "San Jose City, Nueva Ecija, PH",
+    "Neil Jacob Santiago designs networks, audits systems and photographs the moments in between — concerts, campus events and the night sky. Based in San Jose City, Nueva Ecija.",
+  tagline: "Structural logic. Editorial vision.",
+  location: "San Jose City, Nueva Ecija",
+  country: "Philippines",
+  coordinates: "15.79° N, 120.99° E",
+  timeZone: "Asia/Manila",
   school: "Central Luzon State University (CLSU)",
+  role: "Production Director, CLSU IT Services Center Media Group",
   rate: "₱15,000",
   githubUser: "neiljacobsantiago",
+  /**
+   * The dedicated photography website. Set the URL when it's live and the
+   * gallery, home page and footer will link to it automatically.
+   */
+  photographySite: { url: null as string | null, label: "Full photography archive" },
 } as const;
 
 /** Absolute origin for metadata and the sitemap (server-only usage). */
@@ -26,43 +36,27 @@ export interface NavItem {
   description: string;
 }
 
-// Ordered by importance: work first, then credentials, then the playful extras.
-export const primaryNav: NavItem[] = [
-  { label: "Systems", href: "/systems", description: "Network architecture & security deployments" },
-  { label: "Media", href: "/media", description: "Photography, video & production direction" },
-  { label: "Clearance", href: "/clearance", description: "Certifications & objectives" },
-  { label: "Gear", href: "/gear", description: "Hardware loadout" },
+export const mainNav: NavItem[] = [
+  { label: "Work", href: "/work", description: "Networks, security & systems" },
+  { label: "Photography", href: "/photography", description: "Concerts, events & the night sky" },
+  { label: "About", href: "/about", description: "Story, credentials & kit" },
+  { label: "Contact", href: "/contact", description: "Start a project" },
 ];
 
-export const utilityNav: NavItem[] = [
-  { label: "Terminal", href: "/terminal", description: "Interactive shell" },
-  { label: "Logs", href: "/logs", description: "System telemetry log" },
-];
-
-export const contactNav: NavItem = { label: "Contact", href: "/contact", description: "Start a project" };
-
-export const allRoutes: NavItem[] = [
-  { label: "Root", href: "/", description: "Home" },
-  ...primaryNav,
-  ...utilityNav,
-  contactNav,
-];
+export const allRoutes: NavItem[] = [{ label: "Home", href: "/", description: "Start here" }, ...mainNav, { label: "Terminal", href: "/terminal", description: "For the curious" }];
 
 export interface Social {
   name: string;
-  label: string;
-  /** Leave null until the profile exists; it renders as "pending" instead of a dead link. */
+  handle: string;
+  /** Leave null until the profile exists; it renders as "soon" instead of a dead link. */
   url: string | null;
-  verified?: boolean;
 }
 
 export const socials: Social[] = [
-  { name: "GitHub", label: "@neiljacobsantiago", url: "https://github.com/neiljacobsantiago", verified: true },
-  { name: "Credly", label: "Cisco certifications", url: null, verified: true },
-  { name: "LinkedIn", label: "Professional intel", url: null },
-  { name: "Instagram", label: "Visual telemetry", url: null },
-  { name: "X (Twitter)", label: "Micro-logs", url: null },
-  { name: "TikTok", label: "Media directives", url: null },
+  { name: "GitHub", handle: "@neiljacobsantiago", url: "https://github.com/neiljacobsantiago" },
+  { name: "Instagram", handle: "Photography", url: null },
+  { name: "LinkedIn", handle: "Professional", url: null },
+  { name: "Credly", handle: "Certifications", url: null },
 ];
 
 export function isActivePath(pathname: string, href: string) {
