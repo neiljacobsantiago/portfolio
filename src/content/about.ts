@@ -70,3 +70,56 @@ export const interests = [
   { title: "Baseball & outdoors", icon: "/interests/sports.png", text: "I play baseball, follow basketball, and take any excuse to be outside." },
   { title: "Hardware & die-cast", icon: "/interests/hardware.png", text: "PC hardware research, Linux distro-hopping, and a growing shelf of Hot Wheels, Takara Tomy and Matchbox." },
 ];
+
+/** The profile reel on the About page — a swipeable contact sheet. Add a portrait by adding an object. */
+export interface Profile {
+  src: string;
+  alt: string;
+  title: string;
+  caption: string;
+  /** Camera and exposure, read from the file's EXIF where it has one. */
+  exif?: string;
+  /** Cut-outs (transparent PNGs) sit on a coloured backdrop. */
+  backdrop?: string;
+  width: number;
+  height: number;
+}
+
+export const profiles: Profile[] = [
+  {
+    src: "/profile/neil-official.jpg",
+    alt: "Neil Jacob Santiago in the ITSC Media Group polo, official portrait",
+    title: "On duty",
+    caption: "The IMG polo. Production Director mode.",
+    exif: "Nikon D780 · 50mm f/1.8G · f/5.6 · 1/200 s · ISO 500",
+    width: 1050,
+    height: 1400,
+  },
+  {
+    src: "/profile/neil-candid.jpg",
+    alt: "Neil Jacob Santiago in a car by the window, candid selfie",
+    title: "Off duty",
+    caption: "Window light on the road, earbuds in.",
+    exif: "iPhone 14 Pro Max · front camera · f/1.9 · 1/60 s · ISO 160",
+    width: 1050,
+    height: 1400,
+  },
+  {
+    src: "/profile/neil-standing.png",
+    alt: "Neil Jacob Santiago standing, cut-out portrait",
+    title: "Standing",
+    caption: "Ready for the next shoot.",
+    backdrop: "var(--color-wine)",
+    width: 933,
+    height: 1400,
+  },
+  {
+    src: "/profile/neil-seated.png",
+    alt: "Neil Jacob Santiago seated, cut-out portrait",
+    title: "Seated",
+    caption: "Between the sets.",
+    backdrop: "var(--color-sky)",
+    width: 933,
+    height: 1400,
+  },
+];

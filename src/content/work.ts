@@ -28,10 +28,23 @@ export interface Project {
   /** Repository exists but is private — shown as a badge instead of a link. */
   privateRepo?: boolean;
   cover?: string;
+  /** Project mark, shown as a badge on the cover and beside the title. */
+  logo?: { src: string; bg: string };
   images?: { src: string; alt: string }[];
   /** YouTube video id, played with a click-to-load embed. */
   youtube?: string;
+  /** Published pieces on Facebook: videos play in a click-to-load embed, posts open on Facebook. */
+  media?: { label: string; href: string; kind: "video" | "post" }[];
+  /** A full-length page capture, browsed inside a scrollable "browser window". */
+  scrollShot?: { src: string; alt: string };
+  /** A small heads-up shown under the links (hosting caveats, pending coverage). */
+  notice?: string;
+  /** A pull quote in the project's own words. */
+  quote?: string;
 }
+
+const fbVideo = (id: string) => `https://www.facebook.com/clsudit/videos/${id}/`;
+const itscPost = (id: string) => `https://www.facebook.com/CLSU.ITSC/posts/${id}`;
 
 export const projects: Project[] = [
   {
@@ -87,13 +100,16 @@ export const projects: Project[] = [
       { label: "Live site", href: "https://buildits.app" },
       { label: "GitHub (C version)", href: "https://github.com/neiljacobsantiago/BuildIT" },
     ],
+    notice: "The live deployment is hosted temporarily for INTECH 2201 evaluation and may go offline.",
     cover: "/projects/buildit-1.jpg",
+    logo: { src: "/projects/logos/buildit.png", bg: "transparent" },
+    scrollShot: { src: "/projects/buildit-home.jpg", alt: "The full BuildIT home page prototype, top to bottom" },
     images: [
-      { src: "/projects/buildit-home.jpg", alt: "BuildIT home page" },
-      { src: "/projects/buildit-1.jpg", alt: "BuildIT part picker" },
-      { src: "/projects/buildit-2.jpg", alt: "BuildIT interface" },
-      { src: "/projects/buildit-3.jpg", alt: "BuildIT interface" },
-      { src: "/projects/buildit-4.jpg", alt: "BuildIT interface" },
+      { src: "/projects/buildit-1.jpg", alt: "BuildIT web storefront" },
+      { src: "/projects/buildit-journal.jpg", alt: "The BuildIT wordmark" },
+      { src: "/projects/buildit-4.jpg", alt: "The original C version: login" },
+      { src: "/projects/buildit-3.jpg", alt: "The original C version: user menu" },
+      { src: "/projects/buildit-2.jpg", alt: "The original C version: parts inventory" },
     ],
   },
   {
@@ -115,7 +131,6 @@ export const projects: Project[] = [
     slug: "cyber-awareness-series",
     title: "Cyber Awareness Series",
     category: "media",
-    featured: 4,
     plain: "Six short videos that make data privacy make sense to everyone.",
     context: "CLSU Department of Information Technology",
     role: "Videographer & on-site director",
@@ -126,6 +141,50 @@ export const projects: Project[] = [
     ],
     stack: ["Direction", "Videography", "Audio capture"],
     cover: "/projects/cybersec.jpg",
+    media: ["1429432154804620", "779992074508160", "623204870570221", "2993131330861807", "1519370719229369", "2283184825446569"].map((id, i) => ({
+      label: `Episode ${String(i + 1).padStart(2, "0")}`,
+      href: fbVideo(id),
+      kind: "video" as const,
+    })),
+  },
+  {
+    slug: "aurora-fest-2026",
+    title: "Aurora Fest 2026",
+    category: "media",
+    featured: 4,
+    plain: "Twelve hours at the barricade for six OPM acts — shot fully manual under strobes.",
+    context: "Concert media · Clark Global City · Day 2",
+    role: "Concert photographer",
+    status: "Published · May 3, 2026",
+    body: [
+      "Documenting a music festival takes pure endurance. We reached Clark Global City at 10:40 AM, queued by 11, and by 1 PM had a spot close to the platinum barricade. Then the heat — until dusk.",
+      "The lineup ran Kitchie Nadal, Parokya Ni Edgar, Kamikazee, Sexbomb Girls, IV Of Spades and SB19. Stage lighting swung from deep purples to blinding strobes, so everything was shot in manual with split-second exposure changes, waiting out the high-energy moments across more than twelve hours of standing.",
+      "We left the grounds at 1:50 AM and got home at 4:10 AM, completely spent. The Lightroom sessions afterwards are where the magic happens: pulling clarity out of harsh neon washes.",
+    ],
+    quote:
+      "Pumunta talaga ako para sa IVOS, pero I didn't expect na sobrang mapapa-wild ako sa set ng PNE at KMKZ — the raw energy of the crowd and live OPM just pushes you through the exhaustion.",
+    stack: ["Manual exposure", "Live OPM", "Lightroom"],
+    cover: "/projects/aurora-fest/amf-bg4.jpg",
+    images: [
+      { src: "/projects/aurora-fest/amf-bg4.jpg", alt: "The main stage during Kitchie Nadal's set" },
+      { src: "/projects/aurora-fest/amf-bg3.jpg", alt: "The SVIP and platinum queues at noon" },
+      { src: "/projects/aurora-fest/amf-14.jpg", alt: "Kitchie Nadal, solo" },
+      { src: "/projects/aurora-fest/amf-16.jpg", alt: "Kitchie Nadal" },
+      { src: "/projects/aurora-fest/amf-21.jpg", alt: "Chito Miranda · Parokya Ni Edgar" },
+      { src: "/projects/aurora-fest/amf-19.jpg", alt: "Chito Miranda · Parokya Ni Edgar" },
+      { src: "/projects/aurora-fest/amf-25.jpg", alt: "Jomal Linao · Kamikazee" },
+      { src: "/projects/aurora-fest/amf-32.jpg", alt: "Jay Contreras · Kamikazee" },
+      { src: "/projects/aurora-fest/amf-29.jpg", alt: "Jay Contreras · Kamikazee" },
+      { src: "/projects/aurora-fest/amf-37.jpg", alt: "Sexbomb Girls" },
+      { src: "/projects/aurora-fest/amf-42.jpg", alt: "Sexbomb Girls" },
+      { src: "/projects/aurora-fest/amf-48.jpg", alt: "Blaster Silonga · IV Of Spades" },
+      { src: "/projects/aurora-fest/amf-52.jpg", alt: "Zild Benitez · IV Of Spades" },
+      { src: "/projects/aurora-fest/amf-50.jpg", alt: "Badjao de Castro · IV Of Spades" },
+      { src: "/projects/aurora-fest/amf-55.jpg", alt: "SB19" },
+      { src: "/projects/aurora-fest/amf-58.jpg", alt: "Stell · SB19" },
+      { src: "/projects/aurora-fest/amf-bg9.jpg", alt: "The SB19 stage" },
+      { src: "/projects/aurora-fest/amf-bg2.jpg", alt: "Neil at Aurora Fest" },
+    ],
   },
   {
     slug: "intrusion-auditing",
@@ -156,6 +215,7 @@ export const projects: Project[] = [
     team: ["Rion Fauszt Bustos — Lead Developer", "Neil Jacob Santiago — UI/UX Designer & Frontend", "Justine Rey Garcia — Developer & core logic", "Jake Brandon Galapon — Developer & systems integrator"],
     links: [{ label: "GitHub", href: "https://github.com/neiljacobsantiago/ParkMate" }],
     cover: "/projects/parkmate1.jpg",
+    logo: { src: "/projects/logos/parkmate.png", bg: "#000000" },
     images: [{ src: "/projects/parkmate1.jpg", alt: "ParkMate interface" }],
   },
   {
@@ -173,6 +233,7 @@ export const projects: Project[] = [
     team: ["Rion Fauszt Bustos — Lead Developer", "Neil Jacob Santiago — UI/UX Designer & Frontend", "Vinze Norbert Siega — UI/UX Designer & Backend"],
     links: [{ label: "GitHub", href: "https://github.com/neiljacobsantiago/WorkTayo" }],
     cover: "/projects/worktayo-2.jpg",
+    logo: { src: "/projects/logos/worktayo.png", bg: "#ffffff" },
     images: [
       { src: "/projects/worktayo-2.jpg", alt: "WorkTayo dashboard" },
       { src: "/projects/worktayo-3.jpg", alt: "WorkTayo records" },
@@ -193,6 +254,7 @@ export const projects: Project[] = [
     team: ["Rion Fauszt Bustos — Lead Developer", "Neil Jacob Santiago — UI/UX Designer & Frontend", "Vinze Norbert Siega — UI/UX Designer & Backend"],
     links: [{ label: "GitHub", href: "https://github.com/neiljacobsantiago/BankoSantiago" }],
     cover: "/projects/banko-1.jpg",
+    logo: { src: "/projects/logos/bankosantiago.png", bg: "#0b1b3f" },
     images: [{ src: "/projects/banko-1.jpg", alt: "BankoSantiago dashboard" }],
   },
   {
@@ -266,7 +328,12 @@ export const projects: Project[] = [
     ],
     stack: ["Nikon D780", "Team direction", "Event photography"],
     links: [{ label: "BITS recruitment vlog", href: "https://www.facebook.com/reel/1579079186697441/" }],
-    cover: "/photography/events/ircite.jpg",
+    media: [{ label: "IRCITE coverage on CLSU ITSC", href: itscPost("pfbid02A6TrkHHfgHJPAdgVdV1isbRQhSmrpC785N8oTrKxwaH6s9LmC8SNsetGNGh2Qyhsl"), kind: "post" }],
+    cover: "/projects/ircite-team.jpg",
+    images: [
+      { src: "/projects/ircite-team.jpg", alt: "IRCITE 2026 delegates in the convention hall" },
+      { src: "/photography/events/ircite.jpg", alt: "IRCITE 2026 coverage" },
+    ],
   },
   {
     slug: "it-fest",
@@ -278,6 +345,8 @@ export const projects: Project[] = [
     status: "Published",
     body: ["Full multimedia production for IT Fest: cinematic highlight reels, event photography and rapid social media deliverables for the CLSU IT Student Council."],
     stack: ["Production management", "Photography", "Video editing"],
+    team: ["Neil Jacob Santiago — Production Director", "CLSU IT Student Council — Partner organization"],
+    media: [{ label: "IT Fest on CLSU ITSC", href: itscPost("pfbid02pA3JEtcnTY7bEXdgD9rq7WHLVVVhnQs5bSLAJJsQW7yQ6ZC4KL7ZAKJdDbBahUx6l"), kind: "post" }],
     cover: "/photography/events/itfest.jpg",
     images: [
       { src: "/photography/events/itfest-1.jpg", alt: "IT Fest coverage" },
@@ -294,7 +363,26 @@ export const projects: Project[] = [
     status: "Published",
     body: ["Candid documentation and high-speed photography of IT Week's activities and parlor games, with same-day edits published on the ITSC page."],
     stack: ["Event photography", "Same-day edits"],
+    media: [
+      { label: "IT Week on CLSU ITSC · Part 1", href: itscPost("pfbid0337qp2paDWhxbpzyPcJeskUC23cWJRMHjs3Qe1iGJPNrfQkTrpeJhDtgq7ZmQHkJ4l"), kind: "post" },
+      { label: "IT Week on CLSU ITSC · Part 2", href: itscPost("pfbid02QEk73AabYBV8dLaVSkeKXwHbYApe19MJvsHqcPiLfWaLinVULBs6wp3yXLyz9a5Nl"), kind: "post" },
+    ],
     cover: "/photography/events/itweek.jpg",
+  },
+  {
+    slug: "img-stratcom",
+    title: "IMG Stratcom",
+    category: "media",
+    plain: "A campus-wide campaign where IMG's creative minds and production crew finally work as one.",
+    context: "ITSC Media Group · University collaboration",
+    role: "Production Director, IMG",
+    status: "Upcoming",
+    body: [
+      "An upcoming large-scale multimedia deployment that merges the analytical force of IMG's Creative Division with the execution capabilities of its Production Division, developing engaging campaigns under official university branding.",
+    ],
+    stack: ["Creative Division", "Production Division", "Strategic communications"],
+    notice: "Coverage pending — the gallery, behind-the-scenes footage and cinematic deliverables will be published here once the collaboration kicks off.",
+    logo: { src: "/projects/logos/clsu-white.png", bg: "#000000" },
   },
   {
     slug: "mundane",
@@ -302,12 +390,14 @@ export const projects: Project[] = [
     category: "media",
     plain: "An experimental short film about the overlooked rhythm of everyday life.",
     context: "ARTS 1100 · Final project",
-    role: "Production team",
+    role: "Director, producer & director of photography",
     status: "Released",
     body: [
       "An experimental short film that breaks from traditional narrative, using unconventional visuals and atmospheric pacing to turn abstract ideas into a raw, cinematic experience.",
+      "A visceral dissection of the overlooked, where the repetitive rhythm of the everyday is fractured into a symphony of light and dissonant shadow. Conceptualization, on-location filming and post-production were all done in-house.",
     ],
-    stack: ["Conceptualization", "On-location filming", "Post-production"],
+    stack: ["Nikon D780", "iPhone 14 Pro Max", "DJI Osmo Mobile 7", "Premiere Pro", "After Effects", "DaVinci Resolve"],
+    cover: "/projects/mundane.jpg",
     team: ["Neil Jacob Santiago", "Alfredo Nama III", "Kurt Russel Garcia", "Ryan Biola", "Christian Lagleva", "Frauline Alvendia", "Trisha Claro"],
     youtube: "zY-_ieieI3Y",
   },

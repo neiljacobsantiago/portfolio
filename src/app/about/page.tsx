@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Certificates from "@/components/about/Certificates";
+import ProfileReel from "@/components/about/ProfileReel";
 import TimelineRail from "@/components/about/TimelineRail";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
 import CountUp from "@/components/ui/CountUp";
 import Logo from "@/components/ui/Logo";
 import Magnetic from "@/components/ui/Magnetic";
 import Tilt from "@/components/ui/Tilt";
-import { certificates, education, gear, inProgress, interests, organizations, toolkit } from "@/content/about";
+import { certificates, education, gear, inProgress, interests, organizations, profiles, toolkit } from "@/content/about";
 import { projects } from "@/content/work";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
@@ -55,6 +56,7 @@ export default function AboutPage() {
               width={933}
               height={1400}
               preload
+              loading="eager"
               sizes="(min-width: 768px) 38vw, 90vw"
               className="relative mx-auto h-auto w-[78%] drop-shadow-[0_30px_40px_rgb(0_0_0/0.25)] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:-translate-y-2"
             />
@@ -85,6 +87,11 @@ export default function AboutPage() {
             </div>
           ))}
         </dl>
+
+        {/* Profiles */}
+        <Section id="profiles" label="Contact sheet" title={<>Same guy, <em className="font-serif text-ember">different light.</em></>}>
+          <ProfileReel profiles={profiles} />
+        </Section>
 
         {/* Education */}
         <Section label="Education" title={<>The path <em className="font-serif text-ember">so far.</em></>}>

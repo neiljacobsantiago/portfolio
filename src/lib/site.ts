@@ -59,6 +59,7 @@ export const socials: Social[] = [
   { name: "GitHub", handle: "@neiljacobsantiago", url: "https://github.com/neiljacobsantiago" },
   { name: "TikTok", handle: "@neill.jacob", url: "https://tiktok.com/@neill.jacob" },
   { name: "Facebook", handle: "neiljacobsantiago24", url: "https://facebook.com/neiljacobsantiago24" },
+  { name: "X", handle: "@neiljacob24", url: "https://x.com/neiljacob24" },
   { name: "LinkedIn", handle: "Professional", url: null },
 ];
 

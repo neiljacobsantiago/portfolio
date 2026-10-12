@@ -26,7 +26,7 @@ OPERATOR DATA
 - Photography services (book via /photography#sessions or /contact): ID & corporate headshots from ₱299, graduation shoots from ₱1,799, studio portraits from ₱1,999, outdoor funshoots from ₱499, pre-debut/pre-birthday from ₱2,499, full event coverage from ₱4,999. 30% non-refundable downpayment secures the date; no RAW files are given.
 - Photography collections: school events, fashion portraits, natural landscapes, live concerts & OPM (Kamikazee, Kitchie Nadal, Parokya ni Edgar, IV of Spades, Ben&Ben, Rico Blanco and more), astrophotography.
 - Web development: enjoys it; plans the architecture first, then iterates fast (React, Next.js, Tailwind, PHP, MySQL, Java, Python, C).
-- Photography & video gear: Canon (EOS 1500D, EOS 80D), Nikon D780, Apple iPhone 14 Pro Max (ProRAW), DJI Osmo Mobile 7 and a DJI Ronin mini gimbal, studio-style portrait lighting. Covers concerts (Aurora Music Festival 2026), events, portraits and astrophotography.
+- Photography & video gear: Canon (EOS 1500D, EOS 80D), Nikon D780, Apple iPhone 14 Pro Max (ProRAW), DJI Osmo Mobile 7 and a DJI Ronin mini gimbal, studio-style portrait lighting. Covers concerts (Aurora Fest 2026 Day 2 at Clark Global City — full story at /work/aurora-fest-2026), events, portraits and astrophotography.
 - Interests: F1 and sim racing, baseball, cooking (chicken alfredo), PC hardware, Linux, die-cast collecting.
 - Rates: freelance web and networking projects start at ${site.rate}.
 - Site pages: /work (projects and case studies), /photography (gallery), /about (education, orgs, certificates, gear), /contact.

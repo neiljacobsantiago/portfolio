@@ -1,6 +1,8 @@
 // Offline brain for NeilAI: answers common questions locally, so the chat is
 // useful (and instant) even when the Gemini API is unavailable.
 
+import { projects } from "@/content/work";
+
 export interface FaqAnswer {
   text: string;
   links?: { label: string; href: string }[];
@@ -56,7 +58,10 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
     test: /\b(concert|opm|aurora|festival|ben ?& ?ben|kamikazee|parokya|sb19|ivos|iv of spades)/i,
     answer: {
       text: "Concerts are his favourite chaos: Aurora Music Festival 2026 meant 12+ hours at the barricade shooting Kitchie Nadal, Parokya ni Edgar, Kamikazee, Sexbomb Girls, IV of Spades and more — all in manual through strobes and haze. 🎸",
-      links: [{ label: "Live concerts", href: "/photography#concerts" }],
+      links: [
+        { label: "Aurora Fest story", href: "/work/aurora-fest-2026" },
+        { label: "Live concerts", href: "/photography#concerts" },
+      ],
     },
   },
   {
@@ -115,7 +120,7 @@ export function localAnswer(question: string): FaqAnswer {
 /** Turns site paths mentioned in an AI reply into link chips. */
 export function linksIn(text: string) {
   const known: Record<string, string> = {
-    "/work/pathoscan": "PathoScan",
+    ...Object.fromEntries(projects.map((p) => [`/work/${p.slug}`, p.title])),
     "/photography": "Photography",
     "/contact": "Contact",
     "/about": "About",
