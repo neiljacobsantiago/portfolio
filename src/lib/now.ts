@@ -1,5 +1,3 @@
-import { site } from "./site";
-
 // Fetched on the server and cached (ISR), so visitors' phones make no
 // third-party requests for it. Every fetcher fails soft.
 
@@ -32,21 +30,4 @@ export async function getWeather() {
   const { temperature_2m, weather_code, is_day } = data.current;
   const sky = WEATHER_CODES.find(([codes]) => codes.includes(weather_code))?.[1] ?? "Changeable";
   return { temperature: Math.round(temperature_2m), sky, isDay: is_day === 1 };
-}
-
-export interface Repo {
-  name: string;
-  html_url: string;
-  description: string | null;
-  pushed_at: string;
-  fork: boolean;
-}
-
-export async function getLatestRepo() {
-  const headers: HeadersInit = {
-    Accept: "application/vnd.github+json",
-    ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
-  };
-  const repos = await getJson<Repo[]>(`https://api.github.com/users/${site.githubUser}/repos?sort=pushed&per_page=5`, { headers });
-  return Array.isArray(repos) ? (repos.find((r) => !r.fork) ?? null) : null;
 }

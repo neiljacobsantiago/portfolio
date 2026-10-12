@@ -1,4 +1,8 @@
 {
+  "venice-grand-canal.jpg": {
+    "title": "Grand Canal After Dark",
+    "note": "Venice Grand Canal Mall, Taguig"
+  },
   "photography-7.jpg": {
     "title": "Open Road",
     "note": "Shot on Canon EOS 80D"
@@ -26,5 +30,9 @@
   "siever.jpg": {
     "title": "CLSU Siever",
     "note": "Shot on iPhone 14 Pro Max"
+  },
+  "yuchengco-hall.jpg": {
+    "title": "Yuchengco Hall",
+    "note": "De La Salle University, Manila"
   }
 }

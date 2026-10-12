@@ -18,7 +18,7 @@ export default function CountUp({ value, duration = 1400 }: { value: number; dur
       const start = performance.now();
       const tick = (now: number) => {
         const t = Math.min(1, (now - start) / duration);
-        el.textContent = String(Math.round(value * (1 - Math.pow(1 - t, 4))));
+        el.textContent = Math.round(value * (1 - Math.pow(1 - t, 4))).toLocaleString("en-US");
         if (t < 1) frame = requestAnimationFrame(tick);
       };
       frame = requestAnimationFrame(tick);
@@ -33,7 +33,7 @@ export default function CountUp({ value, duration = 1400 }: { value: number; dur
   // Server HTML shows the real number, so it's correct without JS.
   return (
     <span ref={ref} className="tabular-nums">
-      {value}
+      {value.toLocaleString("en-US")}
     </span>
   );
 }

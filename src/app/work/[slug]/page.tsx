@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/PageHeader";
 import Magnetic from "@/components/ui/Magnetic";
+import FacebookMedia from "@/components/work/FacebookMedia";
 import ProjectCover from "@/components/work/ProjectCover";
 import ProjectImages from "@/components/work/ProjectImages";
+import ScrollShot from "@/components/work/ScrollShot";
 import YouTube from "@/components/work/YouTube";
 import { categories, projectBySlug, projects } from "@/content/work";
 import { reveal } from "@/lib/reveal";
@@ -32,6 +35,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const index = projects.indexOf(project);
   const next = projects[(index + 1) % projects.length];
   const prev = projects[(index - 1 + projects.length) % projects.length];
+  // The cover is already shown full width above, so the gallery starts after it.
+  const gallery = (project.images ?? []).filter((img) => project.youtube || img.src !== project.cover);
 
   return (
     <article>
@@ -41,7 +46,19 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <span aria-hidden>/</span>
           <Link href={`/work#${project.category}`} className="ulink hover:text-ink">{categories[project.category].label}</Link>
         </nav>
-        <p className="label animate-rise-in mt-8 text-ember" style={{ animationDelay: "80ms" }}>{project.context}</p>
+        <div className="animate-rise-in mt-8 flex items-center gap-4" style={{ animationDelay: "80ms" }}>
+          {project.logo && (
+            <span
+              className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl p-1 ring-1 ring-ink/10 transition-transform duration-500 ease-[var(--ease-spring)] hover:-rotate-6 hover:scale-110"
+              style={{ background: project.logo.bg === "transparent" ? undefined : project.logo.bg }}
+            >
+              <span className="relative h-full w-full">
+                <Image src={project.logo.src} alt={`${project.title} logo`} fill sizes="48px" className="object-contain" />
+              </span>
+            </span>
+          )}
+          <p className="label text-ember">{project.context}</p>
+        </div>
         <h1 className="mt-4 font-display text-[clamp(2.75rem,8vw,7.5rem)] leading-[1]">
           <span className="line-mask">
             <span className="animate-line-up block">{project.title}</span>
@@ -90,6 +107,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
           )}
+          {project.notice && (
+            <p className="col-span-2 flex gap-3 rounded-[2px] border-l-2 border-ember bg-ember/[0.06] px-4 py-3 font-serif text-base leading-snug text-ink/75 italic md:col-span-1">
+              <span aria-hidden className="not-italic">ⓘ</span>
+              {project.notice}
+            </p>
+          )}
         </dl>
 
         <div className="md:col-span-8">
@@ -98,6 +121,32 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               <p key={i} {...reveal("up", i * 60)}>{para}</p>
             ))}
           </div>
+
+          {project.quote && (
+            <blockquote {...reveal("up")} className="relative mt-12 border-l-2 border-ember pl-6 font-display text-2xl leading-snug text-ink md:pl-8 md:text-3xl">
+              <span aria-hidden className="absolute -top-6 -left-1 font-display text-7xl leading-none text-ember/30">“</span>
+              {project.quote}
+              <footer className="label mt-4 text-[0.62rem] text-ink/50">— Neil, on Day 2</footer>
+            </blockquote>
+          )}
+
+          {project.media && project.media.length > 0 && (
+            <section className="mt-14">
+              <h2 className="label mb-4 text-ink/50">{project.media.some((m) => m.kind === "video") ? "Watch the series" : "As published"}</h2>
+              <FacebookMedia items={project.media} />
+            </section>
+          )}
+
+          {project.scrollShot && (
+            <section className="mt-14">
+              <h2 className="label mb-4 text-ink/50">Scroll through the prototype</h2>
+              <ScrollShot
+                src={project.scrollShot.src}
+                alt={project.scrollShot.alt}
+                host={project.links?.[0] ? new URL(project.links[0].href).host : project.title.toLowerCase()}
+              />
+            </section>
+          )}
 
           {project.team && (
             <section className="mt-14 border-t border-ink/15 pt-8">
@@ -116,10 +165,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </section>
           )}
 
-          {project.images && project.images.length > 0 && (
+          {gallery.length > 0 && (
             <section className="mt-14">
               <h2 className="label mb-4 text-ink/50">Gallery</h2>
-              <ProjectImages images={project.images} />
+              <ProjectImages images={gallery} />
             </section>
           )}
         </div>

@@ -80,6 +80,7 @@ export default function Darkroom() {
           alt="Portrait of Neil Jacob Santiago"
           fill
           preload
+          loading="eager"
           sizes="(min-width: 1024px) 40vw, (min-width: 640px) 28rem, 90vw"
           className="object-cover grayscale contrast-125"
         />
@@ -98,7 +99,7 @@ export default function Darkroom() {
               : "radial-gradient(circle at var(--x) var(--y), #000 calc(var(--r) * 0.55), transparent var(--r))",
           }}
         >
-          <Image src="/njs_p1.jpg" alt="" fill sizes="(min-width: 1024px) 40vw, (min-width: 640px) 28rem, 90vw" className="object-cover" />
+          <Image src="/njs_p1.jpg" alt="" fill loading="eager" sizes="(min-width: 1024px) 40vw, (min-width: 640px) 28rem, 90vw" className="object-cover" />
         </div>
 
         {/* Darkroom chrome */}

@@ -1,11 +1,13 @@
-import { getLatestRepo, getWeather } from "@/lib/now";
+import { getGitHubActivity } from "@/lib/github";
+import { getWeather } from "@/lib/now";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
 import LocalClock from "./LocalClock";
 
 /** A friendly "live" panel: local time, weather and what's being built. */
 export default async function RightNow() {
-  const [weather, repo] = await Promise.all([getWeather(), getLatestRepo()]);
+  const [weather, github] = await Promise.all([getWeather(), getGitHubActivity()]);
+  const repo = github?.repos[0];
 
   return (
     <section aria-labelledby="now-title" className="mx-auto max-w-[90rem] px-5 py-24 md:px-10 md:py-32">
@@ -51,11 +53,11 @@ export default async function RightNow() {
         <div {...reveal("up", 200)} className="bg-paper p-7 md:col-span-2 md:p-10">
           <p className="label mb-4 text-ink/70">Latest code pushed</p>
           {repo ? (
-            <a href={repo.html_url} target="_blank" rel="noopener noreferrer" className="group block">
+            <a href={repo.url} target="_blank" rel="noopener noreferrer" className="group block">
               <span className="font-display text-3xl group-hover:text-ember">{repo.name} ↗</span>
               {repo.description && <span className="mt-2 block font-serif text-lg text-ink/75">{repo.description}</span>}
               <span className="label mt-3 block text-[0.65rem] text-ink/50">
-                {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeZone: site.timeZone }).format(new Date(repo.pushed_at))}
+                {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeZone: site.timeZone }).format(new Date(repo.pushedAt))}
               </span>
             </a>
           ) : (

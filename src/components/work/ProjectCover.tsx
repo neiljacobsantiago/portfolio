@@ -8,12 +8,23 @@ import { cn } from "@/lib/utils";
  * and a typographic plate otherwise.
  */
 export default function ProjectCover({ project, sizes, className, priority }: { project: Project; sizes: string; className?: string; priority?: boolean }) {
-  if (project.slug === "pathoscan") return <PathoScanArt className={className} />;
+  if (project.slug === "pathoscan") return <PathoScanArt className={className} priority={priority} />;
 
   if (project.cover) {
     return (
       <div className={cn("relative overflow-hidden bg-paper-deep", className)}>
         <Image src={project.cover} alt="" fill sizes={sizes} preload={priority} loading={priority ? "eager" : undefined} className="object-cover transition-transform duration-[1.2s] ease-[var(--ease-apple)] group-hover:scale-[1.04]" />
+        {project.logo && <LogoBadge logo={project.logo} />}
+      </div>
+    );
+  }
+
+  if (project.logo) {
+    return (
+      <div className={cn("relative flex items-center justify-center overflow-hidden", className)} style={{ background: project.logo.bg }} aria-hidden>
+        <div className="relative aspect-square w-[34%] max-w-56 transition-transform duration-700 ease-[var(--ease-spring)] group-hover:scale-110 group-hover:-rotate-3">
+          <Image src={project.logo.src} alt="" fill sizes="240px" className="object-contain" />
+        </div>
       </div>
     );
   }
@@ -35,7 +46,7 @@ export default function ProjectCover({ project, sizes, className, priority }: { 
   );
 }
 
-function PathoScanArt({ className }: { className?: string }) {
+function PathoScanArt({ className, priority }: { className?: string; priority?: boolean }) {
   const bars = [
     { label: "A. tamarii", value: 98 },
     { label: "A. flavus", value: 1 },
@@ -46,7 +57,7 @@ function PathoScanArt({ className }: { className?: string }) {
       <div className="absolute -top-16 -right-16 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgb(102_187_106/0.45),transparent)]" />
       <div className="absolute inset-0 flex items-center justify-center gap-[6%] p-[6%]">
         <div className="relative aspect-square w-[34%] shrink-0">
-          <Image src="/projects/pathoscan-logo.png" alt="" fill sizes="200px" className="object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.35)] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:rotate-[8deg]" />
+          <Image src="/projects/pathoscan-logo.png" alt="" fill sizes="200px" loading={priority ? "eager" : undefined} className="object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.35)] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:rotate-[8deg]" />
         </div>
         <div className="w-[50%] rounded-xl bg-paper/10 p-[4%] ring-1 ring-paper/15 backdrop-blur-sm">
           <p className="label text-[0.55rem] text-paper/70">Top match · on-device</p>
@@ -69,5 +80,20 @@ function PathoScanArt({ className }: { className?: string }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** The project's mark, tucked into the cover's corner; it lifts and turns when the card is hovered. */
+function LogoBadge({ logo }: { logo: NonNullable<Project["logo"]> }) {
+  return (
+    <span
+      aria-hidden
+      className="absolute bottom-3 left-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl p-1.5 shadow-[0_12px_30px_-8px_rgb(0_0_0/0.45)] ring-1 ring-black/10 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-translate-y-1 group-hover:-rotate-6 md:h-16 md:w-16"
+      style={{ background: logo.bg === "transparent" ? undefined : logo.bg }}
+    >
+      <span className="relative h-full w-full">
+        <Image src={logo.src} alt="" fill sizes="64px" className="object-contain" />
+      </span>
+    </span>
   );
 }
