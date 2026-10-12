@@ -4,7 +4,7 @@ import { useState } from "react";
 import { bookingTerms, services } from "@/content/sessions";
 import { haptic } from "@/lib/haptics";
 
-type Status = { state: "idle" | "sending" | "success" } | { state: "error"; message: string };
+type Status = { state: "idle" | "sending" } | { state: "success"; summary?: string; confirmation?: boolean } | { state: "error"; message: string };
 
 const topics = ["A network", "Security", "A website", "Photography", "Something else"];
 const PHOTO = "Photography";
@@ -18,6 +18,12 @@ export interface ContactPreset {
   service?: string | null;
   package?: string | null;
 }
+
+/** Today as YYYY-MM-DD in the visitor's time zone, so past dates can't be picked. */
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 export default function ContactForm({ preset }: { preset?: ContactPreset }) {
   const presetService = services.find((s) => s.id === preset?.service);
@@ -35,36 +41,29 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
     const pkg = service?.packages.find((p) => p.id === packageId);
-
-    const details = booking
-      ? [
-          `Service: ${service?.name ?? "—"}`,
-          `Package: ${pkg ? `${pkg.name} (${pkg.price})` : "—"}`,
-          `Date: ${data.date || "—"}${data.time ? ` at ${data.time}` : ""}`,
-          data.phone ? `Phone: ${data.phone}` : "",
-          "Agreed to: 30% downpayment, no RAW files.",
-          "",
-        ]
-          .filter((l) => l !== "")
-          .join("\n")
-      : "";
-
     setStatus({ state: "sending" });
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: data.name,
           email: data.email,
           company: data.company,
-          subject: booking ? `Booking: ${service?.name ?? "Photography"}${data.name ? ` — ${data.name}` : ""}` : `${topic}${data.name ? ` — ${data.name}` : ""}`,
-          message: details ? `${details}\n\n${data.message}` : data.message,
+          topic,
+          message: data.message,
+          booking: booking ? { service: serviceId, package: packageId, date: data.date, phone: data.phone } : undefined,
         }),
       });
       if (res.ok) {
+        const result = (await res.json().catch(() => ({}))) as { confirmation?: boolean };
         haptic(15);
         form.reset();
-        setStatus({ state: "success" });
+        setStatus({
+          state: "success",
+          confirmation: result.confirmation,
+          summary: booking && pkg && service ? `${pkg.name} · ${service.name} · ${new Date(`${data.date}T00:00:00`).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}` : undefined,
+        });
       } else {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         setStatus({ state: "error", message: body.error ?? "That didn't send. Please try again." });
@@ -79,7 +78,11 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
       <div className="animate-pop-in py-12 text-center" role="status">
         <p className="label text-ember">{booking ? "Booking request received" : "Message received"}</p>
         <p className="mt-4 font-display text-5xl">Thank you.</p>
-        <p className="mx-auto mt-4 max-w-sm font-serif text-xl text-ink/75 italic">I read every message myself and reply within 24 hours.</p>
+        {status.summary && <p className="label mx-auto mt-6 inline-block rounded-full bg-paper-deep px-4 py-2 text-ink/70">{status.summary}</p>}
+        <p className="mx-auto mt-4 max-w-sm font-serif text-xl text-ink/75 italic">
+          {booking ? "I'll confirm availability within 24 hours and send the downpayment details." : "I read every message myself and reply within 24 hours."}
+          {status.confirmation && " A copy is on its way to your inbox."}
+        </p>
         <button type="button" onClick={() => setStatus({ state: "idle" })} className="label press mt-10 rounded-full border border-ink/25 px-6 py-3 hover:border-ink">
           Send another
         </button>
@@ -169,7 +172,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
           <label className="block">
             <span className="label text-ink/60">Target date</span>
-            <input type="date" name="date" required className={field} />
+            <input type="date" name="date" required min={today()} suppressHydrationWarning className={field} />
           </label>
           <label className="block">
             <span className="label text-ink/60">Phone (optional)</span>
