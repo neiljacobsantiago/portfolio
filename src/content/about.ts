@@ -33,10 +33,42 @@ export const organizations = [
   { name: "College of Engineering", short: "CEn", role: "Student", detail: "Central Luzon State University.", logo: "CEn_Logo" },
 ];
 
-export const certificates = [
-  { title: "Network Addressing & Basic Troubleshooting", issuer: "Cisco Networking Academy", date: "Jan 2026", image: "/certs/cisco-netacad.jpg" },
-  { title: "Startup 100: Introduction to Startups", issuer: "DICT — Region 3", date: "Jun 2025", image: "/certs/startup-100.jpg" },
-  { title: "Introduction to WordPress", issuer: "CLSU ITSC", date: "Feb 2026", image: "/certs/intro-to-wordpress.jpg" },
+export interface Certificate {
+  title: string;
+  issuer: string;
+  date: string;
+  image: string;
+  /** Pixel size of the image, so the full-screen view keeps its shape. */
+  width: number;
+  height: number;
+  /** Where anyone can check it's real. */
+  verify?: string;
+  note?: string;
+}
+
+/** Newest first. */
+export const certificates: Certificate[] = [
+  {
+    title: "Google Agile Essentials",
+    issuer: "Google · Coursera",
+    date: "Jul 2026",
+    image: "/certs/google-agile-essentials.jpg",
+    width: 1600,
+    height: 1237,
+    verify: "https://coursera.org/verify/specialization/2YINTV9MO55M",
+    note: "3 courses: Agile project management, the Scrum framework, and measuring productivity with Scrum",
+  },
+  {
+    title: "Introduction to WordPress",
+    issuer: "CLSU ITSC · The Art of Becoming",
+    date: "Feb 2026",
+    image: "/certs/intro-to-wordpress.jpg",
+    width: 1040,
+    height: 720,
+    note: "Building your digital presence through website creation",
+  },
+  { title: "Network Addressing & Basic Troubleshooting", issuer: "Cisco Networking Academy", date: "Jan 2026", image: "/certs/cisco-netacad.jpg", width: 1600, height: 1236 },
+  { title: "Startup 100: Introduction to Startups", issuer: "DICT — Region 3", date: "Jun 2025", image: "/certs/startup-100.jpg", width: 1600, height: 1131 },
 ];
 
 export const inProgress = [
@@ -50,10 +82,10 @@ export interface Tool {
 }
 
 export const toolkit: { group: string; tools: Tool[] }[] = [
-  { group: "Networks & systems", tools: [{ name: "Cisco Packet Tracer", logo: "cisco-packet-tracer" }, { name: "Routing & switching", logo: "router" }, { name: "Hardware architecture", logo: "cpu" }, { name: "Kali Linux", logo: "kali" }] },
+  { group: "Networks & systems", tools: [{ name: "Cisco Packet Tracer", logo: "cisco-packet-tracer" }, { name: "Routing & switching", logo: "router" }, { name: "Hardware architecture", logo: "hardware" }, { name: "Kali Linux", logo: "kali" }] },
   { group: "Code", tools: [{ name: "C", logo: "c" }, { name: "Java", logo: "java" }, { name: "Python", logo: "python" }, { name: "PHP", logo: "php" }, { name: "JavaScript", logo: "javascript" }, { name: "MySQL", logo: "mysql" }] },
-  { group: "Web & design", tools: [{ name: "HTML5", logo: "html" }, { name: "CSS3", logo: "css3" }, { name: "Figma", logo: "figma" }, { name: "Next.js & React" }, { name: "Tailwind CSS" }] },
-  { group: "Image & motion", tools: [{ name: "Lightroom", logo: "lightroom" }, { name: "Premiere Pro" }, { name: "After Effects" }, { name: "DaVinci Resolve" }, { name: "OBS Studio" }] },
+  { group: "Web & design", tools: [{ name: "HTML5", logo: "html" }, { name: "CSS3", logo: "css3" }, { name: "Figma", logo: "figma" }, { name: "Next.js & React", logo: "react" }, { name: "Tailwind CSS", logo: "tailwind" }] },
+  { group: "Image & motion", tools: [{ name: "Lightroom", logo: "lightroom" }, { name: "Premiere Pro", logo: "premiere" }, { name: "After Effects", logo: "after-effects" }, { name: "DaVinci Resolve", logo: "davinci-resolve" }, { name: "OBS Studio", logo: "obs" }] },
 ];
 
 export const gear = [
@@ -61,7 +93,6 @@ export const gear = [
   { brand: "Nikon", logo: "nikon", items: ["D780"] },
   { brand: "Apple", logo: "apple", items: ["iPhone 14 Pro Max — ProRAW"] },
   { brand: "DJI", logo: "dji", items: ["Osmo Mobile 7", "Ronin mini gimbal"] },
-  { brand: "Studio", logo: "studio", items: ["Studio-style portrait lighting", "Speedlite flash units"] },
 ];
 
 export const interests = [

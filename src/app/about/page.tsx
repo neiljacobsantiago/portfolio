@@ -174,12 +174,12 @@ export default function AboutPage() {
 
         {/* Gear */}
         <Section id="gear" label="In the bag" title={<>Canon, Nikon, Apple <em className="font-serif text-ember">& a gimbal.</em></>}>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {gear.map((g, i) => (
               <li key={g.brand} {...reveal("up", i * 70)}>
                 <Tilt max={6} className="h-full rounded-[2px]">
                   <div tabIndex={0} className="group flex h-full flex-col justify-between gap-8 rounded-[2px] bg-ink p-6 text-paper outline-none">
-                    <Logo name={g.logo} label={g.brand} className="h-12 w-28 text-paper [&_img]:brightness-0 [&_img]:invert" bloom={false} />
+                    <Logo name={g.logo} label={g.brand} className="h-9 w-32 text-paper [&_img]:object-left [&_img]:brightness-0 [&_img]:invert" bloom={false} />
                     <div>
                       <h3 className="font-display text-2xl">{g.brand}</h3>
                       <ul className="mt-2 space-y-1 font-serif text-paper/75">
