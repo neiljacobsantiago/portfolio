@@ -70,11 +70,11 @@ export function detectCards(message: string): ChatCard[] {
 
   // Photoshoot quote
   if (/\b(how much|magkano|price|presyo|rate|cost|quote|budget|package|book)/i.test(lower)) {
-    const service = findService(lower.match(/\b(grad\w*|toga|id|headshot|corporate|studio|portrait|fun\w*|lifestyle|outdoor|debut|birthday|pre\w*|event|wedding|gig|seminar)\b/)?.[1]);
+    const service = findService(lower.match(/\b(private|custom|exclusive|grad\w*|toga|id|headshot|corporate|studio|portrait|fun\w*|lifestyle|outdoor|debut|birthday|pre\w*|event|wedding|gig|seminar)\b/)?.[1]);
     if (service) {
       const people = Number(lower.match(/\bfor\s+(\d{1,2})\b|\b(\d{1,2})\s+(?:people|persons|friends|of us|pax|heads?)\b/)?.slice(1).find(Boolean) ?? 1);
       const group = people >= 3 && service.id === "graduation";
-      cards.push({ kind: "quote", service: service.id, package: group ? "grad_group" : undefined, people: group ? people : undefined });
+      cards.push({ kind: "quote", service: service.id, package: group ? "grad_group" : undefined, people: group || (service.custom && people > 1) ? people : undefined });
     }
   }
 

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ResolvedBooking } from "@/lib/booking-claim";
 import { haptic } from "@/lib/haptics";
 import { bookingAnswerEmail, type AnswerDetails, type BookingAnswer } from "@/lib/mail";
+import { extrasRows, time12 } from "@/lib/tools/quote";
 import { cn } from "@/lib/utils";
 
 const FIELD = "w-full rounded-[2px] border border-ink/20 bg-paper/80 px-3 py-2.5 font-serif text-lg text-ink outline-none placeholder:text-ink/35 focus:border-ember focus:ring-1 focus:ring-ember";
@@ -18,7 +19,15 @@ const ACTIONS: { id: BookingAnswer; label: string; hint: string }[] = [
 /** Neil's side of a booking: review it, add details, preview and send the client's email. */
 export default function BookingResponder({ token, booking, initialAction, canSend }: { token: string; booking: ResolvedBooking; initialAction: BookingAnswer; canSend: boolean }) {
   const [action, setAction] = useState<BookingAnswer>(initialAction);
-  const [d, setD] = useState<AnswerDetails>({});
+  // Custom shoots arrive with a start time and place; start from those.
+  const [d, setD] = useState<AnswerDetails>(() => {
+    const x = booking.extras;
+    const start: AnswerDetails = {};
+    if (x?.time) start.time = time12(x.time);
+    const place = x?.location || (x?.locationType !== "Help me choose" ? x?.locationType : "");
+    if (place) start.location = place;
+    return start;
+  });
   const [status, setStatus] = useState<{ state: "idle" | "sending" | "sent" } | { state: "error"; message: string }>({ state: "idle" });
 
   // Payment instructions and usual location are remembered on this device.
@@ -82,10 +91,19 @@ export default function BookingResponder({ token, booking, initialAction, canSen
             ["Date", new Date(`${booking.date}T00:00:00`).toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric" })],
             ["Email", booking.email],
             ["Phone", booking.phone || "—"],
+            ...extrasRows(booking.service, booking.pkg, booking.extras),
           ].map(([k, v]) => (
             <div key={k} className="flex gap-4 py-3">
               <dt className="label w-24 shrink-0 pt-1.5 text-[0.58rem] text-ink/50">{k}</dt>
-              <dd className="min-w-0 break-words">{v}</dd>
+              <dd className="min-w-0 break-words">
+                {k === "Mood board" ? (
+                  <a href={v} target="_blank" rel="noopener noreferrer nofollow" className="ulink text-ember">
+                    {v.replace(/^https?:\/\//, "")}
+                  </a>
+                ) : (
+                  v
+                )}
+              </dd>
             </div>
           ))}
         </dl>

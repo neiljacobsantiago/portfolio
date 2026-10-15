@@ -32,13 +32,13 @@ export default function PlayPage() {
           <section aria-labelledby="shutter-title" {...reveal("up")} className="min-w-0">
             <p className="label text-[0.6rem] text-ink/50">Game 02</p>
             <h3 id="shutter-title" className="mt-2 font-display text-4xl">Shutter</h3>
-            <p className="mt-2 mb-6 font-serif text-lg text-ink/70 italic">Concert photography is timing. Catch the peak of the jump, under the strobe, in the frame.</p>
+            <p className="mt-2 mb-6 font-serif text-lg text-ink/70 italic">Concert photography is timing. Follow the performer, wait for the strobe and the top of the jump — and catch the pyro.</p>
             <ShutterGame />
           </section>
           <section aria-labelledby="sprint-title" {...reveal("up", 120)} className="min-w-0">
             <p className="label text-[0.6rem] text-ink/50">Game 03</p>
             <h3 id="sprint-title" className="mt-2 font-display text-4xl">Subnet Sprint</h3>
-            <p className="mt-2 mb-6 font-serif text-lg text-ink/70 italic">Sixty seconds of the maths behind every network Neil designs.</p>
+            <p className="mt-2 mb-6 font-serif text-lg text-ink/70 italic">You&apos;re the router: sixty seconds of the maths behind every network Neil designs.</p>
             <SubnetSprint />
           </section>
         </div>

@@ -2,20 +2,14 @@
 
 import Image from "next/image";
 import { useLightbox } from "@/components/photography/Lightbox";
-
-interface Cert {
-  title: string;
-  issuer: string;
-  date: string;
-  image: string;
-}
+import type { Certificate } from "@/content/about";
 
 /** Certificate cards; tapping one zooms the certificate full screen. */
-export default function Certificates({ certs }: { certs: Cert[] }) {
-  const { open, lightbox } = useLightbox(certs.map((c) => ({ src: c.image, alt: c.title, note: `${c.issuer} · ${c.date}`, width: 1600, height: 1131 })));
+export default function Certificates({ certs }: { certs: Certificate[] }) {
+  const { open, lightbox } = useLightbox(certs.map((c) => ({ src: c.image, alt: c.title, note: `${c.issuer} · ${c.date}`, width: c.width, height: c.height })));
   return (
     <>
-      <ul className="grid gap-6 sm:grid-cols-3">
+      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {certs.map((c, i) => (
           <li key={c.title}>
             <button type="button" onClick={() => open(i)} data-cursor="View" className="group press block w-full text-left">
@@ -24,7 +18,13 @@ export default function Certificates({ certs }: { certs: Cert[] }) {
               </span>
               <span className="label mt-4 block text-[0.62rem] text-ember">{c.issuer} · {c.date}</span>
               <span className="mt-1 block font-display text-xl leading-snug">{c.title}</span>
+              {c.note && <span className="mt-1 block font-serif text-base leading-snug text-ink/60 italic">{c.note}</span>}
             </button>
+            {c.verify && (
+              <a href={c.verify} target="_blank" rel="noopener noreferrer" className="label ulink mt-3 inline-block text-[0.58rem] text-ink/60 hover:text-ember">
+                Verify certificate ↗
+              </a>
+            )}
           </li>
         ))}
       </ul>

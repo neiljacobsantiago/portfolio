@@ -4,6 +4,7 @@ import { mailConfig, ownerEmail, senderEmail, sendMail, type Inquiry } from "@/l
 import { signBooking } from "@/lib/booking-token";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { siteUrl } from "@/lib/site";
+import { cleanExtras } from "@/lib/tools/quote";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     if (!service || !pkg) return NextResponse.json({ error: "Please choose a service and a package." }, { status: 400 });
     if (!DATE_RE.test(date)) return NextResponse.json({ error: "Please pick a target date." }, { status: 400 });
     if (!inquiry.name) return NextResponse.json({ error: "Please add your name so I know who's booking." }, { status: 400 });
-    inquiry.booking = { service, pkg, date, phone: field(b.phone, LIMITS.phone) };
+    inquiry.booking = { service, pkg, date, phone: field(b.phone, LIMITS.phone), extras: service.custom ? cleanExtras(b.extras) : undefined };
   }
 
   const { apiKey, to, confirmations } = mailConfig();
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
   try {
     // Bookings get signed one-click links so Neil can answer the client from the site.
     const b = inquiry.booking;
-    const token = b ? signBooking({ name: inquiry.name, email: inquiry.email, service: b.service.id, pkg: b.pkg.id, date: b.date, phone: b.phone, message: inquiry.message }) : null;
+    const token = b ? signBooking({ name: inquiry.name, email: inquiry.email, service: b.service.id, pkg: b.pkg.id, date: b.date, phone: b.phone, message: inquiry.message, extras: b.extras }) : null;
     const link = (a: string) => `${siteUrl()}/bookings/respond?a=${a}&t=${token}`;
     const respond = token ? { confirm: link("confirm"), reschedule: link("reschedule"), decline: link("decline") } : undefined;
     const ok = await sendMail({ to, replyTo: inquiry.email, ...ownerEmail(inquiry, respond) });

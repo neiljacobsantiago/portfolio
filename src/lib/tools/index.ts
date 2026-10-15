@@ -47,9 +47,9 @@ export const tools: ToolMeta[] = [
   {
     id: "quote",
     title: "Photoshoot quote",
-    blurb: "Pick a shoot and package to see the price, the 30% downpayment, and book it in one tap.",
+    blurb: "Pick a shoot, package and add-ons to see the price, the 30% downpayment, and book it in one tap.",
     project: { href: "/photography#sessions", title: "Photography sessions" },
-    keywords: "photoshoot price rate quote booking graduation studio event",
+    keywords: "photoshoot price rate quote booking graduation studio event private custom add-ons",
   },
 ];
 
@@ -69,7 +69,7 @@ export type ChatCard =
   | { kind: "memory"; blocks: number[]; processes: number[]; algorithm: Algorithm }
   | { kind: "link"; url: string }
   | { kind: "pathoscan"; species: string; confidence: number }
-  | { kind: "quote"; service: string; package?: string; people?: number };
+  | { kind: "quote"; service: string; package?: string; people?: number; addOns?: string[] };
 
 /** Opening a tool from the chat's tool drawer. */
 export const starterCard: Record<ToolId, ChatCard> = {

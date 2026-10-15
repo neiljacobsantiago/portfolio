@@ -125,7 +125,11 @@ export default function Footer() {
             </Link>
           </div>
         </div>
-        <p className="mt-6 font-serif text-sm text-paper/35 italic">Designed and built by {site.firstName} with Next.js · Set in Gloock, Newsreader &amp; Courier Prime · Hosted on Vercel.</p>
+        <p className="mt-6 font-serif text-sm text-paper/35 italic">Designed and built by {site.firstName} with Next.js · Set in Gloock, Newsreader &amp; Courier Prime · Tool icons by{" "}
+          <a href="https://icons8.com" target="_blank" rel="noopener noreferrer" className="underline decoration-paper/20 underline-offset-2 hover:text-paper/70">
+            Icons8
+          </a>{" "}
+          · Hosted on Vercel.</p>
       </div>
     </footer>
   );

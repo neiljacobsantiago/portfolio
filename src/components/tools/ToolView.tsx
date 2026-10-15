@@ -22,7 +22,7 @@ export default function ToolView({ id, card, compact }: { id?: ToolId; card?: Ch
       case "pathoscan":
         return <PathoScanTool species={card.species} confidence={card.confidence} compact={compact} />;
       case "quote":
-        return <QuoteTool service={card.service} package={card.package} people={card.people} compact={compact} />;
+        return <QuoteTool service={card.service} package={card.package} people={card.people} addOns={card.addOns} compact={compact} />;
       default:
         return null;
     }

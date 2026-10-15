@@ -5,9 +5,9 @@ import Tilt from "@/components/ui/Tilt";
 import { reveal } from "@/lib/reveal";
 
 const GAMES = [
-  { title: "Island Drive", line: "A jeepney, an island, every project as a landmark." },
-  { title: "Shutter", line: "Catch the concert shot at the peak of the jump." },
-  { title: "Subnet Sprint", line: "Sixty seconds of network maths." },
+  { title: "Island Drive", line: "Drift, jump and take the driver's seat — every project is a landmark." },
+  { title: "Shutter", line: "Follow the band; shoot the jump under the strobe." },
+  { title: "Subnet Sprint", line: "Be the router: sixty seconds of network maths." },
 ];
 
 /** Home-page invitation into /play, with a real render of the island. */
@@ -24,7 +24,7 @@ export default function PlayTeaser() {
             Too much reading? <em className="font-serif text-ember">Drive it.</em>
           </h2>
           <p className="mt-6 max-w-md font-serif text-xl leading-relaxed text-ink/75">
-            Take the jeepney around a 3D island where every landmark is one of Neil&apos;s projects — then knock down the pins and race the clock.
+            Take the jeepney around a 3D island where every landmark is one of Neil&apos;s projects. Drift the ring road, jump the ramps, smash the crates — then drive it after dark from the driver&apos;s seat.
           </p>
           <ul className="mt-8 space-y-3">
             {GAMES.map((g, i) => (
@@ -49,7 +49,7 @@ export default function PlayTeaser() {
             <Link href="/play" data-cursor="Play" className="group relative block overflow-hidden rounded-[18px] bg-sky shadow-[0_50px_100px_-40px_rgb(0_48_73/0.6)] ring-1 ring-ink/10">
               <Image
                 src="/play/island-preview.jpg"
-                alt="Island Drive: a low-poly island with a jeepney in the plaza and landmarks for each project"
+                alt="Island Drive at golden hour: the jeepney on the ring road, heading for a jump ramp between palms and flame trees"
                 width={1600}
                 height={1000}
                 sizes="(min-width: 1024px) 55vw, 92vw"

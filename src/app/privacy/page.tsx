@@ -37,7 +37,8 @@ export default function PrivacyPage() {
             <>
               <p>
                 <strong>Messages and booking requests.</strong> When you use the contact form you send your name, email, the topic and your message — and for photoshoots, the service,
-                package, target date and (optionally) your phone number. It&apos;s used only to reply to you and to arrange the shoot. It is never added to a mailing list, sold or shared
+                package, target date and (optionally) your phone number. Custom private shoots also ask for a start time, head count, location, add-ons, an optional mood board link and whether
+                your photos may be shared. It&apos;s used only to reply to you and to arrange the shoot. It is never added to a mailing list, sold or shared
                 for marketing.
               </p>
               <p>

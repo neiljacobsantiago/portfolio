@@ -2,23 +2,39 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { bookingTerms, services } from "@/content/sessions";
+import { addOns, bookingTerms, PRIVATE_PEOPLE_INCLUDED, services } from "@/content/sessions";
 import { haptic } from "@/lib/haptics";
 import { findService, peso, quote } from "@/lib/tools/quote";
 import { cn } from "@/lib/utils";
 import { Note } from "./ui";
 
 /** Price, downpayment and a pre-filled booking link for any photoshoot package. */
-export default function QuoteTool({ service: s0 = "graduation", package: p0, people: n0 = 1, compact }: { service?: string; package?: string; people?: number; compact?: boolean }) {
+export default function QuoteTool({
+  service: s0 = "graduation",
+  package: p0,
+  people: n0 = 1,
+  addOns: a0 = [],
+  compact,
+}: {
+  service?: string;
+  package?: string;
+  people?: number;
+  addOns?: string[];
+  compact?: boolean;
+}) {
   const start = findService(s0) ?? services[0];
   const [serviceId, setServiceId] = useState(start.id);
   const [packageId, setPackageId] = useState(() => (quote(start.id, p0) as Exclude<ReturnType<typeof quote>, { error: string }>).pkg.id);
-  const [people, setPeople] = useState(Math.max(3, n0));
+  const [people, setPeople] = useState(n0);
+  const [picked, setPicked] = useState<string[]>(a0);
   const base = quote(serviceId, packageId);
   if ("error" in base) return null;
-  // Group packages are priced per head (3 or more people).
+  // Group packages are priced per head (3 or more); custom shoots include 2 people and take add-ons.
   const perHead = base.pkg.price.includes("/ head");
-  const q = perHead ? (quote(serviceId, packageId, people) as typeof base) : base;
+  const custom = Boolean(base.service.custom);
+  const min = perHead ? 3 : 1;
+  const count = Math.max(min, people);
+  const q = perHead || custom ? (quote(serviceId, packageId, count, picked) as typeof base) : base;
 
   return (
     <div className="space-y-4">
@@ -59,16 +75,39 @@ export default function QuoteTool({ service: s0 = "graduation", package: p0, peo
         ))}
       </ul>
 
-      {perHead && (
-        <div className="flex items-center gap-3">
+      {(perHead || custom) && (
+        <div className="flex flex-wrap items-center gap-3">
           <span className="label text-[0.55rem] text-ink/55">People</span>
-          <button type="button" onClick={() => setPeople(Math.max(3, people - 1))} aria-label="Fewer people" className="press h-8 w-8 rounded-full border border-ink/20">
+          <button type="button" onClick={() => setPeople(Math.max(min, count - 1))} aria-label="Fewer people" className="press h-8 w-8 rounded-full border border-ink/20">
             −
           </button>
-          <span className="w-8 text-center font-display text-xl tabular-nums">{people}</span>
-          <button type="button" onClick={() => setPeople(Math.min(50, people + 1))} aria-label="More people" className="press h-8 w-8 rounded-full border border-ink/20">
+          <span className="w-8 text-center font-display text-xl tabular-nums">{count}</span>
+          <button type="button" onClick={() => setPeople(Math.min(custom ? 20 : 50, count + 1))} aria-label="More people" className="press h-8 w-8 rounded-full border border-ink/20">
             +
           </button>
+          {custom && <span className="font-serif text-sm text-ink/55 italic">{PRIVATE_PEOPLE_INCLUDED} included</span>}
+        </div>
+      )}
+
+      {custom && (
+        <div>
+          <p className="label mb-2 text-[0.55rem] text-ink/55">Add-ons</p>
+          <div className="flex flex-wrap gap-1.5">
+            {addOns.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                aria-pressed={picked.includes(a.id)}
+                onClick={() => {
+                  haptic();
+                  setPicked((ids) => (ids.includes(a.id) ? ids.filter((id) => id !== a.id) : [...ids, a.id]));
+                }}
+                className="press rounded-full border border-ink/15 px-3 py-1.5 text-left font-serif text-sm aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-paper"
+              >
+                {a.name} <span className="opacity-70">{a.amount === null ? "· quote" : `+${peso(a.amount)}`}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -77,6 +116,7 @@ export default function QuoteTool({ service: s0 = "graduation", package: p0, peo
           <p className="label text-[0.55rem] text-sky">{q.total === null ? "Price" : "Total"}</p>
           <p className="font-display text-4xl leading-none">{q.total === null ? "By quote" : peso(q.total)}</p>
           {q.downpayment !== null && <p className="mt-2 font-serif text-sm text-paper/70 italic">{peso(q.downpayment)} downpayment secures the date</p>}
+          {q.quoted.length > 0 && <p className="font-serif text-sm text-paper/60 italic">+ {q.quoted.join(", ")}, quoted separately</p>}
         </div>
         <Link href={q.bookHref} className="btn bg-paper py-3 text-ink hover:bg-sky">
           Book this <span className="arrow">→</span>

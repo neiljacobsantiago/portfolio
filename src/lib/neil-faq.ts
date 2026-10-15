@@ -33,7 +33,7 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
     test: /\b(pathoscan|philmech|pathogen|aspergillus|fung|mycotoxin)/i,
     answer: {
       text: "PathoScan is Neil's team project for DA PhilMech's Laboratory Services Division: snap a photo of a fungal culture and an on-device AI names one of five mycotoxin-producing Aspergillus species — fully offline. Neil did the UI/UX and trained the model. It was turned over to PhilMech in September 2026. 🔬",
-      links: [{ label: "Read the case study", href: "/work/pathoscan" }],
+      links: [{ label: "View the project", href: "/work/pathoscan" }],
     },
   },
   {

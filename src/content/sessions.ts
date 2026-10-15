@@ -13,9 +13,34 @@ export interface Service {
   name: string;
   blurb: string;
   packages: Package[];
+  /** Built to order: the booking form asks for time, place, people, add-ons and photo use. */
+  custom?: boolean;
+  /** What every package of this service comes with. */
+  includes?: string[];
 }
 
 export const services: Service[] = [
+  {
+    id: "private",
+    name: "Custom Private Photoshoot",
+    blurb: "One-on-one and built around your idea — your place, your pace, and photos that stay private unless you say so.",
+    custom: true,
+    packages: [
+      { id: "private_1h", name: "1 Hour", price: "₱1,999", detail: "1 location · 2 outfits · 15 retouches" },
+      { id: "private_2h", name: "2 Hours", price: "₱3,499", detail: "Up to 2 locations · 4 outfits · 30 retouches" },
+      { id: "private_3h", name: "3 Hours", price: "₱4,799", detail: "Up to 3 locations · any outfits · 45 retouches" },
+      { id: "private_half", name: "Half Day · 5 Hours", price: "₱7,499", detail: "Photos + 60-sec reel · 75 retouches" },
+      { id: "private_full", name: "Full Day · 8 Hours", price: "₱11,999", detail: "Photos + cinematic video · 120 retouches" },
+    ],
+    includes: [
+      "A concept call and mood board before the shoot",
+      "Posing direction the whole time — no experience needed",
+      "Every usable frame colour-graded, plus your retouches",
+      "A private online gallery within 7–10 days",
+      "Up to 2 people; anyone else is added per head",
+      "Nothing is posted anywhere without your permission",
+    ],
+  },
   {
     id: "id_portrait",
     name: "ID & Corporate Headshots",
@@ -79,6 +104,45 @@ export const services: Service[] = [
       { id: "evt_custom", name: "Live Gig / Corporate", price: "Quote", detail: "Subject to final quote" },
     ],
   },
+];
+
+/** Extras for custom private shoots. `amount: null` means quoted case by case. */
+export interface AddOn {
+  id: string;
+  name: string;
+  amount: number | null;
+  detail: string;
+}
+
+export const addOns: AddOn[] = [
+  { id: "extra_hour", name: "Extra hour", amount: 1299, detail: "Keep shooting past your package" },
+  { id: "hmua", name: "Hair & makeup artist", amount: 1500, detail: "Booked with a partner artist, ready before call time" },
+  { id: "reel", name: "60-second vertical reel", amount: 1999, detail: "Edited for Reels and TikTok" },
+  { id: "retouch10", name: "10 more retouches", amount: 800, detail: "On top of your package" },
+  { id: "rush", name: "Rush delivery", amount: 1000, detail: "Gallery in 3 days instead of 7–10" },
+  { id: "prints", name: "10 printed photos", amount: 500, detail: "4R, matte, picked by you" },
+  { id: "travel", name: "Travel outside San Jose City", amount: null, detail: "Quoted by distance" },
+];
+
+/** Private shoots cover up to this many people; each extra person is a flat fee. */
+export const PRIVATE_PEOPLE_INCLUDED = 2;
+export const EXTRA_PERSON = 500;
+
+export const locationTypes = ["Your home or place", "An outdoor spot", "A rented studio", "A hotel or venue", "Help me choose"];
+
+export const photoUses = [
+  { id: "private", label: "Keep them private", detail: "Only you get the photos" },
+  { id: "ask", label: "Ask me first", detail: "Neil asks before sharing any" },
+  { id: "share", label: "Okay to share a few", detail: "For Neil's portfolio and socials" },
+] as const;
+
+export type PhotoUse = (typeof photoUses)[number]["id"];
+
+/** Extra ground rules for private shoots, shown with the booking terms. */
+export const privateTerms = [
+  "Venue, entrance and permit fees are paid by you.",
+  "Running more than 15 minutes late comes out of the booked time.",
+  "One free reschedule with at least 48 hours' notice.",
 ];
 
 export const bookingTerms = [
