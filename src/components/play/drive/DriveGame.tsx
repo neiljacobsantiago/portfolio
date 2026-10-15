@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { haptic } from "@/lib/haptics";
+import { useImmersive } from "@/lib/immersive";
 import { cn } from "@/lib/utils";
 import type { CameraMode, DriveEngine, Quality, TimeOfDay } from "./engine";
 import { landmarks, packets, type Landmark } from "./world";
@@ -142,13 +143,7 @@ export default function DriveGame() {
   };
 
   // While driving, the game owns the screen: tuck away floating site widgets (the chat launcher).
-  useEffect(() => {
-    if (phase !== "driving") return;
-    document.documentElement.dataset.immersive = "";
-    return () => {
-      delete document.documentElement.dataset.immersive;
-    };
-  }, [phase]);
+  useImmersive(phase === "driving");
 
   const toggleMute = () => {
     const next = !muted;
