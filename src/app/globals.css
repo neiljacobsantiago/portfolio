@@ -38,6 +38,18 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Headings break into even lines; paragraphs avoid a lonely last word */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
   ::selection {
     @apply bg-ember text-paper;
   }
@@ -321,6 +333,11 @@ html.low-power .paper-field .grain {
   25% { transform: rotate(-8deg); }
   75% { transform: rotate(8deg); }
 }
+@keyframes phone-turn {
+  0%, 25% { transform: rotate(0); }
+  55%, 85% { transform: rotate(-90deg); }
+  100% { transform: rotate(0); }
+}
 @keyframes pop-in {
   from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.96); }
 }
@@ -358,6 +375,9 @@ html.low-power .paper-field .grain {
 }
 @utility animate-wiggle {
   animation: wiggle 0.5s var(--ease-spring);
+}
+@utility animate-phone-turn {
+  animation: phone-turn 2.8s var(--ease-apple) infinite;
 }
 @utility animate-pop-in {
   animation: pop-in 0.5s var(--ease-spring) both;

@@ -40,13 +40,17 @@ export default function NavBar() {
 
   return (
     <header
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500",
         open ? "bg-wine" : scrolled ? "border-b border-ink/10 bg-paper/95 md:bg-paper/80 md:backdrop-blur-md" : "border-b border-transparent",
       )}
     >
       <span aria-hidden className="scroll-progress pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-ember" />
-      <nav aria-label="Primary" className="mx-auto flex h-16 max-w-[90rem] items-center justify-between px-5 md:h-20 md:px-10">
+      <nav
+        aria-label="Primary"
+        className="mx-auto flex h-16 max-w-[90rem] items-center justify-between pr-[max(1.25rem,env(safe-area-inset-right))] pl-[max(1.25rem,env(safe-area-inset-left))] md:h-20 md:pr-[max(2.5rem,env(safe-area-inset-right))] md:pl-[max(2.5rem,env(safe-area-inset-left))]"
+      >
         <Link href="/" className={cn("group flex items-baseline gap-2", open && "text-paper")} aria-label={`${site.name} — home`}>
           <span className="font-display text-2xl leading-none">Neil Jacob</span>
           <span className="font-serif text-lg italic opacity-60 transition-opacity group-hover:opacity-100">Santiago</span>
@@ -116,7 +120,7 @@ export default function NavBar() {
       <div
         id="site-menu"
         hidden={!open}
-        className="h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain bg-wine px-5 pt-6 pb-[max(2rem,env(safe-area-inset-bottom))] text-paper md:hidden"
+        className="h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain bg-wine px-5 pt-6 pb-[max(2rem,env(safe-area-inset-bottom))] text-paper md:hidden"
       >
         <ul className="border-t border-paper/15">
           {[{ label: "Home", href: "/", description: "Start here" }, ...mainNav].map((item, i) => (

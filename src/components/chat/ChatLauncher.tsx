@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useDeviceProfile } from "@/lib/device";
 import { haptic } from "@/lib/haptics";
+import { cn } from "@/lib/utils";
 import { ASK_EVENT, stashAsk, type AskDetail } from "@/lib/neilai-events";
 import BlobAvatar from "./BlobAvatar";
 
@@ -18,7 +19,21 @@ export default function ChatLauncher() {
   const [teaser, setTeaser] = useState<string | null>(null);
   const [wiggle, setWiggle] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [tucked, setTucked] = useState(false);
   const { finePointer, reducedMotion } = useDeviceProfile();
+
+  // Phones: step out of the way while reading (scrolling down), come back on the way up.
+  useEffect(() => {
+    let last = scrollY;
+    const onScroll = () => {
+      const y = scrollY;
+      if (Math.abs(y - last) < 8) return;
+      setTucked(y > last && y > 320 && innerWidth < 768);
+      last = y;
+    };
+    addEventListener("scroll", onScroll, { passive: true });
+    return () => removeEventListener("scroll", onScroll);
+  }, []);
 
   // Eyes follow the cursor around the page.
   useEffect(() => {
@@ -91,11 +106,16 @@ export default function ChatLauncher() {
   };
 
   return (
-    <div ref={rootRef} className="fixed right-4 z-40 flex flex-col items-end sm:right-6 [html[data-immersive]_&]:hidden" style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+    <div ref={rootRef} className={cn(
+        "fixed right-[max(1rem,env(safe-area-inset-right))] z-40 flex flex-col items-end transition-[transform,opacity] duration-500 ease-[var(--ease-apple)] sm:right-[max(1.5rem,env(safe-area-inset-right))] [html[data-immersive]_&]:hidden",
+        tucked && !open && "pointer-events-none translate-y-24 opacity-0",
+      )}
+      style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
+    >
       {loaded && <NeilAI open={open} onClose={() => setOpen(false)} />}
 
       {teaser && !open && (
-        <div className="animate-pop-in mb-3 flex max-w-[16rem] origin-bottom-right items-start gap-2 rounded-2xl rounded-br-sm bg-paper px-4 py-3 shadow-[0_18px_40px_-14px_rgb(0_48_73/0.5)] ring-1 ring-ink/10">
+        <div className="animate-pop-in mb-3 hidden max-w-[16rem] origin-bottom-right md:flex items-start gap-2 rounded-2xl rounded-br-sm bg-paper px-4 py-3 shadow-[0_18px_40px_-14px_rgb(0_48_73/0.5)] ring-1 ring-ink/10">
           <button type="button" onClick={toggle} className="text-left font-serif text-base leading-snug text-ink">
             {teaser}
           </button>
@@ -116,13 +136,13 @@ export default function ChatLauncher() {
         aria-expanded={open}
         aria-controls="neilai-panel"
         aria-label={open ? "Close chat" : "Chat with NeilAI"}
-        className="label press group flex h-14 items-center gap-3 rounded-full bg-ink py-1.5 pr-5 pl-1.5 text-paper shadow-[0_18px_40px_-14px_rgb(0_48_73/0.7)] hover:bg-[#0a3d5c]"
+        className="label press group flex h-14 items-center gap-3 rounded-full bg-ink p-1.5 text-paper ring-1 ring-paper/15 shadow-[0_18px_40px_-14px_rgb(0_48_73/0.7)] hover:bg-[#0a3d5c] md:pr-5"
       >
         <span className={wiggle ? "animate-wiggle" : undefined}>
           <BlobAvatar className="h-11 w-11 text-[0.75rem]" mood={open ? "happy" : "idle"} />
         </span>
-        <span className="hidden sm:inline">{open ? "Close" : "Ask about Neil"}</span>
-        <span className="sm:hidden">{open ? "Close" : "Ask me"}</span>
+        <span className="hidden md:inline">{open ? "Close" : "Ask about Neil"}</span>
+        <span className="sr-only md:hidden">{open ? "Close" : "Ask NeilAI"}</span>
       </button>
     </div>
   );

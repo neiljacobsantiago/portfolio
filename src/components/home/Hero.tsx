@@ -48,15 +48,17 @@ export default function Hero() {
             web systems by day, and directs the ITSC Media Group&apos;s cameras at concerts, campus events and the night sky after.
           </p>
 
-          <div className="animate-rise-in mt-10 flex flex-wrap items-center gap-4" style={{ animationDelay: "620ms" }}>
-            <Magnetic>
-              <Link href="/work" className="btn bg-ink text-paper hover:bg-ember">
+          {/* Phones: two equal buttons side by side; larger screens: natural widths */}
+          <div className="animate-rise-in mt-10 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4" style={{ animationDelay: "620ms" }}>
+            <Magnetic className="!block sm:!inline-block">
+              <Link href="/work" className="btn w-full justify-center bg-ink px-4 text-paper hover:bg-ember sm:w-auto sm:px-7">
                 See the work
               </Link>
             </Magnetic>
-            <Magnetic>
-              <Link href="/photography" className="btn border border-ink/30 hover:border-ink">
-                Browse photographs <span className="arrow">→</span>
+            <Magnetic className="!block sm:!inline-block">
+              <Link href="/photography" className="btn w-full justify-center border border-ink/30 px-4 hover:border-ink sm:w-auto sm:px-7">
+                <span className="sm:hidden">Photographs</span>
+                <span className="hidden sm:inline">Browse photographs</span> <span className="arrow">→</span>
               </Link>
             </Magnetic>
           </div>

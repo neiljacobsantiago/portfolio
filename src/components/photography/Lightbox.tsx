@@ -56,7 +56,7 @@ export function useLightbox(items: LightboxItem[]) {
 
 function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; index: number; onIndex: (i: number) => void; onClose: () => void }) {
   const item = items[index];
-  const touchX = useRef<number | null>(null);
+  const touch = useRef<{ x: number; y: number } | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const go = useCallback(
     (delta: number) => {
@@ -95,15 +95,19 @@ function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; i
       aria-label={`${item.alt}${many ? ` — ${index + 1} of ${items.length}` : ""}`}
       data-lenis-prevent
       className="animate-page-in fixed inset-0 z-[90] flex flex-col bg-ink text-paper"
-      onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+      onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
       onTouchEnd={(e) => {
-        if (touchX.current === null || !many) return;
-        const dx = e.changedTouches[0].clientX - touchX.current;
-        if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-        touchX.current = null;
+        const start = touch.current;
+        touch.current = null;
+        if (!start) return;
+        const dx = e.changedTouches[0].clientX - start.x;
+        const dy = e.changedTouches[0].clientY - start.y;
+        // Swipe sideways to browse, down to close
+        if (many && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+        else if (dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.4) onClose();
       }}
     >
-      <div className="flex items-center justify-between px-5 py-4 md:px-10">
+      <div className="flex items-center justify-between px-5 py-4 pt-[max(1rem,env(safe-area-inset-top))] md:px-10">
         <span className="label text-paper/70">{many ? `${String(index + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}` : ""}</span>
         <button ref={closeRef} type="button" onClick={onClose} className="label press rounded-full border border-paper/30 px-4 py-2 hover:bg-paper hover:text-ink">
           Close ✕
@@ -124,7 +128,7 @@ function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; i
         />
       </div>
 
-      <div className="flex items-center justify-between gap-4 px-5 py-5 md:px-10">
+      <div className="flex items-center justify-between gap-4 px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-10">
         {many ? (
           <button type="button" onClick={() => go(-1)} className="press h-11 w-11 rounded-full border border-paper/30 hover:bg-paper hover:text-ink" aria-label="Previous">
             ←

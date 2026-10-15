@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/PageHeader";
 import Magnetic from "@/components/ui/Magnetic";
+import ShareButton from "@/components/ui/ShareButton";
 import FacebookMedia from "@/components/work/FacebookMedia";
 import ProjectCover from "@/components/work/ProjectCover";
 import ProjectImages from "@/components/work/ProjectImages";
@@ -94,22 +95,21 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               ))}
             </dd>
           </div>
-          {(project.links?.length || project.privateRepo) && (
-            <div className="col-span-2 flex flex-wrap gap-3 md:col-span-1">
-              {project.links?.map((l) => (
-                <Magnetic key={l.href}>
-                  <a href={l.href} target="_blank" rel="noopener noreferrer" className="btn bg-ink py-3 text-paper hover:bg-ember">
-                    {l.label} <span className="arrow">↗</span>
-                  </a>
-                </Magnetic>
-              ))}
-              {project.privateRepo && (
-                <span className="label inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-3 text-ink/60">
-                  <span aria-hidden>🔒</span> Private repository
-                </span>
-              )}
-            </div>
-          )}
+          <div className="col-span-2 flex flex-wrap items-center gap-3 md:col-span-1">
+            {project.links?.map((l) => (
+              <Magnetic key={l.href}>
+                <a href={l.href} target="_blank" rel="noopener noreferrer" className="btn bg-ink py-3 text-paper hover:bg-ember">
+                  {l.label} <span className="arrow">↗</span>
+                </a>
+              </Magnetic>
+            ))}
+            {project.privateRepo && (
+              <span className="label inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-3 text-ink/60">
+                <span aria-hidden>🔒</span> Private repository
+              </span>
+            )}
+            <ShareButton title={project.title} text={project.plain} />
+          </div>
           {project.notice && (
             <p className="col-span-2 flex gap-3 rounded-[2px] border-l-2 border-ember bg-ember/[0.06] px-4 py-3 font-serif text-base leading-snug text-ink/75 italic md:col-span-1">
               <span aria-hidden className="not-italic">ⓘ</span>

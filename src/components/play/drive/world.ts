@@ -26,7 +26,7 @@ export interface Landmark {
 export const landmarks: Landmark[] = [
   { id: "pathoscan", kind: "petri", title: "PathoScan", line: "An offline AI that names fungal species from a photo — turned over to DA PhilMech.", href: "/work/pathoscan", cta: "View the project", x: 0, z: -24, radius: 6.5, zone: 12 },
   { id: "photography", kind: "camera", title: "Photography", line: "Concerts, portraits, campus life and the night sky.", href: "/photography", cta: "Open the gallery", x: 26, z: -42, radius: 5, zone: 11 },
-  { id: "aurora", kind: "stage", title: "Aurora Fest 2026", line: "Twelve hours at the barricade for six OPM acts.", href: "/work/aurora-fest-2026", cta: "See the story", x: 50, z: -12, radius: 7, zone: 13 },
+  { id: "aurora", kind: "stage", title: "Aurora Fest 2026", line: "Six OPM acts from the front barrier, shot in manual.", href: "/work/aurora-fest-2026", cta: "See the story", x: 50, z: -12, radius: 7, zone: 13 },
   { id: "buildit", kind: "pc", title: "BuildIT", line: "A PC builder that grew from a C program into a cloud storefront.", href: "/work/buildit", cta: "See how it evolved", x: 44, z: 28, radius: 4.5, zone: 11 },
   { id: "clirdec", kind: "network", title: "CLIRDEC Network", line: "A whole facility's network, planned down to the VLANs.", href: "/work/clirdec-network", cta: "Open the project", x: 12, z: 50, radius: 6, zone: 12 },
   { id: "memory", kind: "memory", title: "Memory Allocation", line: "First-, Best- and Worst-Fit, made visible.", href: "/work/memory-allocation-simulator", cta: "Open the project", x: -24, z: 46, radius: 4.5, zone: 11 },

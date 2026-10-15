@@ -30,11 +30,15 @@ export const metadata: Metadata = {
     images: [{ url: "/njs_p.jpg", alt: site.name }],
   },
   twitter: { card: "summary_large_image", title: site.title, description: site.description },
+  appleWebApp: { capable: true, title: "Neil Jacob", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   themeColor: "#fdf0d5",
   colorScheme: "light",
+  // Draw under the notch and home bar; components pad with env(safe-area-inset-*)
+  viewportFit: "cover",
 };
 
 /** Structured data so search engines understand who the site is about. */

@@ -39,7 +39,7 @@ export const seriesList: Series[] = [
     slug: "concerts",
     title: "Live Concerts & OPM",
     kicker: "04 — Collection",
-    story: "Aurora Music Festival and street stages: twelve-hour days at the barricade, shooting manual through strobes and haze for the frame that holds the energy.",
+    story: "Aurora Music Festival and street stages, shot from the front barrier in full manual — through strobes, haze and fast-changing stage light.",
     gear: "Nikon D780 · Canon · iPhone 14 Pro Max",
     tone: "ink",
   },
