@@ -125,6 +125,30 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             ))}
           </div>
 
+          {project.timeline && (
+            <section className="mt-14" aria-label="How it evolved">
+              <h2 className="label mb-6 text-ink/50">How it evolved</h2>
+              <ol className="relative grid gap-4 md:grid-cols-3">
+                <span aria-hidden className="absolute top-5 right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-ember via-ember/60 to-ink/30 md:block" />
+                {project.timeline.map((step, i) => (
+                  <li key={step.course} {...reveal("up", i * 120)} className="group relative">
+                    <span className="relative z-10 mx-auto mb-4 hidden h-10 w-10 items-center justify-center rounded-full bg-ember font-display text-lg text-paper ring-4 ring-paper transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 md:flex">
+                      {i + 1}
+                    </span>
+                    <div className="h-full rounded-[2px] border border-ink/10 bg-paper/70 p-5 transition-[transform,box-shadow] duration-500 ease-[var(--ease-apple)] group-hover:-translate-y-1 group-hover:shadow-[0_20px_40px_-24px_rgb(0_48_73/0.5)]">
+                      <p className="label text-[0.6rem] text-ember">
+                        <span className="md:hidden">0{i + 1} · </span>
+                        {step.course}
+                      </p>
+                      <p className="mt-2 font-display text-2xl leading-tight">{step.stage}</p>
+                      <p className="mt-2 font-serif text-base leading-snug text-ink/70">{step.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
           {project.quote && (
             <blockquote {...reveal("up")} className="relative mt-12 border-l-2 border-ember pl-6 font-display text-2xl leading-snug text-ink md:pl-8 md:text-3xl">
               <span aria-hidden className="absolute -top-6 -left-1 font-display text-7xl leading-none text-ember/30">“</span>

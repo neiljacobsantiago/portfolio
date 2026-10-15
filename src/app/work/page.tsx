@@ -6,6 +6,7 @@ import Magnetic from "@/components/ui/Magnetic";
 import Tilt from "@/components/ui/Tilt";
 import ProjectCover from "@/components/work/ProjectCover";
 import WorkFilter from "@/components/work/WorkFilter";
+import WorkViews from "@/components/work/WorkViews";
 import { categories, projects, type Category } from "@/content/work";
 import { site } from "@/lib/site";
 
@@ -43,28 +44,30 @@ export default function WorkPage() {
 
       <Container className="pb-24 md:pb-32">
         <WorkFilter tabs={tabs}>
-          <ul className="grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p, i) => (
-              <li key={p.slug} data-category={p.category} style={{ viewTransitionName: `work-${p.slug}` }} className={i === 0 ? "sm:col-span-2" : undefined}>
-                <Tilt max={4} className="rounded-[2px]">
-                  <Link href={`/work/${p.slug}`} data-cursor="Open" className="group block">
-                    <ProjectCover
-                      project={p}
-                      priority={i === 0}
-                      sizes={i === 0 ? "(min-width: 1024px) 60vw, (min-width: 640px) 92vw, 92vw" : "(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"}
-                      className={`rounded-[2px] ${i === 0 ? "aspect-[16/9]" : "aspect-[4/3]"}`}
-                    />
-                    <div className="mt-5 flex items-center justify-between gap-3">
-                      <span className="label text-[0.62rem] text-ember">{categories[p.category].label}</span>
-                      <span className="label text-[0.62rem] text-ink/45">{p.status}</span>
-                    </div>
-                    <h2 className="mt-2 font-display text-3xl leading-tight transition-colors group-hover:text-ember">{p.title}</h2>
-                    <p className="mt-2 font-serif text-lg leading-snug text-ink/75 italic">{p.plain}</p>
-                  </Link>
-                </Tilt>
-              </li>
-            ))}
-          </ul>
+          <WorkViews>
+            <ul className="grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((p, i) => (
+                <li key={p.slug} data-category={p.category} style={{ viewTransitionName: `work-${p.slug}` }} className={i === 0 ? "sm:col-span-2" : undefined}>
+                  <Tilt max={4} className="rounded-[2px]">
+                    <Link href={`/work/${p.slug}`} data-cursor="Open" className="group block">
+                      <ProjectCover
+                        project={p}
+                        priority={i === 0}
+                        sizes={i === 0 ? "(min-width: 1024px) 60vw, (min-width: 640px) 92vw, 92vw" : "(min-width: 1024px) 30vw, (min-width: 640px) 46vw, 92vw"}
+                        className={`rounded-[2px] ${i === 0 ? "aspect-[16/9]" : "aspect-[4/3]"}`}
+                      />
+                      <div className="mt-5 flex items-center justify-between gap-3">
+                        <span className="label text-[0.62rem] text-ember">{categories[p.category].label}</span>
+                        <span className="label text-[0.62rem] text-ink/45">{p.status}</span>
+                      </div>
+                      <h2 className="mt-2 font-display text-3xl leading-tight transition-colors group-hover:text-ember">{p.title}</h2>
+                      <p className="mt-2 font-serif text-lg leading-snug text-ink/75 italic">{p.plain}</p>
+                    </Link>
+                  </Tilt>
+                </li>
+              ))}
+            </ul>
+          </WorkViews>
         </WorkFilter>
 
         <div className="mt-24 grid gap-8 rounded-[2px] bg-ink p-8 text-paper md:grid-cols-12 md:p-14">

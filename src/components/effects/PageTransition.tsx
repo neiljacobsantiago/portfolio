@@ -10,6 +10,7 @@ const ROUTES: { match: (p: string) => boolean; color: string; text: string; labe
   { match: (p) => p.startsWith("/work"), color: "var(--color-ink)", text: "var(--color-paper)", label: () => "Work" },
   { match: (p) => p.startsWith("/photography"), color: "var(--color-wine)", text: "var(--color-paper)", label: () => "Photography" },
   { match: (p) => p.startsWith("/about"), color: "var(--color-sky)", text: "var(--color-ink)", label: () => "About" },
+  { match: (p) => p.startsWith("/play"), color: "var(--color-ember)", text: "var(--color-paper)", label: () => "Let's play" },
   { match: (p) => p.startsWith("/lab"), color: "#0f3d2e", text: "var(--color-paper)", label: () => "The Lab" },
   { match: (p) => p.startsWith("/contact"), color: "var(--color-ember)", text: "var(--color-paper)", label: () => "Say hello" },
   { match: (p) => p.startsWith("/terminal"), color: "#050a12", text: "var(--color-paper)", label: () => "root@neil:~$" },

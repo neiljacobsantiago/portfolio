@@ -45,6 +45,8 @@ export interface Project {
   quote?: string;
   /** A Lab tool built from this project, embedded on its page as "Try it". */
   tool?: ToolId;
+  /** How the project grew across courses, shown as a stepper. */
+  timeline?: { course: string; stage: string; detail: string }[];
 }
 
 const fbVideo = (id: string) => `https://www.facebook.com/clsudit/videos/${id}/`;
@@ -58,16 +60,16 @@ export const projects: Project[] = [
     category: "systems",
     featured: 1,
     plain: "Point a phone at a fungal culture and it names the species in seconds — no internet needed.",
-    context: "DA PhilMech · Laboratory Services Division",
+    context: "COMSCI 3100 · for DA PhilMech",
     role: "UI/UX & model training",
     status: "Turned over to PhilMech · Sep 2026",
     body: [
       "PathoScan is a web-based plant pathogen image classification system with a localized architecture, built for the Laboratory Services Division of DA PhilMech in the Science City of Muñoz. Several Aspergillus species produce mycotoxins that contaminate grains, corn and peanuts; identifying them by eye takes trained staff, printed references and often 10 to 14 days.",
       "Lab staff photograph a Potato Dextrose Agar plate (or upload one) and a MobileNetV2 convolutional neural network, running in the browser through TensorFlow.js, names one of five mycotoxin-producing species — A. flavus, A. terreus, A. fumigatus, A. tamarii or A. niger — or answers \"Unknown\" instead of forcing a guess. It shows the confidence, a probability matrix for every class, and the species' known colony traits to compare against the plate.",
       "Results at 90% confidence or higher are cleared for preliminary screening; anything lower is flagged for PCR confirmation. Everything runs on the device inside PhilMech's local network: no login, no cloud, no stored history beyond the most recent scan for crash recovery, and it installs and works offline as a Progressive Web App.",
-      "I designed the interface and trained the classification model. On September 28, 2026, the team formally turned the system over to PhilMech, where it was accepted for operational use.",
+      "We built it as our COMSCI 3100 project using an Agile-Scrum approach, working in sprints as a team of nine, and I designed the interface and trained the classification model. On September 28, 2026, the team formally turned the system over to PhilMech, where it was accepted for operational use.",
     ],
-    stack: ["React", "TypeScript", "Vite", "TensorFlow.js", "MobileNetV2", "Teachable Machine", "IndexedDB", "PWA"],
+    stack: ["React", "TypeScript", "Vite", "TensorFlow.js", "MobileNetV2", "Teachable Machine", "IndexedDB", "PWA", "Agile-Scrum"],
     team: [
       "Mark James Mangalino — Project Leader",
       "Aleinna Cassandra Calulot — Technical Lead",
@@ -92,14 +94,19 @@ export const projects: Project[] = [
     category: "web",
     featured: 2,
     plain: "Pick PC parts, check they fit together, and check out — all in one place.",
-    context: "INTECH 2201 · Final project",
+    context: "COMSCI 1200 → INTECH 2100 → INTECH 2201",
     role: "Lead UI/UX designer",
     status: "Shipped",
     body: [
       "A custom PC builder and storefront inspired by PCPartPicker. Traditional tech retail sites overwhelm buyers with incompatible parts and disjointed checkouts; BuildIT puts drafting a build, checking compatibility and paying into one calm flow.",
-      "It grew out of an earlier C command-line version of the same idea, then became a full web app with e-commerce database management and secure backend routing, hosted on Azure for evaluation.",
+      "It's the project that grew up with us across three courses: a C command-line program in COMSCI 1200, a high-fidelity Figma prototype in INTECH 2100, and finally a cloud-hosted storefront built on WordPress for INTECH 2201.",
     ],
-    stack: ["Web app", "E-commerce database", "Azure hosting", "C (original CLI)"],
+    timeline: [
+      { course: "COMSCI 1200", stage: "Command line", detail: "The first BuildIT: a C program for logging in, browsing an inventory and building a PC from the terminal." },
+      { course: "INTECH 2100", stage: "Figma prototype", detail: "The same flow redesigned as a high-fidelity, clickable Figma prototype — the full home page and storefront." },
+      { course: "INTECH 2201", stage: "Cloud site", detail: "A live storefront built on WordPress and hosted in the cloud, with the e-commerce database behind it." },
+    ],
+    stack: ["C", "Figma", "WordPress", "Cloud hosting (Azure)", "E-commerce database"],
     team: ["Neil Jacob Santiago — Lead UI/UX Designer", "Rion Bustos — Lead Developer & original C developer", "Anne Margaret Tablanza — Designer & content layouts", "Vinze Norbert Siega — Database, Azure hosting & docs", "Justine Rey Garcia — Content developer"],
     links: [
       { label: "Live site", href: "https://buildits.app" },
@@ -212,7 +219,7 @@ export const projects: Project[] = [
     title: "ParkMate",
     category: "web",
     plain: "Replaced a parking lot's paper logbook with a desktop app.",
-    context: "Object-Oriented Programming · Final project",
+    context: "COMSCI 1201 · Final project · CRUD",
     role: "UI/UX designer & frontend developer",
     status: "Shipped",
     body: [
@@ -251,11 +258,12 @@ export const projects: Project[] = [
     title: "BankoSantiago",
     category: "web",
     plain: "A banking dashboard that does the essentials, fast, and nothing else.",
-    context: "Web Applications Development · Final project",
+    context: "ACCT 1001 · Final project",
     role: "UI/UX designer & frontend developer",
     status: "Shipped",
     body: [
       "A localized digital banking prototype that cuts the feature bloat of modern banking apps down to a fast dashboard: secure fund transfers, real-time balances and accessible transaction logs, with careful UI/UX and secure data handling.",
+      "Built as the final project for ACCT 1001, it puts the course's core accounting logic — balances, transfers and a running transaction ledger — behind secure account management.",
     ],
     stack: ["Web app", "UI/UX", "Secure data handling"],
     team: ["Rion Fauszt Bustos — Lead Developer", "Neil Jacob Santiago — UI/UX Designer & Frontend", "Vinze Norbert Siega — UI/UX Designer & Backend"],
@@ -289,7 +297,7 @@ export const projects: Project[] = [
     title: "Memory Allocation Simulator",
     category: "web",
     plain: "Shows, step by step, how a computer decides where to put things in memory.",
-    context: "CS 2101 Operating Systems · Final project",
+    context: "COMSCI 2101 · Operating Systems final project",
     role: "Front-end CLI & user interface",
     status: "Shipped",
     body: [

@@ -96,6 +96,13 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
     },
   },
   {
+    test: /\b(play|game|games|drive|jeepney|arcade|bored)\b/i,
+    answer: {
+      text: "Oh, you want to play? 🕹️ Take the jeepney around Island Drive — a 3D island of Neil's projects — then try Shutter (time a concert shot) or Subnet Sprint (60 seconds of subnetting).",
+      links: [{ label: "Let's play", href: "/play" }],
+    },
+  },
+  {
     test: /\b(tools?|lab|calculator|what can you do|help me|features?)\b/i,
     answer: {
       text: "I can run Neil's project tools right here: plan subnets and VLANs, visualize memory allocation, check a suspicious link, show how PathoScan decides, quote a photoshoot, or pull up his GitHub activity. Tap 🧰 above, or just ask — e.g. “subnet 192.168.1.0/26”. 🧪",
@@ -138,6 +145,7 @@ export function linksIn(text: string) {
     ...Object.fromEntries(projects.map((p) => [`/work/${p.slug}`, p.title])),
     "/photography": "Photography",
     "/lab": "The Lab",
+    "/play": "Play",
     "/contact": "Contact",
     "/about": "About",
     "/work": "Work",

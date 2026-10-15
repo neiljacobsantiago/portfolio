@@ -65,8 +65,14 @@ export default function NavBar() {
                     "after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-right after:scale-x-0 after:bg-ember after:transition-transform after:duration-500 hover:after:origin-left hover:after:scale-x-100",
                     active ? "text-ember after:scale-x-100" : "text-ink/75 hover:text-ink",
                     item.href === "/contact" && "rounded-full border border-ink/25 px-4 after:hidden hover:border-ember hover:bg-ember hover:text-paper",
+                    item.href === "/play" && "flex items-center gap-1.5 after:hidden",
                   )}
                 >
+                  {item.href === "/play" && (
+                    <span aria-hidden className="flex h-4 w-4 items-center justify-center rounded-full bg-ember text-[0.45rem] text-paper ">
+                      ▶
+                    </span>
+                  )}
                   {item.label}
                 </Link>
               </li>
