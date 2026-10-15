@@ -9,6 +9,8 @@ import PaperField from "@/components/effects/PaperField";
 import RevealObserver from "@/components/effects/RevealObserver";
 import PageTransition from "@/components/effects/PageTransition";
 import SiteEffects from "@/components/effects/SiteEffects";
+import ImageShield from "@/components/effects/ImageShield";
+import Shortcuts from "@/components/effects/Shortcuts";
 import { site, siteUrl, socials } from "@/lib/site";
 
 const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-gloock" });
@@ -84,6 +86,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <PaletteHost />
         <RevealObserver />
         <SiteEffects />
+        <ImageShield />
+        <Shortcuts />
         <PageTransition />
       </body>
     </html>

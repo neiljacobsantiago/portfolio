@@ -7,9 +7,23 @@ import { useDeviceProfile } from "@/lib/device";
  * Global progressive enhancements:
  * - tags <html> with `low-power` so CSS can drop ambient animation
  * - desktop-only inertial smooth scrolling (Lenis), loaded on demand
+ * - a hello in the browser console
  */
+let greeted = false;
+
 export default function SiteEffects() {
   const { lowPower, finePointer, reducedMotion } = useDeviceProfile();
+
+  // A hello for anyone who opens the developer tools.
+  useEffect(() => {
+    if (greeted) return;
+    greeted = true;
+    console.log(
+      "%cNeil Jacob Santiago%c\nNetworks, web systems & photography.\n\nCurious how this was built? Try /terminal, or press ? for keyboard shortcuts.\nThe photographs are © Neil Jacob Santiago. Ask before using them: /contact",
+      "font: 28px Georgia, serif; color: #780000; padding: 4px 0;",
+      "font: 12px/1.6 ui-monospace, monospace; color: #003049;",
+    );
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("low-power", lowPower);

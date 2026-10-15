@@ -72,6 +72,9 @@ export default function AboutPage() {
             </p>
             <p>Both reward patience, precision and knowing exactly what to look for. I&apos;m also a proud member of BITS, the Builders of Information Technology Society.</p>
             <p className="font-display text-3xl text-ink md:text-4xl">{site.tagline}</p>
+            <Link href="/resume" className="btn bg-ink text-paper hover:bg-ember">
+              Read the résumé <span className="arrow">→</span>
+            </Link>
           </div>
         </section>
 

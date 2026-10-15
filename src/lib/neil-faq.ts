@@ -51,6 +51,20 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
     },
   },
   {
+    test: /\b(where|location|based|hometown|from|taga|saan)\b/i,
+    answer: {
+      text: "Neil is based in San Jose City, Nueva Ecija, in Central Luzon, Philippines. He studies at Central Luzon State University in the Science City of Muñoz, also in Nueva Ecija, and travels for shoots and concerts. 📍",
+      links: [{ label: "About Neil", href: "/about" }],
+    },
+  },
+  {
+    test: /\b(resume|résumé|cv|curriculum vitae)\b/i,
+    answer: {
+      text: "His résumé lives at /resume: education, organisations, certificates, skills and selected projects. You can share it or save it as a PDF. 📄",
+      links: [{ label: "Résumé", href: "/resume" }],
+    },
+  },
+  {
     test: /\b(itsc|img|media group|bits|org|organization|council|production director)/i,
     answer: {
       text: "He's the Production Director of the ITSC Media Group (IMG) — the media arm of the CLSU IT Student Council, formerly the ITSC Multimedia Group — and a member of BITS, the Builders of Information Technology Society.",
@@ -147,6 +161,7 @@ export function linksIn(text: string) {
     "/lab": "The Lab",
     "/play": "Play",
     "/contact": "Contact",
+    "/resume": "Résumé",
     "/about": "About",
     "/work": "Work",
   };

@@ -58,7 +58,12 @@ export const legalRoutes: NavItem[] = [
 /** Shown at the top of each legal page. */
 export const LEGAL_UPDATED = "October 15, 2026";
 
-export const allRoutes: NavItem[] = [{ label: "Home", href: "/", description: "Start here" }, ...mainNav, { label: "Terminal", href: "/terminal", description: "For the curious" }];
+export const allRoutes: NavItem[] = [
+  { label: "Home", href: "/", description: "Start here" },
+  ...mainNav,
+  { label: "Résumé", href: "/resume", description: "Ready to print or save as PDF" },
+  { label: "Terminal", href: "/terminal", description: "For the curious" },
+];
 
 export interface Social {
   name: string;

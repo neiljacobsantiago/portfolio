@@ -126,6 +126,9 @@ function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; i
           style={{ viewTransitionName: "photo" }}
           className="h-auto max-h-full w-auto max-w-full rounded-[2px] object-contain shadow-[0_40px_80px_-30px_rgb(0_0_0/0.6)]"
         />
+        <span aria-hidden className="label pointer-events-none absolute right-5 bottom-3 text-[0.55rem] text-paper/40 md:right-10 md:bottom-5">
+          © Neil Jacob Santiago
+        </span>
       </div>
 
       <div className="flex items-center justify-between gap-4 px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-10">

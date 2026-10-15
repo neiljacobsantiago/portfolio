@@ -53,7 +53,7 @@ export default function Footer() {
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-2 lg:col-span-8 lg:grid-cols-4">
             <div>
               <Column title="Explore">
-                {[{ label: "Home", href: "/" }, ...mainNav].map((r) => (
+                {[{ label: "Home", href: "/" }, ...mainNav, { label: "Résumé", href: "/resume" }].map((r) => (
                   <li key={r.href}>
                     <Link href={r.href} className={item}>{r.label}</Link>
                   </li>
@@ -129,7 +129,12 @@ export default function Footer() {
           <a href="https://icons8.com" target="_blank" rel="noopener noreferrer" className="underline decoration-paper/20 underline-offset-2 hover:text-paper/70">
             Icons8
           </a>{" "}
-          · Hosted on Vercel.</p>
+          · Hosted on Vercel.
+          <span className="hidden pointer-fine:inline">
+            {" "}
+            · Press <kbd className="rounded bg-paper/10 px-1.5 font-mono text-[0.75rem] not-italic">?</kbd> for keyboard shortcuts.
+          </span>
+        </p>
       </div>
     </footer>
   );
