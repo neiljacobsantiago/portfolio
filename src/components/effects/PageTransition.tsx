@@ -2,11 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { projectBySlug } from "@/content/work";
 import { haptic } from "@/lib/haptics";
 
 // Each destination gets its own ink.
 const ROUTES: { match: (p: string) => boolean; color: string; text: string; label: (p: string) => string }[] = [
-  { match: (p) => p.startsWith("/work/"), color: "var(--color-ink)", text: "var(--color-paper)", label: () => "Case study" },
+  { match: (p) => p.startsWith("/work/"), color: "var(--color-ink)", text: "var(--color-paper)", label: (p) => projectBySlug(p.split("/")[2] ?? "")?.title ?? "Project" },
   { match: (p) => p.startsWith("/work"), color: "var(--color-ink)", text: "var(--color-paper)", label: () => "Work" },
   { match: (p) => p.startsWith("/photography"), color: "var(--color-wine)", text: "var(--color-paper)", label: () => "Photography" },
   { match: (p) => p.startsWith("/about"), color: "var(--color-sky)", text: "var(--color-ink)", label: () => "About" },

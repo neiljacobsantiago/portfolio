@@ -33,7 +33,7 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
           <p className="label text-[0.52rem] text-ember">{p.context}</p>
           <p className="mt-1 font-display text-xl leading-tight transition-colors group-hover:text-ember">{p.title}</p>
           <p className="mt-1 font-serif text-[0.92rem] leading-snug text-ink/70 italic">{p.plain}</p>
-          <p className="label mt-2 text-[0.55rem] text-ink/55">Open case study →</p>
+          <p className="label mt-2 text-[0.55rem] text-ink/55">Open project →</p>
         </div>
       </Link>
     );

@@ -7,7 +7,7 @@ export function resolveBooking(claim: BookingClaim) {
   const service = services.find((s) => s.id === claim.service);
   const pkg = service?.packages.find((p) => p.id === claim.pkg);
   if (!service || !pkg) return null;
-  const q = quote(service.id, pkg.id);
+  const q = quote(service.id, pkg.id, claim.extras?.people, claim.extras?.addOns);
   const perHead = pkg.price.includes("/ head");
   return { ...claim, service, pkg, downpayment: "error" in q || perHead ? null : q.downpayment };
 }

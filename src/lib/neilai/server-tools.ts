@@ -1,6 +1,6 @@
 import type { FunctionDeclaration } from "@google/genai";
 import { categories, projectBySlug, projects, type Category } from "@/content/work";
-import { services } from "@/content/sessions";
+import { addOns, EXTRA_PERSON, PRIVATE_PEOPLE_INCLUDED, privateTerms, services } from "@/content/sessions";
 import { getGitHubActivity } from "@/lib/github";
 import { getSeries } from "@/lib/photos";
 import type { ChatCard } from "@/lib/tools";
@@ -48,7 +48,8 @@ export const declarations: FunctionDeclaration[] = [
       properties: {
         service: { type: "string", enum: services.map((s) => s.id), description: "Kind of shoot." },
         package: { type: "string", description: "Package id or name. Optional; defaults to the first package." },
-        people: { type: "integer", description: "Head count, only for group graduation shoots." },
+        people: { type: "integer", description: `Head count: for group graduation shoots, or for custom private shoots (${PRIVATE_PEOPLE_INCLUDED} included, ₱${EXTRA_PERSON} per extra person).` },
+        add_ons: { type: "array", items: { type: "string", enum: addOns.map((a) => a.id) }, description: "Custom private shoots only: extras the person wants." },
       },
       required: ["service"],
     },
@@ -142,15 +143,34 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
     }
     case "photoshoot_quote": {
       const people = Number(args.people) || 1;
-      const q = quote(str(args.service), str(args.package) || undefined, people);
+      const extras = Array.isArray(args.add_ons) ? args.add_ons.map(String) : [];
+      const q = quote(str(args.service), str(args.package) || undefined, people, extras);
       if ("error" in q) return { result: q };
       return {
-        result: { service: q.service.name, package: q.pkg.name, includes: q.pkg.detail, price: q.pkg.price, people: q.people, total: q.total, downpayment: q.downpayment, bookingPage: q.bookHref },
-        card: { kind: "quote", service: q.service.id, package: q.pkg.id, people: q.people > 1 ? q.people : undefined },
+        result: {
+          service: q.service.name,
+          package: q.pkg.name,
+          includes: q.pkg.detail,
+          price: q.pkg.price,
+          people: q.people,
+          addOns: q.addOns.map((a) => `${a.name}: ${a.amount === null ? "quoted" : `₱${a.amount}`}`),
+          total: q.total,
+          quotedSeparately: q.quoted,
+          downpayment: q.downpayment,
+          bookingPage: q.bookHref,
+        },
+        card: { kind: "quote", service: q.service.id, package: q.pkg.id, people: q.people > 1 ? q.people : undefined, addOns: q.addOns.length ? q.addOns.map((a) => a.id) : undefined },
       };
     }
     case "list_photo_services":
-      return { result: { services: services.map((s) => ({ id: s.id, name: s.name, packages: s.packages.map((p) => `${p.name}: ${p.price} (${p.detail})`) })), terms: "30% non-refundable downpayment; no RAW files." } };
+      return {
+        result: {
+          services: services.map((s) => ({ id: s.id, name: s.name, packages: s.packages.map((p) => `${p.name}: ${p.price} (${p.detail})`), includes: s.includes })),
+          privateShootAddOns: addOns.map((a) => `${a.name}: ${a.amount === null ? "quoted" : `₱${a.amount}`} (${a.detail})`),
+          privateShootRules: privateTerms,
+          terms: "30% non-refundable downpayment; no RAW files.",
+        },
+      };
     case "show_photo_collection": {
       const s = (await getSeries()).find((x) => x.slug === str(args.slug));
       if (!s) return { result: { error: "No such collection." } };

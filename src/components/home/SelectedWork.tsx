@@ -44,7 +44,7 @@ export default function SelectedWork() {
                     <p className="mt-4 font-serif text-xl leading-snug italic opacity-85 md:text-2xl">{p.plain}</p>
                   </div>
                   <span className="label flex items-center gap-2">
-                    Read the case study <span className="transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1.5">→</span>
+                    View project <span className="transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1.5">→</span>
                   </span>
                 </div>
                 <ProjectCover project={p} sizes="(min-width: 768px) 40vw, 92vw" className="aspect-[4/3] md:col-span-5 md:aspect-auto md:min-h-[24rem]" />

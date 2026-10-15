@@ -1,5 +1,6 @@
-import { bookingTerms, type Package, type Service } from "@/content/sessions";
+import { bookingTerms, privateTerms, type Package, type Service } from "@/content/sessions";
 import { site } from "@/lib/site";
+import { extrasRows, time12, type ShootExtras } from "@/lib/tools/quote";
 
 // Contact-form email: what Neil receives, and the optional confirmation the
 // sender gets. Sent through Resend's HTTP API (https://resend.com).
@@ -15,8 +16,11 @@ export interface Inquiry {
   email: string;
   topic: string;
   message: string;
-  booking?: { service: Service; pkg: Package; date: string; phone: string };
+  booking?: { service: Service; pkg: Package; date: string; phone: string; extras?: ShootExtras };
 }
+
+/** Booking terms, plus the private-shoot rules for custom shoots. */
+const termsFor = (service: Service) => (service.custom ? [...bookingTerms, ...privateTerms] : bookingTerms);
 
 export const mailConfig = () => ({
   apiKey: process.env.RESEND_API_KEY,
@@ -43,7 +47,8 @@ function rows(inq: Inquiry): [string, string][] {
           ["Includes", b.pkg.detail],
           ["Target date", prettyDate(b.date)],
           ["Phone", b.phone || "—"],
-          ["Agreed to", "30% non-refundable downpayment · no RAW files"],
+          ...extrasRows(b.service, b.pkg, b.extras),
+          ["Agreed to", `30% non-refundable downpayment · no RAW files${b.service.custom ? " · private-shoot rules" : ""}`],
         ] as [string, string][])
       : ([["Topic", inq.topic]] as [string, string][])),
   ];
@@ -88,7 +93,8 @@ export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule
   const who = inq.name || inq.email;
   const subject = b ? `📸 Booking request: ${b.pkg.name} (${b.service.name}) — ${who}` : `✉️ ${inq.topic} — ${who}`;
   const heading = b ? "New booking request" : "New message";
-  const intro = b ? `${who} wants to book ${b.service.name} for ${prettyDate(b.date)}.` : `${who} wrote in about ${inq.topic.toLowerCase()}.`;
+  const at = b?.extras?.time ? ` at ${time12(b.extras.time)}` : "";
+  const intro = b ? `${who} wants to book ${b.service.name} for ${prettyDate(b.date)}${at}.` : `${who} wrote in about ${inq.topic.toLowerCase()}.`;
   const table = rows(inq);
   const note = inq.message;
   const actions: Action[] = respond
@@ -114,7 +120,7 @@ export function senderEmail(inq: Inquiry) {
     ? "Your booking request is in. I'll confirm availability within 24 hours and send the downpayment details to lock in your date."
     : "Your message is in. I read every one myself and reply within 24 hours.";
   const table = b ? rows(inq).filter(([k]) => k !== "Email" && k !== "Agreed to") : [];
-  const note = b ? bookingTerms.join("\n") : inq.message;
+  const note = b ? termsFor(b.service).join("\n") : inq.message;
   const footer = `— ${site.firstName} · ${site.location}. This is an automatic confirmation; just reply if anything needs changing.`;
   return { subject, html: layout(heading, intro, table, note, footer), text: plain(heading, table, note) };
 }
@@ -144,7 +150,7 @@ export interface AnswerDetails {
 }
 
 export function bookingAnswerEmail(
-  b: { name: string; service: Service; pkg: Package; date: string; downpayment: number | null },
+  b: { name: string; service: Service; pkg: Package; date: string; downpayment: number | null; extras?: ShootExtras },
   action: BookingAnswer,
   d: AnswerDetails,
 ) {
@@ -161,9 +167,13 @@ export function bookingAnswerEmail(
       ["Date", when],
       ...(clean(d.time) ? ([["Call time", clean(d.time)]] as [string, string][]) : []),
       ...(clean(d.location) ? ([["Location", clean(d.location)]] as [string, string][]) : []),
+      // Custom shoots: people, add-ons and the total, as booked.
+      ...extrasRows(b.service, b.pkg, b.extras)
+        .filter(([k]) => k === "People" || k === "Add-ons" || k === "Estimated total")
+        .map(([k, v]): [string, string] => [k === "Estimated total" ? "Total" : k, v]),
       ["Downpayment", b.downpayment ? `₱${b.downpayment.toLocaleString("en-PH")} (30%) to lock the date` : "30% of the total to lock the date"],
     ];
-    const note = [clean(d.payment) && `How to pay the downpayment:\n${clean(d.payment)}`, clean(d.note), bookingTerms.join("\n")].filter(Boolean).join("\n\n");
+    const note = [clean(d.payment) && `How to pay the downpayment:\n${clean(d.payment)}`, clean(d.note), termsFor(b.service).join("\n")].filter(Boolean).join("\n\n");
     return {
       subject: `✅ Confirmed: your ${b.service.name} on ${when}`,
       html: layout(`You're booked, ${first}!`, `Your ${b.service.name.toLowerCase()} on ${when} is confirmed. Here are the details.`, table, note, `${sign} · Reply to this email if anything needs to change.`),

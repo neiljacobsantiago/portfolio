@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { bookingTerms, services } from "@/content/sessions";
+import { addOns, bookingTerms, EXTRA_PERSON, locationTypes, photoUses, PRIVATE_PEOPLE_INCLUDED, privateTerms, services, type PhotoUse } from "@/content/sessions";
 import { haptic } from "@/lib/haptics";
+import { peso, quote, time12 } from "@/lib/tools/quote";
 
 type Status = { state: "idle" | "sending" } | { state: "success"; summary?: string; confirmation?: boolean } | { state: "error"; message: string };
 
@@ -17,6 +18,9 @@ export interface ContactPreset {
   topic?: string | null;
   service?: string | null;
   package?: string | null;
+  /** Custom shoots: comma-separated add-on ids and a head count. */
+  addons?: string | null;
+  people?: string | null;
 }
 
 /** Today as YYYY-MM-DD in the visitor's time zone, so past dates can't be picked. */
@@ -32,9 +36,18 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
   const [topic, setTopic] = useState(presetService || preset?.topic === "photography" ? PHOTO : topics[0]);
   const [serviceId, setServiceId] = useState(presetService?.id ?? "");
   const [packageId, setPackageId] = useState(presetPackage?.id ?? "");
+  // Custom private shoot details
+  const [people, setPeople] = useState(() => Math.max(1, Math.min(20, Number(preset?.people) || 1)));
+  const [picked, setPicked] = useState<string[]>(() => addOns.filter((a) => preset?.addons?.split(",").includes(a.id)).map((a) => a.id));
+  const [locationType, setLocationType] = useState("");
+  const [use, setUse] = useState<PhotoUse>("ask");
   const sending = status.state === "sending";
   const service = services.find((s) => s.id === serviceId);
   const booking = topic === PHOTO;
+  const custom = booking && service?.custom;
+  const estimate = custom && packageId ? quote(serviceId, packageId, people, picked) : null;
+  const est = estimate && !("error" in estimate) ? estimate : null;
+  const terms = custom ? [...bookingTerms, ...privateTerms] : bookingTerms;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,7 +65,15 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
           company: data.company,
           topic,
           message: data.message,
-          booking: booking ? { service: serviceId, package: packageId, date: data.date, phone: data.phone } : undefined,
+          booking: booking
+            ? {
+                service: serviceId,
+                package: packageId,
+                date: data.date,
+                phone: data.phone,
+                extras: custom ? { time: data.time, people, locationType, location: data.location, moodboard: data.moodboard, addOns: picked, use } : undefined,
+              }
+            : undefined,
         }),
       });
       if (res.ok) {
@@ -62,7 +83,10 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
         setStatus({
           state: "success",
           confirmation: result.confirmation,
-          summary: booking && pkg && service ? `${pkg.name} · ${service.name} · ${new Date(`${data.date}T00:00:00`).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}` : undefined,
+          summary:
+            booking && pkg && service
+              ? `${pkg.name} · ${service.name} · ${new Date(`${data.date}T00:00:00`).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}${custom && data.time ? ` · ${time12(data.time)}` : ""}`
+              : undefined,
         });
       } else {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -174,10 +198,122 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
             <span className="label text-ink/60">Target date</span>
             <input type="date" name="date" required min={today()} suppressHydrationWarning className={field} />
           </label>
+          {custom && (
+            <label className="animate-pop-in block">
+              <span className="label text-ink/60">Start time</span>
+              <input type="time" name="time" required min="05:00" max="20:00" step={900} className={field} />
+            </label>
+          )}
           <label className="block">
             <span className="label text-ink/60">Phone (optional)</span>
             <input type="tel" name="phone" autoComplete="tel" inputMode="tel" maxLength={20} className={field} placeholder="09xx xxx xxxx" />
           </label>
+          {custom && (
+            <div className="animate-pop-in">
+              <span className="label block text-ink/60" id="people-label">
+                People · {PRIVATE_PEOPLE_INCLUDED} included
+              </span>
+              <div role="group" aria-labelledby="people-label" className="mt-2 flex items-center gap-3">
+                <button type="button" onClick={() => setPeople((n) => Math.max(1, n - 1))} aria-label="Fewer people" className="press h-11 w-11 rounded-full border border-ink/20 text-xl hover:border-ink">
+                  −
+                </button>
+                <span className="w-10 text-center font-display text-3xl tabular-nums" aria-live="polite">
+                  {people}
+                </span>
+                <button type="button" onClick={() => setPeople((n) => Math.min(20, n + 1))} aria-label="More people" className="press h-11 w-11 rounded-full border border-ink/20 text-xl hover:border-ink">
+                  +
+                </button>
+                {people > PRIVATE_PEOPLE_INCLUDED && <span className="font-serif text-sm text-ink/60 italic">+{peso(EXTRA_PERSON)} each beyond {PRIVATE_PEOPLE_INCLUDED}</span>}
+              </div>
+            </div>
+          )}
+
+          {custom && (
+            <>
+              <fieldset className="animate-pop-in sm:col-span-2">
+                <legend className="label mb-3 text-ink/60">Where</legend>
+                <div className="flex flex-wrap gap-2">
+                  {locationTypes.map((l) => (
+                    <button
+                      key={l}
+                      type="button"
+                      aria-pressed={locationType === l}
+                      onClick={() => {
+                        haptic();
+                        setLocationType(l);
+                      }}
+                      className="label press rounded-full border border-ink/20 bg-paper/60 px-4 py-2.5 text-[0.58rem] hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                <input name="location" maxLength={120} className={`${field} mt-3`} placeholder="The place, if you have one — e.g. our garden in Muñoz" />
+              </fieldset>
+
+              <label className="animate-pop-in block sm:col-span-2">
+                <span className="label text-ink/60">Mood board or Pinterest link (optional)</span>
+                <input type="url" name="moodboard" inputMode="url" maxLength={300} className={field} placeholder="https://pin.it/…" />
+              </label>
+
+              <fieldset className="animate-pop-in sm:col-span-2">
+                <legend className="label mb-3 text-ink/60">Add-ons</legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {addOns.map((a) => (
+                    <label
+                      key={a.id}
+                      className="press flex cursor-pointer items-start justify-between gap-3 rounded-[2px] border border-ink/15 bg-paper/70 p-3.5 has-[:checked]:border-ember has-[:checked]:ring-1 has-[:checked]:ring-ember"
+                    >
+                      <span className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={picked.includes(a.id)}
+                          onChange={(e) => setPicked((ids) => (e.target.checked ? [...ids, a.id] : ids.filter((id) => id !== a.id)))}
+                          className="mt-1.5 h-4 w-4 accent-[var(--color-ember)]"
+                        />
+                        <span>
+                          <span className="block font-serif text-lg leading-snug">{a.name}</span>
+                          <span className="font-serif text-sm text-ink/55 italic">{a.detail}</span>
+                        </span>
+                      </span>
+                      <span className="shrink-0 font-display text-base">{a.amount === null ? "Quote" : `+${peso(a.amount)}`}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset className="animate-pop-in sm:col-span-2">
+                <legend className="label mb-3 text-ink/60">Your photos afterwards</legend>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {photoUses.map((u) => (
+                    <label
+                      key={u.id}
+                      className="press flex cursor-pointer items-start gap-3 rounded-[2px] border border-ink/15 bg-paper/70 p-3.5 has-[:checked]:border-ember has-[:checked]:ring-1 has-[:checked]:ring-ember"
+                    >
+                      <input type="radio" name="use" checked={use === u.id} onChange={() => setUse(u.id)} className="mt-1.5 accent-[var(--color-ember)]" />
+                      <span>
+                        <span className="block font-serif text-lg leading-snug">{u.label}</span>
+                        <span className="font-serif text-sm text-ink/55 italic">{u.detail}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </>
+          )}
+
+          {est && est.total !== null && (
+            <div className="animate-pop-in flex flex-wrap items-end justify-between gap-3 rounded-[2px] bg-ink p-4 text-paper sm:col-span-2" aria-live="polite">
+              <div>
+                <p className="label text-[0.55rem] text-sky">Estimated total</p>
+                <p className="font-display text-4xl leading-none tabular-nums">{peso(est.total)}</p>
+              </div>
+              <p className="max-w-xs font-serif text-sm text-paper/75 italic">
+                {est.downpayment !== null && `${peso(est.downpayment)} downpayment secures the date.`}
+                {est.quoted.length > 0 && ` ${est.quoted.join(", ")} is quoted separately.`}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -191,14 +327,14 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
           maxLength={5000}
           disabled={sending}
           className={`${field} resize-y`}
-          placeholder={booking ? "The vibe, lighting, outfits, location ideas…" : "Dates, places, what you have in mind…"}
+          placeholder={custom ? "The concept, the feeling, outfits, anything you'd like to avoid…" : booking ? "The vibe, lighting, outfits, location ideas…" : "Dates, places, what you have in mind…"}
         />
       </label>
 
       {booking && (
         <fieldset className="animate-pop-in space-y-3">
           <legend className="label mb-2 text-ink/60">Terms</legend>
-          {bookingTerms.map((t) => (
+          {terms.map((t) => (
             <label key={t} className="flex cursor-pointer items-start gap-3 font-serif text-lg text-ink/80">
               <input type="checkbox" required className="mt-1.5 h-4 w-4 accent-[var(--color-ember)]" />
               <span>{t}</span>

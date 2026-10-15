@@ -4,7 +4,7 @@ import PageHeader, { Container } from "@/components/layout/PageHeader";
 import Collections from "@/components/photography/Collections";
 import CountUp from "@/components/ui/CountUp";
 import Magnetic from "@/components/ui/Magnetic";
-import { bookingTerms, services } from "@/content/sessions";
+import { addOns, bookingTerms, EXTRA_PERSON, PRIVATE_PEOPLE_INCLUDED, privateTerms, services } from "@/content/sessions";
 import { getSeries } from "@/lib/photos";
 import { reveal } from "@/lib/reveal";
 import { site, socials } from "@/lib/site";
@@ -12,11 +12,12 @@ import { site, socials } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Photography",
   description:
-    "Freelance photography by Neil Jacob Santiago — school events, fashion portraits, landscapes, live OPM concerts and astrophotography. Sessions from ₱299.",
+    "Freelance photography by Neil Jacob Santiago — school events, fashion portraits, landscapes, live OPM concerts and astrophotography. Custom private shoots from ₱1,999 an hour; sessions from ₱299.",
 };
 
 export default async function PhotographyPage() {
   const series = await getSeries();
+  const featured = services.find((s) => s.custom);
   const total = series.reduce((n, s) => n + s.photos.length, 0);
   const instagram = socials.find((s) => s.name === "Instagram")?.url;
   const external = site.photographySite.url ?? instagram;
@@ -65,8 +66,74 @@ export default async function PhotographyPage() {
             </div>
           </div>
 
-          <ul className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {services.map((s, i) => (
+          {featured && (
+            <article {...reveal("up")} aria-labelledby="private-title" className="mt-14 grid gap-10 rounded-[2px] bg-paper p-6 text-ink shadow-[0_40px_90px_-50px_rgb(0_0_0/0.6)] md:p-10 lg:grid-cols-12">
+              <div className="lg:col-span-5">
+                <p className="label text-ember">New · Built around you</p>
+                <h3 id="private-title" className="mt-3 font-display text-[clamp(2.25rem,4.5vw,3.5rem)] leading-[1.02]">
+                  Custom <em className="font-serif text-ember">private</em> photoshoot
+                </h3>
+                <p className="mt-4 font-serif text-xl text-ink/70 italic">{featured.blurb}</p>
+                <p className="label mt-8 mb-3 text-ink/50">Every private shoot includes</p>
+                <ul className="space-y-2 font-serif text-lg">
+                  {featured.includes?.map((i) => (
+                    <li key={i} className="flex gap-3">
+                      <span aria-hidden className="text-ember">✓</span>
+                      {i}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="min-w-0 lg:col-span-7">
+                <p className="label mb-3 text-ink/50">Choose your time</p>
+                <ul className="divide-y divide-ink/10 border-y border-ink/10">
+                  {featured.packages.map((p, i) => (
+                    <li key={p.id}>
+                      <Link href={`/contact?service=${featured.id}&package=${p.id}`} className="group press flex items-baseline justify-between gap-4 py-3.5" data-cursor="Book">
+                        <span className="min-w-0">
+                          <span className="block font-serif text-xl transition-colors group-hover:text-ember">
+                            {p.name}
+                            {i === 0 && <span className="label ml-3 rounded-full bg-ember/10 px-2 py-1 align-middle text-[0.5rem] text-ember">Starts here</span>}
+                          </span>
+                          <span className="label text-[0.58rem] text-ink/55">{p.detail}</span>
+                        </span>
+                        <span className="shrink-0 font-display text-2xl">{p.price}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <p className="label mt-8 mb-3 text-ink/50">Add-ons</p>
+                <ul className="grid gap-x-8 gap-y-2 font-serif text-base sm:grid-cols-2">
+                  {addOns.map((a) => (
+                    <li key={a.id} className="flex items-baseline justify-between gap-3 border-b border-dotted border-ink/15 pb-2">
+                      <span>{a.name}</span>
+                      <span className="shrink-0 font-display">{a.amount === null ? "Quote" : `+₱${a.amount.toLocaleString("en-PH")}`}</span>
+                    </li>
+                  ))}
+                  <li className="flex items-baseline justify-between gap-3 border-b border-dotted border-ink/15 pb-2">
+                    <span>Each person beyond {PRIVATE_PEOPLE_INCLUDED}</span>
+                    <span className="shrink-0 font-display">+₱{EXTRA_PERSON.toLocaleString("en-PH")}</span>
+                  </li>
+                </ul>
+                <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+                  <Link href={`/contact?service=${featured.id}&package=${featured.packages[0].id}`} className="btn bg-ember text-paper hover:bg-ink">
+                    Plan your private shoot <span className="arrow">→</span>
+                  </Link>
+                  <Link href="/lab#quote" className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
+                    Price it with add-ons
+                  </Link>
+                </div>
+                <ul className="mt-6 space-y-1 font-serif text-sm text-ink/60 italic">
+                  {privateTerms.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          )}
+
+          <ul className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {services.filter((s) => !s.custom).map((s, i) => (
               <li key={s.id} {...reveal("up", (i % 3) * 80)} className="flex flex-col rounded-[2px] bg-paper/[0.06] p-6 ring-1 ring-paper/15 md:p-8">
                 <h3 className="font-display text-3xl leading-tight">{s.name}</h3>
                 <p className="mt-2 font-serif text-lg text-paper/70 italic">{s.blurb}</p>

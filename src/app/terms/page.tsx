@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage from "@/components/layout/LegalPage";
-import { bookingTerms } from "@/content/sessions";
+import { bookingTerms, privateTerms } from "@/content/sessions";
 import { LEGAL_UPDATED, site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -69,6 +69,16 @@ export default function TermsPage() {
                   <li key={t}>{t}</li>
                 ))}
                 <li>Prices are those listed on the site when you book. Packages marked &ldquo;Quote&rdquo; are priced case by case and agreed in writing before the shoot.</li>
+              </ul>
+              <p>
+                <strong>Custom private shoots</strong> also come with these rules. The estimated total on the booking form includes the add-ons and extra people you choose; travel outside San
+                Jose City is quoted separately.
+              </p>
+              <ul>
+                {privateTerms.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+                <li>Your choice under &ldquo;Your photos afterwards&rdquo; is respected. Photos marked private are never posted, and you can change your mind later by email.</li>
               </ul>
               <p>
                 Anything not covered here — dates, locations, schedules and delivery — is agreed with Neil by email before the shoot. See the packages on the{" "}

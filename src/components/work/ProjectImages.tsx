@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useLightbox, type LightboxItem } from "@/components/photography/Lightbox";
 
-/** Screenshot strip for a case study; tap any image to view it full screen. */
+/** Screenshot strip for a project page; tap any image to view it full screen. */
 export default function ProjectImages({ images }: { images: LightboxItem[] }) {
   const { open, lightbox } = useLightbox(images);
   // Long photo stories (concerts) flow as a masonry wall; a few screenshots sit in a grid.

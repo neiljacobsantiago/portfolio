@@ -1,47 +1,57 @@
 import {
   ACESFilmicToneMapping,
   BoxGeometry,
-  BufferGeometry,
-  CanvasTexture,
   CircleGeometry,
   Color,
-  ConeGeometry,
-  CylinderGeometry,
   DirectionalLight,
-  DodecahedronGeometry,
+  Euler,
   Fog,
-  Group,
   HemisphereLight,
   InstancedMesh,
-  Line,
-  LineBasicMaterial,
-  Material,
-  Mesh,
+  type Material,
+  type Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   OctahedronGeometry,
+  PCFShadowMap,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
+  type PointsMaterial,
+  Quaternion,
   RingGeometry,
   Scene,
   SphereGeometry,
   SRGBColorSpace,
-  TorusGeometry,
   Vector3,
   WebGLRenderer,
 } from "three";
-import { cones, ISLAND_RADIUS, landmarks, packets, pins, ROAD_RADIUS, type Landmark } from "./world";
+import { createAudio, type DriveAudio } from "./audio";
+import { buildJeepney, C, part, std } from "./jeepney";
+import { type Animated, buildLandmark, rng } from "./landmarks";
+import { buildNature, type Static } from "./nature";
+import { createPhysics, FIXED } from "./physics";
+import { buildClouds, buildRamps, buildSea, buildSky, buildStars, buildTerrain, groundAt, heightAt, rampHeight } from "./terrain";
+import { cones, crates, ISLAND_RADIUS, landmarks, packets, pins, ramps, ROAD_RADIUS, BALL, type Landmark } from "./world";
 
-// Island Drive: a small three.js world in the site's palette. Arcade physics
-// on the ground plane (x, z), a fixed isometric-ish chase camera, HTML labels
-// projected from 3D, and a 2D minimap. No physics library — it stays light.
+// Island Drive: a small three.js world in the site's palette.
+//   · the jeepney runs on custom arcade vehicle physics (grip, drifting,
+//     jumps, suspension) at a fixed 60 Hz step, interpolated for rendering
+//   · crates, pins, cones and the ball are cannon-es rigid bodies
+//   · three cameras: chase, first-person cockpit and a map view
+//   · day, golden hour and night, with street lamps and headlights
+//   · quality scales with the device and adapts to the frame rate
+
+export type CameraMode = "chase" | "cockpit" | "map";
+export type TimeOfDay = "day" | "golden" | "night";
+export type Quality = "low" | "medium" | "high";
 
 export interface Controls {
   throttle: number; // -1 … 1
   steer: number; // -1 (left) … 1 (right)
   boost: boolean;
-  brake: boolean;
+  brake: boolean; // handbrake: drift
 }
 
 export interface DriveCallbacks {
@@ -49,6 +59,9 @@ export interface DriveCallbacks {
   onPackets: (collected: number, total: number) => void;
   onChallenge: (state: { running: boolean; ms: number; finished?: number }) => void;
   onPins: (down: number, total: number) => void;
+  onAir: (seconds: number) => void;
+  onCamera: (mode: CameraMode) => void;
+  onTime: (time: TimeOfDay) => void;
   onReady: () => void;
 }
 
@@ -57,527 +70,233 @@ export interface DriveEngine {
   setControls: (c: Partial<Controls>) => void;
   startChallenge: () => void;
   reset: () => void;
+  cycleCamera: () => void;
+  cycleTime: () => void;
+  horn: () => void;
+  setMuted: (muted: boolean) => void;
+  /** Drag-to-look, in pixels. */
+  look: (dx: number, dy: number) => void;
   dispose: () => void;
 }
 
-const C = {
-  paper: "#fdf0d5",
-  sand: "#f1d7a6",
-  sandDark: "#e2c18a",
-  road: "#e8cf9f",
-  ink: "#003049",
-  wine: "#780000",
-  ember: "#c1121f",
-  sky: "#669bbc",
-  sea: "#5d93b5",
-  leaf: "#8ea866",
-  meadow: "#c7cf93",
-  grass: "#b3bf7b",
-  leafDark: "#6f8b4f",
-  trunk: "#8a5a3c",
-  silver: "#c9ccd1",
+const CAMERAS: CameraMode[] = ["chase", "cockpit", "map"];
+const TIMES_ORDER: TimeOfDay[] = ["day", "golden", "night"];
+
+const TIMES: Record<TimeOfDay, { top: string; horizon: string; bottom: string; fog: string; sun: string; sunI: number; sunDir: [number, number, number]; hemiSky: string; hemiGround: string; hemiI: number; deep: string; shallow: string; stars: number; night: number; exposure: number }> = {
+  day: { top: "#7fb3d5", horizon: "#fbeacb", bottom: "#f1d7a6", fog: "#f3e3c3", sun: "#fff1d6", sunI: 2.4, sunDir: [0.45, 0.75, 0.35], hemiSky: "#fff6e5", hemiGround: "#c99f66", hemiI: 1.25, deep: "#3f7ea6", shallow: "#8fd0d8", stars: 0, night: 0, exposure: 1 },
+  golden: { top: "#4f78a6", horizon: "#f7b27a", bottom: "#c98a5a", fog: "#eeb487", sun: "#ffb37a", sunI: 2.2, sunDir: [0.82, 0.2, -0.45], hemiSky: "#ffd2a8", hemiGround: "#7a5038", hemiI: 0.85, deep: "#2f5d86", shallow: "#6fb0bf", stars: 0.12, night: 0.35, exposure: 1.02 },
+  night: { top: "#040a1a", horizon: "#1d2c4c", bottom: "#0a1222", fog: "#131f38", sun: "#b4c6ff", sunI: 0.9, sunDir: [-0.35, 0.75, -0.4], hemiSky: "#5a70a3", hemiGround: "#2a2018", hemiI: 0.95, deep: "#0b1c33", shallow: "#1d3b5a", stars: 1, night: 1, exposure: 1.3 },
 };
 
-const std = (color: string, extra: Partial<ConstructorParameters<typeof MeshStandardMaterial>[0]> = {}) =>
-  new MeshStandardMaterial({ color, flatShading: true, roughness: 0.85, metalness: 0, ...extra });
+const GRAVITY = 22;
+const WHEELBASE = 3.2;
+const SPAWN = { x: 0, z: 4, heading: 0 };
 
-/** Tiny seeded RNG so the island looks the same on every visit. */
-function rng(seed: number) {
-  return () => {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  };
-}
-
-function mesh(geometry: BufferGeometry, material: Material, x = 0, y = 0, z = 0, shadow = true) {
-  const m = new Mesh(geometry, material);
-  m.position.set(x, y, z);
-  m.castShadow = shadow;
-  m.receiveShadow = true;
-  return m;
-}
-
-interface Animated {
-  update: (t: number, dt: number) => void;
-}
-
-/* ─────────────────────────── landmarks ─────────────────────────── */
-
-function buildLandmark(l: Landmark, animated: Animated[]): Group {
-  const g = new Group();
-  const r = rng(l.x * 31 + l.z * 7 + 99);
-  switch (l.kind) {
-    case "petri": {
-      g.add(mesh(new CylinderGeometry(6.2, 6.4, 0.7, 48), std("#dfe9ea", { transparent: true, opacity: 0.85, roughness: 0.2 }), 0, 0.35));
-      g.add(mesh(new CylinderGeometry(5.7, 5.7, 0.5, 48), std("#f2d68a"), 0, 0.75));
-      g.add(mesh(new TorusGeometry(6.1, 0.16, 8, 64), std("#ffffff", { roughness: 0.1 }), 0, 1.2).rotateX(Math.PI / 2));
-      const colonyColors = ["#5d7b3a", "#a8b54a", "#2e2e2e", "#d9c25a", "#7c8f3e"];
-      for (let i = 0; i < 9; i++) {
-        const a = r() * Math.PI * 2;
-        const d = 1 + r() * 3.6;
-        const s = 0.6 + r() * 1.1;
-        const c = mesh(new SphereGeometry(s, 10, 8), std(colonyColors[i % colonyColors.length]), Math.cos(a) * d, 1, Math.sin(a) * d);
-        c.scale.y = 0.35;
-        g.add(c);
-      }
-      // A scanning ring sweeps over the dish.
-      const scan = mesh(new TorusGeometry(5.9, 0.08, 6, 64), new MeshStandardMaterial({ color: "#7bd88f", emissive: "#2e8b57", emissiveIntensity: 1.5 }), 0, 1.4, 0, false);
-      scan.rotateX(Math.PI / 2);
-      g.add(scan);
-      animated.push({ update: (t) => (scan.position.y = 1.4 + (Math.sin(t * 1.4) + 1) * 1.2) });
-      break;
-    }
-    case "camera": {
-      g.add(mesh(new BoxGeometry(6.4, 4, 3.6), std(C.ink), 0, 2.6));
-      g.add(mesh(new BoxGeometry(2.2, 1, 2.4), std(C.ink), -1.6, 5));
-      g.add(mesh(new CylinderGeometry(0.5, 0.5, 0.5, 16), std(C.ember), 2, 4.85, 0));
-      g.add(mesh(new BoxGeometry(1.4, 0.8, 1), std(C.paper, { emissive: "#fff6e0", emissiveIntensity: 0.4 }), 1.6, 5.1, 0.6));
-      const lens = new Group();
-      lens.add(mesh(new CylinderGeometry(1.9, 2.1, 2.6, 32), std("#1d1d1d"), 0, 0, 0).rotateX(Math.PI / 2));
-      lens.add(mesh(new CylinderGeometry(1.35, 1.35, 0.2, 32), std(C.sky, { roughness: 0.1, metalness: 0.4 }), 0, 0, 1.35).rotateX(Math.PI / 2));
-      lens.position.set(0, 2.6, 2.9);
-      g.add(lens);
-      animated.push({ update: (t) => (lens.position.z = 2.9 + Math.max(0, Math.sin(t * 0.8)) * 0.6) });
-      break;
-    }
-    case "stage": {
-      g.add(mesh(new BoxGeometry(14, 1.2, 8), std(C.ink), 0, 0.6));
-      g.add(mesh(new BoxGeometry(12, 6, 0.4), std(C.wine, { emissive: C.wine, emissiveIntensity: 0.35 }), 0, 4.2, -3.6));
-      for (const x of [-6.6, 6.6]) g.add(mesh(new BoxGeometry(0.4, 8, 0.4), std(C.silver, { metalness: 0.5 }), x, 4, 3.4));
-      g.add(mesh(new BoxGeometry(13.6, 0.4, 0.4), std(C.silver, { metalness: 0.5 }), 0, 8, 3.4));
-      const beams: Mesh[] = [];
-      [C.ember, C.sky, "#ffd27a", C.ember].forEach((color, i) => {
-        const beam = mesh(new ConeGeometry(1.2, 7, 16, 1, true), new MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.2, transparent: true, opacity: 0.28, depthWrite: false }), -4.5 + i * 3, 4.4, 3.4, false);
-        beams.push(beam);
-        g.add(beam);
-      });
-      animated.push({ update: (t) => beams.forEach((b, i) => (b.rotation.z = Math.sin(t * 1.3 + i) * 0.45)) });
-      break;
-    }
-    case "pc": {
-      g.add(mesh(new BoxGeometry(3.4, 7.2, 6.4), std("#1b2740"), 0, 3.6));
-      g.add(mesh(new BoxGeometry(0.1, 6.2, 5.4), std("#2f5bd3", { emissive: "#2f5bd3", emissiveIntensity: 0.7, transparent: true, opacity: 0.85 }), 1.72, 3.6, 0));
-      const fans: Mesh[] = [];
-      [1.8, 3.9, 6].forEach((y) => {
-        const fan = mesh(new TorusGeometry(0.9, 0.14, 8, 24), new MeshStandardMaterial({ color: "#7aa2ff", emissive: "#3b6cff", emissiveIntensity: 1.6 }), 0, y, 3.22, false);
-        fans.push(fan);
-        g.add(fan);
-      });
-      animated.push({ update: (t) => fans.forEach((f, i) => (f.rotation.z = t * (3 + i))) });
-      break;
-    }
-    case "network": {
-      const nodes: [number, number, number][] = [
-        [-4, 5, -2],
-        [4, 6, -1],
-        [0, 4, 4],
-      ];
-      for (const [x, y, z] of nodes) {
-        g.add(mesh(new CylinderGeometry(0.25, 0.35, y, 8), std(C.silver, { metalness: 0.4 }), x, y / 2, z));
-        g.add(mesh(new SphereGeometry(0.9, 14, 10), new MeshStandardMaterial({ color: C.ember, emissive: C.ember, emissiveIntensity: 0.8 }), x, y + 0.5, z));
-      }
-      g.add(mesh(new BoxGeometry(3, 1, 2), std(C.ink), 0, 0.5, 0));
-      const pts = [...nodes, nodes[0]].map(([x, y, z]) => new Vector3(x, y + 0.5, z));
-      g.add(new Line(new BufferGeometry().setFromPoints(pts), new LineBasicMaterial({ color: C.ink })));
-      const pulses = nodes.map(() => mesh(new SphereGeometry(0.28, 8, 6), new MeshStandardMaterial({ color: C.sky, emissive: C.sky, emissiveIntensity: 2 }), 0, 0, 0, false));
-      pulses.forEach((p) => g.add(p));
-      animated.push({
-        update: (t) =>
-          pulses.forEach((p, i) => {
-            const k = (t * 0.6 + i / 3) % 1;
-            p.position.lerpVectors(pts[i], pts[i + 1], k);
-          }),
-      });
-      break;
-    }
-    case "memory": {
-      const widths = [4.6, 3.2, 4, 2.4, 3.6];
-      const colors = [C.ember, C.sky, C.ink, C.wine, C.sandDark];
-      widths.forEach((w, i) => g.add(mesh(new BoxGeometry(w, 1.2, 3), std(colors[i]), (r() - 0.5) * 0.8, 0.6 + i * 1.25, 0)));
-      break;
-    }
-    case "shield": {
-      const lock = new Group();
-      lock.add(mesh(new BoxGeometry(4, 3.4, 1.6), std(C.ember), 0, 0, 0));
-      lock.add(mesh(new TorusGeometry(1.25, 0.35, 10, 24, Math.PI), std(C.silver, { metalness: 0.6, roughness: 0.3 }), 0, 1.7, 0));
-      lock.add(mesh(new CylinderGeometry(0.35, 0.35, 0.3, 12), std(C.ink), 0, 0.2, 0.85).rotateX(Math.PI / 2));
-      lock.position.y = 3.2;
-      g.add(lock);
-      g.add(mesh(new CylinderGeometry(2.4, 2.8, 0.8, 8), std(C.sandDark), 0, 0.4));
-      animated.push({ update: (t) => ((lock.rotation.y = t * 0.6), (lock.position.y = 3.2 + Math.sin(t * 1.6) * 0.3)) });
-      break;
-    }
-    case "lab": {
-      g.add(mesh(new CylinderGeometry(2.3, 2.6, 0.6, 24), std(C.ink), 0, 0.3));
-      g.add(mesh(new CylinderGeometry(2, 2.2, 5, 24, 1, true), std("#dff3ff", { transparent: true, opacity: 0.35, roughness: 0.05 }), 0, 3.1, 0, false));
-      g.add(mesh(new CylinderGeometry(1.85, 2.05, 2.6, 24), new MeshStandardMaterial({ color: "#7bd88f", emissive: "#2e8b57", emissiveIntensity: 0.9 }), 0, 1.9, 0, false));
-      const bubbles = Array.from({ length: 6 }, (_, i) => mesh(new SphereGeometry(0.22 + (i % 3) * 0.08, 8, 6), new MeshStandardMaterial({ color: "#c8ffd6", emissive: "#7bd88f", emissiveIntensity: 1 }), (r() - 0.5) * 2, 1, (r() - 0.5) * 2, false));
-      bubbles.forEach((b) => g.add(b));
-      animated.push({ update: (t) => bubbles.forEach((b, i) => (b.position.y = 0.9 + ((t * 0.8 + i * 0.37) % 1) * 4.6)) });
-      break;
-    }
-    case "mailbox": {
-      g.add(mesh(new BoxGeometry(0.45, 2.8, 0.45), std(C.trunk), 0, 1.4));
-      g.add(mesh(new BoxGeometry(1.8, 1.3, 2.8), std(C.ember), 0, 3.3));
-      g.add(mesh(new CylinderGeometry(0.9, 0.9, 2.8, 16, 1, false, 0, Math.PI), std(C.ember), 0, 3.95, 0).rotateZ(Math.PI / 2).rotateY(Math.PI / 2));
-      const flag = new Group();
-      flag.add(mesh(new BoxGeometry(0.12, 1.6, 0.12), std(C.ink), 0, 0.8, 0));
-      flag.add(mesh(new BoxGeometry(0.1, 0.6, 0.8), std(C.ink), 0, 1.3, 0.4));
-      flag.position.set(1, 3, 0.6);
-      g.add(flag);
-      animated.push({ update: (t) => (flag.rotation.x = -0.4 + Math.sin(t * 2.2) * 0.35) });
-      break;
-    }
-    case "monument": {
-      g.add(mesh(new BoxGeometry(4.4, 1, 4.4), std(C.sandDark), 0, 0.5));
-      g.add(mesh(new BoxGeometry(1.6, 6.4, 1.6), std(C.paper), 0, 4.2));
-      const ring = mesh(new TorusGeometry(2.2, 0.22, 10, 40), std(C.ember, { emissive: C.ember, emissiveIntensity: 0.3 }), 0, 8.8, 0);
-      g.add(ring);
-      animated.push({ update: (t) => ((ring.rotation.y = t * 0.9), (ring.rotation.x = Math.sin(t * 0.7) * 0.4)) });
-      break;
-    }
-    default:
-      break;
-  }
-  g.position.set(l.x, 0, l.z);
-  // Face the plaza, so every landmark shows its best side to the road.
-  g.lookAt(0, 0, 0);
-  return g;
-}
-
-/* ─────────────────────────── the jeepney ─────────────────────────── */
-
-/** Text painted onto a canvas, for the jeepney's signboards. */
-function signTexture(text: string, bg: string, fg: string, w: number, h: number) {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const g = c.getContext("2d")!;
-  g.fillStyle = bg;
-  g.fillRect(0, 0, w, h);
-  g.fillStyle = fg;
-  g.font = `bold ${Math.round(h * 0.56)}px Georgia, "Times New Roman", serif`;
-  g.textAlign = "center";
-  g.textBaseline = "middle";
-  g.fillText(text, w / 2, h / 2 + 2);
-  const t = new CanvasTexture(c);
-  t.colorSpace = SRGBColorSpace;
-  t.anisotropy = 4;
-  return t;
-}
-
-function buildJeepney() {
-  const car = new Group();
-  const body = new Group(); // tilts with the suspension
-  car.add(body);
-  const red = std(C.ember, { roughness: 0.55 });
-  const paper = std(C.paper);
-  const ink = std(C.ink);
-  const chrome = std(C.silver, { metalness: 0.7, roughness: 0.25 });
-
-  body.add(mesh(new BoxGeometry(2.3, 0.45, 4.9), chrome, 0, 0.75, 0));
-  body.add(mesh(new BoxGeometry(2.2, 1.4, 3.2), red, 0, 1.65, 0.65));
-  body.add(mesh(new BoxGeometry(2.0, 0.9, 1.4), red, 0, 1.35, -1.6));
-  body.add(mesh(new BoxGeometry(2.42, 0.2, 3.7), paper, 0, 2.45, 0.5));
-  body.add(mesh(new BoxGeometry(2.24, 0.16, 3.24), ink, 0, 1.25, 0.65));
-  body.add(mesh(new BoxGeometry(2.26, 0.5, 2.7), std("#1c2b3a", { roughness: 0.2 }), 0, 1.95, 0.75));
-  body.add(mesh(new BoxGeometry(1.9, 0.6, 0.08), std("#1c2b3a", { roughness: 0.2 }), 0, 2.0, -0.97));
-  body.add(mesh(new BoxGeometry(1.5, 0.55, 0.12), chrome, 0, 1.25, -2.34));
-  body.add(mesh(new BoxGeometry(0.16, 0.5, 0.5), chrome, 0, 1.95, -1.9)); // the hood horse, abstracted
-  for (const x of [-0.72, 0.72]) {
-    body.add(mesh(new SphereGeometry(0.2, 10, 8), new MeshStandardMaterial({ color: "#fff7df", emissive: "#fff2c4", emissiveIntensity: 1.2 }), x, 1.35, -2.36, false));
-  }
-  // Route signboard up front and painted names on the sides — every jeepney has them.
-  const front = signTexture("SAN JOSE ⇄ CLSU", C.paper, C.ink, 512, 96);
-  const plain = std(C.paper);
-  // Box faces: +x, -x, +y, -y, +z, -z — the text goes on the front (-z) face.
-  const sign = new Mesh(new BoxGeometry(2.1, 0.42, 0.08), [plain, plain, plain, plain, plain, new MeshStandardMaterial({ map: front, roughness: 0.6 })]);
-  sign.position.set(0, 2.72, -1.2);
-  sign.castShadow = true;
-  body.add(sign);
-  const side = signTexture("NEIL JACOB", C.ember, C.paper, 512, 96);
-  for (const x of [-1.115, 1.115]) {
-    const plate = mesh(new PlaneGeometry(2.6, 0.48), new MeshStandardMaterial({ map: side, roughness: 0.6, transparent: true }), x, 1.55, 0.7, false);
-    plate.rotation.y = x < 0 ? -Math.PI / 2 : Math.PI / 2;
-    body.add(plate);
-  }
-  for (const [y, color] of [
-    [1.05, C.sky],
-    [2.36, C.ember],
-  ] as const)
-    body.add(mesh(new BoxGeometry(2.25, 0.1, 3.26), std(color), 0, y, 0.65));
-  // Side mirrors and roof rack
-  for (const x of [-1.25, 1.25]) body.add(mesh(new BoxGeometry(0.12, 0.3, 0.3), chrome, x, 1.95, -0.9));
-  body.add(mesh(new BoxGeometry(1.8, 0.12, 0.12), chrome, 0, 2.62, -1));
-
-  const wheelGeo = new CylinderGeometry(0.52, 0.52, 0.42, 16);
-  const wheelMat = std("#1d1d1d");
-  const hubMat = std(C.silver, { metalness: 0.6 });
-  const wheels: Group[] = [];
-  const steerers: Group[] = [];
-  for (const [x, z, front] of [
-    [-1.18, -1.55, true],
-    [1.18, -1.55, true],
-    [-1.18, 1.7, false],
-    [1.18, 1.7, false],
-  ] as const) {
-    const pivot = new Group();
-    pivot.position.set(x, 0.52, z);
-    const spin = new Group();
-    const w = mesh(wheelGeo, wheelMat);
-    w.rotation.z = Math.PI / 2;
-    const hub = mesh(new CylinderGeometry(0.24, 0.24, 0.44, 8), hubMat);
-    hub.rotation.z = Math.PI / 2;
-    spin.add(w, hub);
-    pivot.add(spin);
-    car.add(pivot);
-    wheels.push(spin);
-    if (front) steerers.push(pivot);
-  }
-  return { car, body, wheels, steerers };
-}
-
-/* ─────────────────────────── engine ─────────────────────────── */
-
-interface Prop {
-  mesh: Object3D;
-  x: number;
-  z: number;
-  vx: number;
-  vz: number;
-  r: number;
-  down: number; // 0 standing → 1 lying
-  dirX: number;
-  dirZ: number;
-  kind: "cone" | "pin";
-}
+const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+const damp = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
+const angleLerp = (a: number, b: number, k: number) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * k;
 
 export function createDriveEngine(
   canvas: HTMLCanvasElement,
-  opts: { lowPower: boolean; labels: HTMLElement; minimap: HTMLCanvasElement | null },
+  opts: { quality: Quality; reducedMotion: boolean; touch: boolean; labels: HTMLElement; minimap: HTMLCanvasElement | null; speedo: HTMLElement | null },
   cb: DriveCallbacks,
 ): DriveEngine {
-  const renderer = new WebGLRenderer({ canvas, antialias: !opts.lowPower, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, opts.lowPower ? 1 : 1.75));
+  const Q = { low: 0.25, medium: 0.6, high: 1 }[opts.quality];
+  const shadows = opts.quality !== "low";
+  const maxPixelRatio = Math.min(devicePixelRatio, { low: 1, medium: 1.5, high: 1.75 }[opts.quality]);
+  let pixelRatio = maxPixelRatio;
+
+  const renderer = new WebGLRenderer({ canvas, antialias: opts.quality !== "low", powerPreference: "high-performance" });
+  renderer.setPixelRatio(pixelRatio);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = !opts.lowPower;
-  renderer.shadowMap.type = PCFSoftShadowMap;
+  renderer.shadowMap.enabled = shadows;
+  renderer.shadowMap.type = opts.quality === "high" ? PCFSoftShadowMap : PCFShadowMap;
 
   const scene = new Scene();
-  scene.background = new Color(C.paper);
-  scene.fog = new Fog(C.paper, 110, 260);
+  const fog = new Fog(TIMES.day.fog, 120, 300);
+  scene.fog = fog;
+  scene.background = new Color(TIMES.day.fog);
 
-  const camera = new PerspectiveCamera(38, 1, 0.5, 400);
-  scene.add(new HemisphereLight("#fff6e5", "#c99f66", 1.4));
-  const sun = new DirectionalLight("#fff1d6", 2.2);
-  sun.position.set(30, 50, 20);
-  sun.castShadow = !opts.lowPower;
-  sun.shadow.mapSize.set(2048, 2048);
+  const camera = new PerspectiveCamera(60, 1, 0.5, 520);
+  const hemi = new HemisphereLight(TIMES.day.hemiSky, TIMES.day.hemiGround, TIMES.day.hemiI);
+  scene.add(hemi);
+  const sun = new DirectionalLight(TIMES.day.sun, TIMES.day.sunI);
+  sun.castShadow = shadows;
+  const shadowSize = opts.quality === "high" ? 2048 : 1024;
+  sun.shadow.mapSize.set(shadowSize, shadowSize);
   const sc = sun.shadow.camera;
-  sc.left = sc.bottom = -45;
-  sc.right = sc.top = 45;
-  sc.far = 140;
-  sun.shadow.bias = -0.0008;
+  sc.left = sc.bottom = opts.quality === "high" ? -42 : -32;
+  sc.right = sc.top = opts.quality === "high" ? 42 : 32;
+  sc.near = 1;
+  sc.far = 200;
+  sun.shadow.bias = -0.0006;
+  sun.shadow.normalBias = 0.04;
   scene.add(sun, sun.target);
 
-  /* Ground */
-  const sea = mesh(new PlaneGeometry(900, 900), std(C.sea, { roughness: 0.4 }), 0, -0.9, 0, false);
-  sea.rotation.x = -Math.PI / 2;
-  sea.receiveShadow = false;
-  scene.add(sea);
-  const shallows = mesh(new RingGeometry(ISLAND_RADIUS - 2, ISLAND_RADIUS + 9, 96), std("#8fbcd2", { roughness: 0.3 }), 0, -0.85, 0, false);
-  shallows.rotation.x = -Math.PI / 2;
-  scene.add(shallows);
-  scene.add(mesh(new CylinderGeometry(ISLAND_RADIUS, ISLAND_RADIUS + 3, 2, 96), std(C.meadow), 0, -1, 0, false));
-  const beach = mesh(new RingGeometry(ISLAND_RADIUS - 8, ISLAND_RADIUS, 96), std(C.sand), 0, 0.01, 0, false);
-  beach.rotation.x = -Math.PI / 2;
-  scene.add(beach);
-  const road = mesh(new RingGeometry(ROAD_RADIUS - 3.2, ROAD_RADIUS + 3.2, 120), std(C.road), 0, 0.02, 0, false);
+  /* Sky, sea, island */
+  const sky = buildSky();
+  scene.add(sky.mesh);
+  const stars = buildStars(Math.round(500 + 500 * Q));
+  scene.add(stars);
+  const clouds = buildClouds(Math.round(5 + 6 * Q));
+  scene.add(clouds);
+  const sea = buildSea(0.45 + 0.55 * Q);
+  scene.add(sea.mesh);
+  scene.add(buildTerrain(0.55 + 0.45 * Q));
+  scene.add(buildRamps());
+
+  // Road, plaza and centre line sit just above the flattened ground.
+  const road = part(new RingGeometry(ROAD_RADIUS - 3.2, ROAD_RADIUS + 3.2, 160), std("#e8cf9f", { roughness: 0.9 }), 0, 0.03, 0, false);
   road.rotation.x = -Math.PI / 2;
-  scene.add(road);
-  const plaza = mesh(new CircleGeometry(9, 48), std("#ecd3a2"), 0, 0.03, 0, false);
+  const edges = [ROAD_RADIUS - 3.05, ROAD_RADIUS + 3.05].map((r) => {
+    const e = part(new RingGeometry(r - 0.1, r + 0.1, 160), std(C.paper), 0, 0.045, 0, false);
+    e.rotation.x = -Math.PI / 2;
+    return e;
+  });
+  const plaza = part(new CircleGeometry(9, 48), std("#ecd3a2"), 0, 0.04, 0, false);
   plaza.rotation.x = -Math.PI / 2;
-  scene.add(plaza);
-  const plazaRing = mesh(new RingGeometry(8.6, 9, 64), std(C.ember), 0, 0.04, 0, false);
+  const plazaRing = part(new RingGeometry(8.6, 9, 64), std(C.ember), 0, 0.05, 0, false);
   plazaRing.rotation.x = -Math.PI / 2;
-  scene.add(plazaRing);
-  // Dashed centre line
-  const dashes = new InstancedMesh(new BoxGeometry(0.3, 0.04, 1.6), std(C.paper), 60);
+  scene.add(road, ...edges, plaza, plazaRing);
   const tmp = new Object3D();
-  for (let i = 0; i < 60; i++) {
-    const a = (i / 60) * Math.PI * 2;
+  const dashes = new InstancedMesh(new BoxGeometry(0.3, 0.04, 1.6), std(C.paper), 64);
+  for (let i = 0; i < 64; i++) {
+    const a = (i / 64) * Math.PI * 2;
     tmp.position.set(Math.cos(a) * ROAD_RADIUS, 0.05, Math.sin(a) * ROAD_RADIUS);
     tmp.rotation.set(0, -a, 0);
     tmp.updateMatrix();
     dashes.setMatrixAt(i, tmp.matrix);
   }
+  dashes.computeBoundingSphere();
   scene.add(dashes);
 
   /* Landmarks */
   const animated: Animated[] = [];
-  const statics: { x: number; z: number; r: number }[] = [];
+  const statics: Static[] = [];
   for (const l of landmarks) {
     scene.add(buildLandmark(l, animated));
     statics.push({ x: l.x, z: l.z, r: l.radius });
   }
 
-  /* Trees and rocks, placed by a seeded RNG away from roads and landmarks */
-  const rand = rng(7);
-  const treeCount = opts.lowPower ? 45 : 85;
-  const trunks = new InstancedMesh(new CylinderGeometry(0.25, 0.35, 1.6, 6), std(C.trunk), treeCount);
-  const leaves = new InstancedMesh(new ConeGeometry(1.5, 3.6, 7), std(C.leaf), treeCount);
-  const leaves2 = new InstancedMesh(new ConeGeometry(1.1, 2.6, 7), std(C.leafDark), treeCount);
-  trunks.castShadow = leaves.castShadow = leaves2.castShadow = !opts.lowPower;
-  let placed = 0;
-  for (let guard = 0; placed < treeCount && guard < 4000; guard++) {
-    const a = rand() * Math.PI * 2;
-    const d = 12 + rand() * (ISLAND_RADIUS - 16);
-    const x = Math.cos(a) * d;
-    const z = Math.sin(a) * d;
-    if (Math.abs(d - ROAD_RADIUS) < 5.5) continue;
-    if (landmarks.some((l) => Math.hypot(l.x - x, l.z - z) < l.zone + 1)) continue;
-    if ([...packets, ...cones, ...pins].some(([px, pz]) => Math.hypot(px - x, pz - z) < 4)) continue;
-    if (statics.some((s) => Math.hypot(s.x - x, s.z - z) < s.r + 2.5)) continue;
-    const s = 0.8 + rand() * 0.6;
-    tmp.position.set(x, 0.8 * s, z);
-    tmp.rotation.set(0, rand() * Math.PI, 0);
-    tmp.scale.set(s, s, s);
-    tmp.updateMatrix();
-    trunks.setMatrixAt(placed, tmp.matrix);
-    tmp.position.y = 3 * s;
-    tmp.updateMatrix();
-    leaves.setMatrixAt(placed, tmp.matrix);
-    tmp.position.y = 4.6 * s;
-    tmp.updateMatrix();
-    leaves2.setMatrixAt(placed, tmp.matrix);
-    statics.push({ x, z, r: 0.9 * s });
-    placed++;
-  }
-  trunks.count = leaves.count = leaves2.count = placed;
-  scene.add(trunks, leaves, leaves2);
+  /* Trees, grass, rocks and lamps, kept clear of roads, props and landmarks */
+  const keepClear: [number, number, number][] = [
+    ...landmarks.map((l): [number, number, number] => [l.x, l.z, l.zone + 1]),
+    ...packets.map(([x, z]): [number, number, number] => [x, z, 3]),
+    ...[...cones, ...pins].map(([x, z]): [number, number, number] => [x, z, 3]),
+    ...crates.map(([x, , z]): [number, number, number] => [x, z, 3]),
+    ...ramps.map((r): [number, number, number] => [r.x, r.z, 10]),
+    [BALL[0], BALL[1], 4],
+  ];
+  const wind = { value: 0 };
+  const nature = buildNature({
+    rand: rng(7),
+    quality: Q,
+    statics,
+    wind,
+    blocked: (x, z, r) => Math.hypot(x, z) < 11 || keepClear.some(([cx, cz, cr]) => Math.hypot(cx - x, cz - z) < cr + r),
+  });
+  scene.add(nature.group);
 
-  const rocks = new InstancedMesh(new DodecahedronGeometry(1, 0), std("#b9a58a"), 40);
-  for (let i = 0; i < 40; i++) {
-    const a = rand() * Math.PI * 2;
-    const d = ISLAND_RADIUS - 1 + rand() * 4;
-    const s = 0.6 + rand() * 1.6;
-    tmp.position.set(Math.cos(a) * d, -0.4, Math.sin(a) * d);
-    tmp.rotation.set(rand() * 3, rand() * 3, rand() * 3);
-    tmp.scale.set(s, s * 0.7, s);
-    tmp.updateMatrix();
-    rocks.setMatrixAt(i, tmp.matrix);
-  }
-  scene.add(rocks);
-
-  // Darker grass patches and flower clusters give the meadow some texture.
-  const patches = new InstancedMesh(new CircleGeometry(1, 9), std(C.grass), 60);
-  const bushes = new InstancedMesh(new DodecahedronGeometry(0.7, 0), std("#ffffff"), 110);
-  const flowerColors = [new Color(C.ember), new Color(C.paper), new Color(C.leafDark), new Color("#ffd27a"), new Color(C.leafDark)];
-  let np = 0;
-  let nb = 0;
-  for (let guard = 0; guard < 3000 && (np < 60 || nb < 110); guard++) {
-    const a = rand() * Math.PI * 2;
-    const d = 11 + rand() * (ISLAND_RADIUS - 21);
-    const x = Math.cos(a) * d;
-    const z = Math.sin(a) * d;
-    if (Math.abs(d - ROAD_RADIUS) < 4.5 || landmarks.some((l) => Math.hypot(l.x - x, l.z - z) < l.radius + 3)) continue;
-    if (np < 60) {
-      const s2 = 2 + rand() * 4;
-      tmp.position.set(x, 0.015, z);
-      tmp.rotation.set(-Math.PI / 2, 0, rand() * 3);
-      tmp.scale.set(s2, s2 * (0.6 + rand() * 0.4), 1);
-      tmp.updateMatrix();
-      patches.setMatrixAt(np++, tmp.matrix);
-    }
-    if (nb < 110 && !statics.some((s) => Math.hypot(s.x - x, s.z - z) < s.r + 1.2)) {
-      const s3 = 0.35 + rand() * 0.5;
-      tmp.position.set(x + (rand() - 0.5) * 2, s3 * 0.5, z + (rand() - 0.5) * 2);
-      tmp.rotation.set(rand() * 3, rand() * 3, 0);
-      tmp.scale.setScalar(s3);
-      tmp.updateMatrix();
-      bushes.setMatrixAt(nb, tmp.matrix);
-      bushes.setColorAt(nb++, flowerColors[Math.floor(rand() * flowerColors.length)]);
-    }
-  }
-  patches.count = np;
-  bushes.count = nb;
-  patches.receiveShadow = true;
-  bushes.castShadow = !opts.lowPower;
-  scene.add(patches, bushes);
-
-  /* Pushable props: cones and bowling pins */
-  const props: Prop[] = [];
-  const coneGeo = new ConeGeometry(0.45, 1.3, 10);
-  const coneMat = std("#ff7a2e");
-  for (const [x, z] of cones) {
-    const g = new Group();
-    g.add(mesh(coneGeo, coneMat, 0, 0.65, 0));
-    g.add(mesh(new BoxGeometry(1, 0.12, 1), std(C.ink), 0, 0.06, 0));
-    g.position.set(x, 0, z);
-    scene.add(g);
-    props.push({ mesh: g, x, z, vx: 0, vz: 0, r: 0.6, down: 0, dirX: 0, dirZ: 1, kind: "cone" });
-  }
-  const pinGeo = new CylinderGeometry(0.22, 0.32, 1.5, 10);
-  const pinHead = new SphereGeometry(0.26, 10, 8);
-  for (const [x, z] of pins) {
-    const g = new Group();
-    g.add(mesh(pinGeo, std("#fffaf0"), 0, 0.75, 0));
-    g.add(mesh(pinHead, std("#fffaf0"), 0, 1.6, 0));
-    g.add(mesh(new CylinderGeometry(0.25, 0.25, 0.12, 10), std(C.ember), 0, 1.25, 0));
-    g.position.set(x, 0, z);
-    scene.add(g);
-    props.push({ mesh: g, x, z, vx: 0, vz: 0, r: 0.4, down: 0, dirX: 0, dirZ: 1, kind: "pin" });
-  }
-  const pinTotal = props.filter((p) => p.kind === "pin").length;
+  /* Physics props */
+  const physics = createPhysics(scene, statics, { iterations: Math.round(6 + 4 * Q), shadows });
   let pinsDown = 0;
 
   /* Packets */
   const packetGeo = new OctahedronGeometry(0.75, 0);
-  const packetMat = new MeshStandardMaterial({ color: C.sky, emissive: "#3d8fd1", emissiveIntensity: 1.1, flatShading: true });
-  const packetMeshes = packets.map(([x, z]) => {
-    const m = mesh(packetGeo, packetMat, x, 1.6, z);
+  const packetMat = new MeshStandardMaterial({ color: C.sky, emissive: "#3d8fd1", emissiveIntensity: 1.2, flatShading: true });
+  const packetPos = packets.map(([x, z, h]) => new Vector3(x, groundAt(x, z) + h, z));
+  const packetMeshes = packetPos.map((p) => {
+    const m = part(packetGeo, packetMat, p.x, p.y, p.z, shadows);
     scene.add(m);
     return m;
   });
   const taken = new Set<number>();
 
   /* Jeepney */
-  const { car, body, wheels, steerers } = buildJeepney();
-  scene.add(car);
+  const jeep = buildJeepney();
+  const { car: carMesh, body, wheels, steerers, cockpit } = jeep;
+  scene.add(carMesh);
 
-  /* Dust puffs */
+  /* Dust, exhaust and skid marks */
   const puffGeo = new SphereGeometry(0.4, 6, 5);
-  const puffs = Array.from({ length: opts.lowPower ? 10 : 28 }, () => {
-    const m = mesh(puffGeo, new MeshStandardMaterial({ color: "#e9d3ad", transparent: true, opacity: 0, depthWrite: false }), 0, -5, 0, false);
+  const puffs = Array.from({ length: Math.round(14 + 20 * Q) }, () => {
+    const m = part(puffGeo, new MeshStandardMaterial({ color: "#e9d3ad", transparent: true, opacity: 0, depthWrite: false }), 0, -50, 0, false);
     scene.add(m);
-    return { m, life: 0 };
+    return { m, life: 0, rise: 0.8 };
   });
   let puffIndex = 0;
-  const puff = (x: number, z: number) => {
+  const puff = (x: number, y: number, z: number, color: string, rise = 0.8) => {
     const p = puffs[puffIndex++ % puffs.length];
     p.life = 1;
-    p.m.position.set(x + (Math.random() - 0.5) * 0.6, 0.4, z + (Math.random() - 0.5) * 0.6);
+    p.rise = rise;
+    (p.m.material as MeshStandardMaterial).color.set(color);
+    p.m.position.set(x + (Math.random() - 0.5) * 0.6, y + 0.4, z + (Math.random() - 0.5) * 0.6);
     p.m.scale.setScalar(0.6);
+  };
+  const SKIDS = 220;
+  const skids = new InstancedMesh(new PlaneGeometry(0.34, 0.8), new MeshBasicMaterial({ color: "#3a2f28", transparent: true, opacity: 0.32, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), SKIDS);
+  skids.count = 0;
+  skids.frustumCulled = false;
+  scene.add(skids);
+  let skidIndex = 0;
+  const mark = new Object3D();
+  mark.rotation.order = "YXZ";
+  const skidAt = (x: number, z: number, heading: number) => {
+    // Lie flat, long side along the direction of travel
+    mark.position.set(x, groundAt(x, z) + 0.06, z);
+    mark.rotation.set(-Math.PI / 2, heading, 0);
+    mark.updateMatrix();
+    skids.setMatrixAt(skidIndex % SKIDS, mark.matrix);
+    skidIndex++;
+    skids.count = Math.min(SKIDS, skidIndex);
+    skids.instanceMatrix.needsUpdate = true;
   };
 
   /* State */
-  const SPAWN = { x: 0, z: 4, heading: 0 };
-  const st = { x: SPAWN.x, z: SPAWN.z, heading: SPAWN.heading, speed: 0, steer: 0, pitch: 0, roll: 0, shake: 0 };
+  const st = {
+    x: SPAWN.x,
+    y: groundAt(SPAWN.x, SPAWN.z),
+    z: SPAWN.z,
+    heading: SPAWN.heading,
+    vx: 0,
+    vz: 0,
+    vy: 0,
+    vF: 0,
+    yawRate: 0,
+    steer: 0,
+    air: false,
+    airTime: 0,
+    pitch: 0,
+    roll: 0,
+    squat: 0,
+    lean: 0,
+    susp: 0,
+    suspV: 0,
+    slip: 0,
+    shake: 0,
+    skidDist: 0,
+    accel: 0,
+    lateral: 0,
+  };
+  const prev = { x: st.x, y: st.y, z: st.z, heading: st.heading, pitch: 0, roll: 0 };
   const controls: Controls = { throttle: 0, steer: 0, boost: false, brake: false };
   const keys = new Set<string>();
   let mode: "attract" | "drive" = "attract";
+  let camMode: CameraMode = "chase";
+  let timeOfDay: TimeOfDay = "day";
   let zoneId: string | null = null;
   let challenge: { start: number; running: boolean } | null = null;
   let frame = 0;
   let last = performance.now();
+  let acc = 0;
   let raf = 0;
   let disposed = false;
-
-  const camTarget = new Vector3();
-  const camPos = new Vector3(40, 50, 60);
-  const OFFSET = new Vector3(15.5, 27, 20.5);
+  let audio: DriveAudio | null = null;
+  let muted = false;
+  let input = { throttle: 0, steer: 0, boost: false, brake: false };
+  let look = { yaw: 0, pitch: 0, idle: 0 };
+  const padPrev: boolean[] = [];
 
   /* Input */
   const typing = () => {
@@ -585,11 +304,15 @@ export function createDriveEngine(
     return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
   };
   const onKeyDown = (e: KeyboardEvent) => {
-    if (mode !== "drive" || typing()) return;
+    if (mode !== "drive" || typing() || e.metaKey || e.ctrlKey) return;
     const k = e.key.toLowerCase();
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k)) e.preventDefault();
+    if (e.repeat) return;
     keys.add(k);
     if (k === "r") reset();
+    else if (k === "c") cycleCamera();
+    else if (k === "n") cycleTime();
+    else if (k === "h") horn();
   };
   const onKeyUp = (e: KeyboardEvent) => keys.delete(e.key.toLowerCase());
   const onBlur = () => keys.clear();
@@ -602,15 +325,36 @@ export function createDriveEngine(
     const down = keys.has("s") || keys.has("arrowdown");
     const left = keys.has("a") || keys.has("arrowleft");
     const right = keys.has("d") || keys.has("arrowright");
-    return {
-      throttle: Math.max(-1, Math.min(1, (up ? 1 : 0) - (down ? 1 : 0) + controls.throttle)),
-      steer: Math.max(-1, Math.min(1, (right ? 1 : 0) - (left ? 1 : 0) + controls.steer)),
-      boost: keys.has("shift") || controls.boost,
-      brake: keys.has(" ") || controls.brake,
-    };
+    let throttle = (up ? 1 : 0) - (down ? 1 : 0) + controls.throttle;
+    let steer = (right ? 1 : 0) - (left ? 1 : 0) + controls.steer;
+    let boost = keys.has("shift") || controls.boost;
+    let brake = keys.has(" ") || controls.brake;
+    // Gamepads: left stick steers, triggers drive, A boosts, X drifts, B horn, Y camera
+    const pads = navigator.getGamepads?.() ?? [];
+    for (const pad of pads) {
+      if (!pad) continue;
+      const sx = pad.axes[0] ?? 0;
+      if (Math.abs(sx) > 0.12) steer += sx;
+      throttle += (pad.buttons[7]?.value ?? 0) - (pad.buttons[6]?.value ?? 0);
+      const sy = pad.axes[1] ?? 0;
+      if (!pad.buttons[7]?.value && !pad.buttons[6]?.value && Math.abs(sy) > 0.3) throttle -= sy;
+      boost ||= !!pad.buttons[0]?.pressed;
+      brake ||= !!pad.buttons[2]?.pressed;
+      const pressed = (i: number) => {
+        const now = !!pad.buttons[i]?.pressed;
+        const was = padPrev[i];
+        padPrev[i] = now;
+        return now && !was;
+      };
+      if (pressed(3)) cycleCamera();
+      if (pressed(1)) horn();
+      if (pressed(9)) reset();
+    }
+    return { throttle: clamp(throttle, -1, 1), steer: clamp(steer, -1, 1), boost, brake };
   };
 
   /* Resize */
+  let portrait = false;
   const resize = () => {
     const parent = canvas.parentElement;
     if (!parent) return;
@@ -618,8 +362,7 @@ export function createDriveEngine(
     const h = parent.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / Math.max(1, h);
-    // Phones in portrait get a wider view so the island isn't cramped.
-    camera.fov = camera.aspect < 0.8 ? 52 : 38;
+    portrait = camera.aspect < 0.8;
     camera.updateProjectionMatrix();
   };
   const ro = new ResizeObserver(resize);
@@ -629,20 +372,21 @@ export function createDriveEngine(
   /* Labels projected from 3D */
   const labelEls = new Map<string, HTMLElement>();
   opts.labels.querySelectorAll<HTMLElement>("[data-landmark]").forEach((el) => labelEls.set(el.dataset.landmark!, el));
+  const labelAt = landmarks.map((l) => new Vector3(l.x, heightAt(l.x, l.z) + (l.kind === "stage" ? 10 : 9), l.z));
   const v = new Vector3();
   const placeLabels = () => {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
-    for (const l of landmarks) {
+    landmarks.forEach((l, i) => {
       const el = labelEls.get(l.id);
-      if (!el) continue;
-      v.set(l.x, l.kind === "stage" ? 10 : 9, l.z).project(camera);
+      if (!el) return;
+      v.copy(labelAt[i]).project(camera);
       const dist = mode === "drive" ? Math.hypot(st.x - l.x, st.z - l.z) : 30;
-      const visible = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1 && dist < 60;
-      el.style.opacity = visible ? String(Math.max(0, Math.min(1, (60 - dist) / 25))) : "0";
+      const visible = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1 && dist < 70;
+      el.style.opacity = visible ? String(clamp((70 - dist) / 25, 0, 1)) : "0";
       el.style.transform = `translate(-50%, -100%) translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px)`;
       el.dataset.active = String(zoneId === l.id);
-    }
+    });
   };
 
   /* Minimap */
@@ -654,26 +398,37 @@ export function createDriveEngine(
     mm.clearRect(0, 0, size, size);
     mm.save();
     mm.translate(size / 2, size / 2);
-    mm.fillStyle = "rgba(241,215,166,0.95)";
+    mm.fillStyle = "rgba(199,207,147,0.95)";
     mm.beginPath();
     mm.arc(0, 0, ISLAND_RADIUS * s, 0, Math.PI * 2);
     mm.fill();
-    mm.strokeStyle = "rgba(0,48,73,0.25)";
-    mm.lineWidth = 6 * s;
+    mm.strokeStyle = "rgba(241,215,166,1)";
+    mm.lineWidth = 4 * s;
+    mm.beginPath();
+    mm.arc(0, 0, (ISLAND_RADIUS - 3) * s, 0, Math.PI * 2);
+    mm.stroke();
+    mm.strokeStyle = "rgba(0,48,73,0.3)";
+    mm.lineWidth = 6.4 * s;
     mm.beginPath();
     mm.arc(0, 0, ROAD_RADIUS * s, 0, Math.PI * 2);
     mm.stroke();
+    mm.fillStyle = "#c1121f";
+    for (const r of ramps) mm.fillRect(r.x * s - 2, r.z * s - 2, 4, 4);
     for (const l of landmarks) {
-      mm.fillStyle = l.id === zoneId ? "#003049" : "#c1121f";
+      mm.fillStyle = l.id === zoneId ? "#003049" : "#780000";
       mm.beginPath();
       mm.arc(l.x * s, l.z * s, 3.2, 0, Math.PI * 2);
       mm.fill();
     }
     mm.fillStyle = "#3d8fd1";
-    packets.forEach(([x, z], i) => {
-      if (taken.has(i)) return;
-      mm.fillRect(x * s - 1.5, z * s - 1.5, 3, 3);
+    packetPos.forEach((p, i) => {
+      if (!taken.has(i)) mm.fillRect(p.x * s - 1.5, p.z * s - 1.5, 3, 3);
     });
+    const ball = physics.ballPosition();
+    mm.fillStyle = "#fdf0d5";
+    mm.beginPath();
+    mm.arc(ball.x * s, ball.z * s, 2.2, 0, Math.PI * 2);
+    mm.fill();
     mm.translate(st.x * s, st.z * s);
     mm.rotate(-st.heading);
     mm.fillStyle = "#003049";
@@ -689,220 +444,404 @@ export function createDriveEngine(
   function reset() {
     st.x = SPAWN.x;
     st.z = SPAWN.z;
+    st.y = groundAt(st.x, st.z);
     st.heading = SPAWN.heading;
-    st.speed = 0;
+    st.vx = st.vz = st.vy = st.vF = st.yawRate = 0;
+    st.air = false;
+    Object.assign(prev, { x: st.x, y: st.y, z: st.z, heading: st.heading });
+    physics.reset();
   }
 
-  /* Physics step */
-  const carCircles = () => {
-    const fx = -Math.sin(st.heading);
-    const fz = -Math.cos(st.heading);
-    return [
-      { x: st.x + fx * 1.25, z: st.z + fz * 1.25, r: 1.35 },
-      { x: st.x - fx * 1.25, z: st.z - fz * 1.25, r: 1.35 },
-    ];
+  function cycleCamera() {
+    camMode = CAMERAS[(CAMERAS.indexOf(camMode) + 1) % CAMERAS.length];
+    applyCamera();
+    cb.onCamera(camMode);
+  }
+  function applyCamera() {
+    cockpit.visible = camMode === "cockpit";
+    camera.near = camMode === "cockpit" ? 0.06 : 0.5;
+    camera.updateProjectionMatrix();
+    look = { yaw: 0, pitch: 0, idle: 0 };
+  }
+  function cycleTime() {
+    timeOfDay = TIMES_ORDER[(TIMES_ORDER.indexOf(timeOfDay) + 1) % TIMES_ORDER.length];
+    cb.onTime(timeOfDay);
+  }
+  function horn() {
+    audio?.horn();
+  }
+
+  /* Time of day: everything eases towards the chosen preset */
+  const cur = {
+    top: new Color(TIMES.day.top),
+    horizon: new Color(TIMES.day.horizon),
+    bottom: new Color(TIMES.day.bottom),
+    fog: new Color(TIMES.day.fog),
+    sun: new Color(TIMES.day.sun),
+    hemiSky: new Color(TIMES.day.hemiSky),
+    hemiGround: new Color(TIMES.day.hemiGround),
+    deep: new Color(TIMES.day.deep),
+    shallow: new Color(TIMES.day.shallow),
+    sunDir: new Vector3(...TIMES.day.sunDir).normalize(),
+    sunI: TIMES.day.sunI,
+    hemiI: TIMES.day.hemiI,
+    stars: 0,
+    night: 0,
+    exposure: 1,
+  };
+  const target = new Color();
+  const targetDir = new Vector3();
+  const applyTime = (dt: number) => {
+    const p = TIMES[timeOfDay];
+    const k = damp(2.2, dt);
+    for (const key of ["top", "horizon", "bottom", "fog", "sun", "hemiSky", "hemiGround", "deep", "shallow"] as const) cur[key].lerp(target.set(p[key]), k);
+    cur.sunDir.lerp(targetDir.set(...p.sunDir).normalize(), k).normalize();
+    cur.sunI += (p.sunI - cur.sunI) * k;
+    cur.hemiI += (p.hemiI - cur.hemiI) * k;
+    cur.stars += (p.stars - cur.stars) * k;
+    cur.night += (p.night - cur.night) * k;
+    cur.exposure += (p.exposure - cur.exposure) * k;
+    sky.uniforms.uTop.value.copy(cur.top);
+    sky.uniforms.uHorizon.value.copy(cur.horizon);
+    sky.uniforms.uBottom.value.copy(cur.bottom);
+    sky.uniforms.uSunColor.value.copy(cur.sun);
+    sky.uniforms.uSunDir.value.copy(cur.sunDir);
+    sky.uniforms.uSunSize.value = 1 + cur.night * 1.5; // a bigger moon
+    fog.color.copy(cur.fog);
+    (scene.background as Color).copy(cur.fog);
+    sun.color.copy(cur.sun);
+    sun.intensity = cur.sunI;
+    hemi.color.copy(cur.hemiSky);
+    hemi.groundColor.copy(cur.hemiGround);
+    hemi.intensity = cur.hemiI;
+    sea.uniforms.uDeep.value.copy(cur.deep);
+    sea.uniforms.uShallow.value.copy(cur.shallow);
+    sea.uniforms.uSunColor.value.copy(cur.sun);
+    sea.uniforms.uSunDir.value.copy(cur.sunDir);
+    sea.uniforms.uSky.value.copy(cur.horizon);
+    (stars.material as PointsMaterial).opacity = cur.stars;
+    stars.visible = cur.stars > 0.02;
+    nature.setNight(cur.night);
+    clouds.userData.setNight?.(cur.night);
+    renderer.toneMappingExposure = cur.exposure;
   };
 
-  const step = (dt: number, t: number) => {
-    const input = mode === "drive" ? readInput() : { throttle: 0, steer: 0, boost: false, brake: false };
-    const max = input.boost ? 30 : 20;
-    const accel = input.boost ? 26 : 17;
-    const prevSpeed = st.speed;
-    if (input.throttle > 0) st.speed += accel * input.throttle * dt * (st.speed < 0 ? 2 : 1);
-    else if (input.throttle < 0) st.speed += accel * input.throttle * dt * (st.speed > 0 ? 1.6 : 0.7);
-    st.speed *= 1 - (input.throttle === 0 ? 1.6 : 0.35) * dt;
-    if (input.brake) st.speed *= 1 - 5 * dt;
-    st.speed = Math.max(-9, Math.min(max, st.speed));
-    if (Math.abs(st.speed) < 0.02 && input.throttle === 0) st.speed = 0;
-
-    st.steer += (input.steer - st.steer) * Math.min(1, dt * 10);
-    const grip = Math.min(1, Math.abs(st.speed) / 6);
-    st.heading -= st.steer * 2.1 * dt * grip * Math.sign(st.speed || 1) * (input.brake ? 1.35 : 1);
-
+  /* ───────── vehicle physics (one fixed step) ───────── */
+  const carStep = (dt: number) => {
     const fx = -Math.sin(st.heading);
     const fz = -Math.cos(st.heading);
-    st.x += fx * st.speed * dt;
-    st.z += fz * st.speed * dt;
+    const rx = Math.cos(st.heading);
+    const rz = -Math.sin(st.heading);
+    let vF = st.vx * fx + st.vz * fz;
+    let vR = st.vx * rx + st.vz * rz;
+    const before = vF;
 
-    // Static collisions: push both car circles out of trees and landmarks.
-    let hit = false;
-    for (const c of carCircles()) {
+    st.steer += (input.steer - st.steer) * Math.min(1, dt * 9);
+
+    // Ground under the four corners: slope, pitch and roll
+    const hF = groundAt(st.x + fx * 1.6, st.z + fz * 1.6);
+    const hB = groundAt(st.x - fx * 1.6, st.z - fz * 1.6);
+    const hL = groundAt(st.x - rx * 1.1, st.z - rz * 1.1);
+    const hR = groundAt(st.x + rx * 1.1, st.z + rz * 1.1);
+
+    const r = Math.hypot(st.x, st.z);
+    const onRoad = Math.abs(r - ROAD_RADIUS) < 3.4 || r < 9.3 || rampHeight(st.x, st.z) > 0;
+    const onSand = r > ISLAND_RADIUS - 9;
+    const surface = onRoad ? 1 : onSand ? 0.72 : 0.88;
+
+    if (!st.air) {
+      const maxF = (input.boost ? 34 : 24) * surface;
+      const accel = input.boost ? 25 : 16;
+      if (input.throttle > 0) vF += vF < -0.5 ? 32 * input.throttle * dt : accel * input.throttle * dt * clamp(1 - vF / maxF, 0, 1);
+      else if (input.throttle < 0) vF = vF > 0.5 ? vF + 32 * input.throttle * dt : Math.max(-10, vF + 12 * input.throttle * dt);
+      const resist = (input.throttle === 0 ? 2.4 + Math.abs(vF) * 0.06 : Math.abs(vF) * 0.015) * (2 - surface);
+      vF -= Math.sign(vF) * Math.min(Math.abs(vF), resist * dt);
+      if (vF > maxF) vF -= (vF - maxF) * 1.5 * dt;
+      if (input.brake) vF -= Math.sign(vF) * Math.min(Math.abs(vF), 6 * dt);
+      vF -= GRAVITY * 0.6 * ((hF - hB) / WHEELBASE) * dt; // rolls downhill
+      if (Math.abs(vF) < 0.05 && input.throttle === 0) vF = 0;
+
+      // Tyres pull the sideways slide back to zero, up to their grip
+      const grip = (input.brake ? 6.5 : 34) * (onSand ? 0.7 : 1);
+      vR += clamp(-vR * 12 * dt, -grip * dt, grip * dt);
+      st.slip = Math.abs(vR);
+
+      const angle = st.steer * (0.62 - 0.4 * Math.min(1, Math.abs(vF) / 30));
+      const yawTarget = -(vF / WHEELBASE) * Math.tan(angle) * (input.brake ? 1.45 : 1);
+      st.yawRate += (yawTarget - st.yawRate) * Math.min(1, dt * 10);
+    } else {
+      st.vy -= GRAVITY * dt;
+      st.yawRate += -st.steer * 0.8 * dt - st.yawRate * 0.6 * dt;
+      st.slip = 0;
+    }
+
+    st.vx = fx * vF + rx * vR;
+    st.vz = fz * vF + rz * vR;
+    st.heading += st.yawRate * dt;
+    st.x += st.vx * dt;
+    st.z += st.vz * dt;
+    st.vF = vF;
+    st.accel = (vF - before) / dt;
+    st.lateral = vF * st.yawRate;
+
+    // Static collisions: two circles along the jeepney against trees, lamps and landmarks
+    let impact = 0;
+    for (const off of [1.25, -1.25]) {
+      const cx = st.x + fx * off;
+      const cz = st.z + fz * off;
       for (const s of statics) {
-        const dx = c.x - s.x;
-        const dz = c.z - s.z;
+        const dx = cx - s.x;
+        const dz = cz - s.z;
+        const min = 1.35 + s.r;
+        if (Math.abs(dx) > min || Math.abs(dz) > min) continue;
         const d = Math.hypot(dx, dz);
-        const min = c.r + s.r;
-        if (d < min && d > 0.0001) {
-          st.x += (dx / d) * (min - d);
-          st.z += (dz / d) * (min - d);
-          hit = true;
+        if (d >= min || d < 1e-4) continue;
+        const nx = dx / d;
+        const nz = dz / d;
+        st.x += nx * (min - d);
+        st.z += nz * (min - d);
+        const vn = st.vx * nx + st.vz * nz;
+        if (vn < 0) {
+          st.vx -= 1.3 * vn * nx;
+          st.vz -= 1.3 * vn * nz;
+          impact = Math.max(impact, -vn);
         }
       }
     }
-    // The sea is a wall (a soft one).
+    // The sea is a soft wall
     const rr = Math.hypot(st.x, st.z);
     if (rr > ISLAND_RADIUS - 3) {
-      st.x *= (ISLAND_RADIUS - 3) / rr;
-      st.z *= (ISLAND_RADIUS - 3) / rr;
-      hit = true;
-    }
-    if (hit && Math.abs(st.speed) > 3) {
-      st.shake = Math.min(1, Math.abs(st.speed) / 20);
-      st.speed *= -0.35;
-    } else if (hit) st.speed *= 0.5;
-
-    // Props: the jeepney shoves them, they shove each other.
-    const vxCar = fx * st.speed;
-    const vzCar = fz * st.speed;
-    for (const p of props) {
-      for (const c of carCircles()) {
-        const dx = p.x - c.x;
-        const dz = p.z - c.z;
-        const d = Math.hypot(dx, dz);
-        const min = c.r + p.r;
-        if (d < min && d > 0.0001) {
-          const nx = dx / d;
-          const nz = dz / d;
-          p.x += nx * (min - d);
-          p.z += nz * (min - d);
-          const impact = Math.abs(st.speed);
-          p.vx += vxCar * 0.9 + nx * (2 + impact * 0.4);
-          p.vz += vzCar * 0.9 + nz * (2 + impact * 0.4);
-          st.speed *= 0.97;
-        }
+      const nx = st.x / rr;
+      const nz = st.z / rr;
+      st.x = nx * (ISLAND_RADIUS - 3);
+      st.z = nz * (ISLAND_RADIUS - 3);
+      const vn = st.vx * nx + st.vz * nz;
+      if (vn > 0) {
+        st.vx -= 1.3 * vn * nx;
+        st.vz -= 1.3 * vn * nz;
+        impact = Math.max(impact, vn);
       }
     }
-    for (let i = 0; i < props.length; i++)
-      for (let j = i + 1; j < props.length; j++) {
-        const a = props[i];
-        const b = props[j];
-        const dx = b.x - a.x;
-        const dz = b.z - a.z;
-        const d = Math.hypot(dx, dz);
-        const min = a.r + b.r;
-        if (d < min && d > 0.0001) {
-          const nx = dx / d;
-          const nz = dz / d;
-          const push = (min - d) / 2;
-          a.x -= nx * push;
-          a.z -= nz * push;
-          b.x += nx * push;
-          b.z += nz * push;
-          const rel = (a.vx - b.vx) * nx + (a.vz - b.vz) * nz;
-          if (rel > 0) {
-            a.vx -= rel * nx * 0.9;
-            a.vz -= rel * nz * 0.9;
-            b.vx += rel * nx * 0.9;
-            b.vz += rel * nz * 0.9;
-          }
-        }
-      }
-    let down = 0;
-    for (const p of props) {
-      const sp = Math.hypot(p.vx, p.vz);
-      if (sp > 2.2 && p.down === 0) {
-        p.down = 0.001;
-        p.dirX = p.vx / sp;
-        p.dirZ = p.vz / sp;
-      }
-      p.x += p.vx * dt;
-      p.z += p.vz * dt;
-      p.vx *= 1 - 2.4 * dt;
-      p.vz *= 1 - 2.4 * dt;
-      for (const s of statics) {
-        const dx = p.x - s.x;
-        const dz = p.z - s.z;
-        const d = Math.hypot(dx, dz);
-        if (d < s.r + p.r && d > 0.0001) {
-          p.x = s.x + (dx / d) * (s.r + p.r);
-          p.z = s.z + (dz / d) * (s.r + p.r);
-          p.vx *= -0.4;
-          p.vz *= -0.4;
-        }
-      }
-      if (p.down > 0) p.down = Math.min(1, p.down + dt * 3.5);
-      p.mesh.position.set(p.x, p.down * 0.3, p.z);
-      // Topple over in the direction it was hit.
-      p.mesh.rotation.set(p.dirZ * p.down * (Math.PI / 2), 0, -p.dirX * p.down * (Math.PI / 2));
-      if (p.kind === "pin" && p.down > 0.5) down++;
-    }
-    if (down !== pinsDown) {
-      pinsDown = down;
-      cb.onPins(down, pinTotal);
+    if (impact > 2) {
+      st.yawRate += (Math.random() - 0.5) * impact * 0.05;
+      bump(impact);
     }
 
-    // Packets
+    // Vertical: follow the ground, or fly off a crest and land with a bounce
+    const g = groundAt(st.x, st.z);
+    if (st.air) {
+      st.y += st.vy * dt;
+      st.airTime += dt;
+      if (st.y <= g) {
+        const hit = -st.vy;
+        st.y = g;
+        st.vy = 0;
+        st.air = false;
+        st.suspV -= Math.min(8, hit * 0.35);
+        if (hit > 5) bump(hit * 0.6);
+        if (st.airTime > 0.45) cb.onAir(st.airTime);
+        for (let i = 0; i < 4; i++) puff(st.x, st.y, st.z, "#e9d3ad", 1.2);
+      }
+    } else {
+      const climb = (g - st.y) / dt;
+      if (st.vy > 2.6 && climb < st.vy - GRAVITY * dt * 2 - 1) {
+        st.air = true;
+        st.airTime = 0;
+        st.y += st.vy * dt;
+      } else {
+        st.vy = climb;
+        st.y = g;
+      }
+    }
+
+    const pitchTarget = st.air ? clamp(Math.atan2(st.vy, Math.max(4, Math.abs(vF))) * 0.6, -0.5, 0.5) : Math.atan2(hF - hB, WHEELBASE);
+    const rollTarget = st.air ? 0 : Math.atan2(hR - hL, 2.2);
+    st.pitch += (pitchTarget - st.pitch) * Math.min(1, dt * (st.air ? 3 : 14));
+    st.roll += (rollTarget - st.roll) * Math.min(1, dt * (st.air ? 3 : 14));
+
+    // Suspension spring, squat under acceleration, lean in the turns
+    st.suspV += (-st.susp * 170 - st.suspV * 12) * dt;
+    st.susp = clamp(st.susp + st.suspV * dt, -0.35, 0.3);
+    st.squat += (clamp(-st.accel * 0.005, -0.08, 0.08) - st.squat) * Math.min(1, dt * 8);
+    st.lean += (clamp(-st.lateral * 0.004, -0.1, 0.1) - st.lean) * Math.min(1, dt * 8);
+  };
+
+  const bump = (strength: number) => {
+    if (!opts.reducedMotion) st.shake = Math.min(1, Math.max(st.shake, strength / 18));
+    audio?.impact(strength);
+    if (opts.touch) navigator.vibrate?.(Math.min(40, Math.round(strength * 3)));
+  };
+
+  /* ───────── per-frame world update ───────── */
+  const camPos = new Vector3(60, 60, 80);
+  const camTarget = new Vector3();
+  const seat = new Vector3();
+  const qBody = new Quaternion();
+  const qLook = new Quaternion();
+  const eLook = new Euler(0, 0, 0, "YXZ");
+  const want = new Vector3();
+  let camYaw = 0;
+  let fov = 60;
+
+  const frameUpdate = (dt: number, t: number, alpha: number) => {
+    // Interpolated jeepney pose
+    const x = prev.x + (st.x - prev.x) * alpha;
+    const y = prev.y + (st.y - prev.y) * alpha;
+    const z = prev.z + (st.z - prev.z) * alpha;
+    const heading = angleLerp(prev.heading, st.heading, alpha);
+    const fx = -Math.sin(heading);
+    const fz = -Math.cos(heading);
+    carMesh.position.set(x, y, z);
+    carMesh.rotation.set(st.pitch, heading, st.roll, "YXZ");
+    body.rotation.set(st.squat, 0, st.lean);
+    body.position.y = st.susp + Math.sin(t * 18) * 0.012 * Math.min(1, Math.abs(st.vF) / 4);
+    wheels.forEach((w) => (w.rotation.x -= (st.vF * dt) / 0.52));
+    steerers.forEach((s) => (s.rotation.y = -st.steer * 0.5));
+    jeep.animate(t, dt, { speed: st.vF, steer: st.steer, lateral: st.lateral, accel: st.accel, braking: input.brake || (input.throttle < 0 && st.vF > 1), night: cur.night });
+
+    // Dust when drifting, smoke when flooring it, skid marks on hard slides
+    const rx = Math.cos(heading);
+    const rz = -Math.sin(heading);
+    if (mode === "drive" && !st.air && frame % 2 === 0) {
+      if (st.slip > 4 && Math.abs(st.vF) > 6) {
+        puff(x - fx * 2.2 + rx * 1.1, y, z - fz * 2.2 + rz * 1.1, "#e9d3ad");
+        puff(x - fx * 2.2 - rx * 1.1, y, z - fz * 2.2 - rz * 1.1, "#e9d3ad");
+      } else if (input.throttle > 0.5 && Math.abs(st.vF) < 10 && frame % 6 === 0) {
+        puff(x - fx * 2.7 + rx * 0.7, y + 0.3, z - fz * 2.7 + rz * 0.7, "#b8bcc2", 1.4);
+      }
+    }
+    if (st.slip > 4.5 && !st.air) {
+      st.skidDist += Math.hypot(st.vx, st.vz) * dt;
+      if (st.skidDist > 0.7) {
+        st.skidDist = 0;
+        skidAt(x - fx * 1.7 + rx * 1.18, z - fz * 1.7 + rz * 1.18, heading);
+        skidAt(x - fx * 1.7 - rx * 1.18, z - fz * 1.7 - rz * 1.18, heading);
+      }
+    }
+    for (const p of puffs) {
+      if (p.life <= 0) continue;
+      p.life -= dt * 1.5;
+      p.m.scale.setScalar(0.5 + (1 - p.life) * 1.3);
+      p.m.position.y += dt * p.rise;
+      (p.m.material as MeshStandardMaterial).opacity = Math.max(0, p.life) * 0.35;
+    }
+
+    // Packets spin; driving (or flying) through one collects it
     packetMeshes.forEach((m, i) => {
       if (taken.has(i)) return;
       m.rotation.y = t * 1.6 + i;
-      m.position.y = 1.6 + Math.sin(t * 2 + i) * 0.35;
-      if (mode === "drive" && Math.hypot(packets[i][0] - st.x, packets[i][1] - st.z) < 2.8) {
+      m.position.y = packetPos[i].y + Math.sin(t * 2 + i) * 0.3;
+      if (mode !== "drive") return;
+      const p = packetPos[i];
+      if (Math.hypot(p.x - x, p.z - z) < 2.8 && Math.abs(p.y - (y + 1.2)) < 2.6) {
         taken.add(i);
         m.visible = false;
+        audio?.chime(taken.size === packets.length);
         cb.onPackets(taken.size, packets.length);
         if (challenge?.running && taken.size === packets.length) {
           challenge.running = false;
-          cb.onChallenge({ running: false, ms: performance.now() - challenge.start, finished: performance.now() - challenge.start });
+          const ms = performance.now() - challenge.start;
+          cb.onChallenge({ running: false, ms, finished: ms });
         }
       }
     });
 
-    // Zones
+    // Landmark zones
     let near: Landmark | null = null;
-    if (mode === "drive") {
-      for (const l of landmarks) if (Math.hypot(l.x - st.x, l.z - st.z) < l.zone) near = l;
-    }
+    if (mode === "drive") for (const l of landmarks) if (Math.hypot(l.x - x, l.z - z) < l.zone) near = l;
     if ((near?.id ?? null) !== zoneId) {
       zoneId = near?.id ?? null;
       cb.onZone(near);
     }
 
-    // Body motion: lean into turns, squat under acceleration, wheels spin and steer.
-    const a = (st.speed - prevSpeed) / Math.max(dt, 0.001);
-    st.pitch += (Math.max(-0.08, Math.min(0.08, -a * 0.006)) - st.pitch) * Math.min(1, dt * 8);
-    st.roll += (st.steer * grip * Math.min(1, Math.abs(st.speed) / 15) * 0.09 - st.roll) * Math.min(1, dt * 8);
-    car.position.set(st.x, 0, st.z);
-    car.rotation.y = st.heading;
-    body.rotation.set(st.pitch, 0, st.roll);
-    body.position.y = Math.sin(t * 18) * 0.015 * Math.min(1, Math.abs(st.speed) / 4);
-    wheels.forEach((w) => (w.rotation.x -= (st.speed * dt) / 0.52));
-    steerers.forEach((s) => (s.rotation.y = -st.steer * 0.5));
-
-    // Dust when accelerating hard or drifting
-    if (mode === "drive" && Math.abs(st.speed) > 6 && (Math.abs(a) > 8 || (Math.abs(st.steer) > 0.6 && Math.abs(st.speed) > 12)) && frame % 2 === 0) {
-      puff(st.x - fx * 2.2 + fz * 1.1, st.z - fz * 2.2 - fx * 1.1);
-      puff(st.x - fx * 2.2 - fz * 1.1, st.z - fz * 2.2 + fx * 1.1);
-    }
-    for (const p of puffs) {
-      if (p.life <= 0) continue;
-      p.life -= dt * 1.6;
-      p.m.scale.setScalar(0.6 + (1 - p.life) * 1.6);
-      p.m.position.y += dt * 0.8;
-      (p.m.material as MeshStandardMaterial).opacity = Math.max(0, p.life) * 0.55;
-    }
-
-    for (const an of animated) an.update(t, dt);
+    for (const a of animated) a.update(t, dt);
+    wind.value = t;
+    sea.uniforms.uTime.value = t;
+    clouds.rotation.y = t * 0.004;
     if (challenge?.running && frame % 6 === 0) cb.onChallenge({ running: true, ms: performance.now() - challenge.start });
+    applyTime(dt);
 
-    // Camera
-    if (mode === "drive") {
-      camTarget.set(st.x + fx * st.speed * 0.25, 0.5, st.z + fz * st.speed * 0.25);
-      const want = camTarget.clone().add(OFFSET.clone().multiplyScalar(1 + Math.abs(st.speed) / 80));
-      camPos.lerp(want, Math.min(1, dt * 3.2));
-    } else {
-      const ang = t * 0.08;
-      camTarget.set(0, 0, 0);
-      camPos.lerp(new Vector3(Math.cos(ang) * 82, 62, Math.sin(ang) * 82), Math.min(1, dt * 1.5));
+    // Cameras
+    look.idle += dt;
+    if (look.idle > 1.2) {
+      look.yaw *= 1 - damp(3, dt);
+      look.pitch *= 1 - damp(3, dt);
     }
-    st.shake *= 1 - dt * 6;
-    camera.position.copy(camPos);
-    camera.position.x += (Math.random() - 0.5) * st.shake * 0.6;
-    camera.position.y += (Math.random() - 0.5) * st.shake * 0.6;
-    camera.lookAt(camTarget);
+    const speed = Math.abs(st.vF);
+    let fovTarget = 60;
+    if (mode !== "drive") {
+      const ang = t * 0.07;
+      camTarget.set(0, 0, 0);
+      camPos.lerp(want.set(Math.cos(ang) * 92, 58, Math.sin(ang) * 92), damp(1.5, dt));
+      camera.position.copy(camPos);
+      camera.lookAt(camTarget);
+      fovTarget = portrait ? 60 : 42;
+    } else if (camMode === "chase") {
+      camYaw = angleLerp(camYaw, heading + look.yaw, damp(st.air ? 2 : 4.5, dt));
+      const dist = 8.6 + speed * 0.07;
+      const height = 3.3 + speed * 0.035 + look.pitch * 4;
+      want.set(x + Math.sin(camYaw) * dist, y + height, z + Math.cos(camYaw) * dist);
+      want.y = Math.max(want.y, groundAt(want.x, want.z) + 1.2);
+      camPos.lerp(want, damp(st.air ? 4 : 7, dt));
+      camera.position.copy(camPos);
+      camTarget.set(x + fx * 3, y + 1.5, z + fz * 3);
+      camera.lookAt(camTarget);
+      fovTarget = 56 + Math.min(18, speed * 0.55) + (input.boost && speed > 10 ? 5 : 0) + (portrait ? 14 : 0);
+    } else if (camMode === "cockpit") {
+      carMesh.updateMatrixWorld(true);
+      body.localToWorld(seat.set(-0.5, 2.05, 0));
+      if (!opts.reducedMotion) seat.y += Math.sin(t * 11) * 0.012 * Math.min(1, speed / 6);
+      camera.position.copy(seat);
+      camPos.copy(seat);
+      body.getWorldQuaternion(qBody);
+      eLook.set(-0.05 + look.pitch, look.yaw + st.steer * 0.14, 0, "YXZ");
+      camera.quaternion.copy(qBody).multiply(qLook.setFromEuler(eLook));
+      fovTarget = 72 + Math.min(8, speed * 0.25) + (portrait ? 16 : 0);
+    } else {
+      const s = 1 + speed / 90;
+      want.set(15.5 * s, 27 * s, 20.5 * s).applyAxisAngle(camera.up, look.yaw);
+      want.add(camTarget.set(x + fx * st.vF * 0.25, y + 0.5, z + fz * st.vF * 0.25));
+      camPos.lerp(want, damp(3.2, dt));
+      camera.position.copy(camPos);
+      camera.lookAt(camTarget);
+      fovTarget = portrait ? 52 : 38;
+    }
+    st.shake *= 1 - damp(6, dt);
+    if (st.shake > 0.01) {
+      camera.position.x += (Math.random() - 0.5) * st.shake * 0.5;
+      camera.position.y += (Math.random() - 0.5) * st.shake * 0.5;
+    }
+    fov += (fovTarget - fov) * damp(4, dt);
+    if (Math.abs(camera.fov - fov) > 0.05) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
+    sky.mesh.position.copy(camera.position);
+    stars.position.copy(camera.position);
 
-    // Keep the sun's shadow box around the jeepney.
-    sun.position.set(st.x + 30, 50, st.z + 20);
-    sun.target.position.set(st.x, 0, st.z);
+    // Keep the sun's shadow box around the jeepney
+    sun.position.set(x + cur.sunDir.x * 80, y + cur.sunDir.y * 80, z + cur.sunDir.z * 80);
+    sun.target.position.set(x, y, z);
+
+    if (opts.speedo && frame % 4 === 0) opts.speedo.textContent = String(Math.round(speed * 3.6));
+    if (mode === "drive") audio?.update({ speed: st.vF, throttle: input.throttle, slip: st.slip, boost: input.boost });
+  };
+
+  /* Adaptive resolution: drop pixels before frames */
+  let frameTimes = 0;
+  let frameCount = 0;
+  const adapt = (dt: number) => {
+    frameTimes += dt;
+    frameCount++;
+    if (frameCount < 90) return;
+    const avg = frameTimes / frameCount;
+    frameTimes = 0;
+    frameCount = 0;
+    if (avg > 1 / 42 && pixelRatio > 0.7) pixelRatio = Math.max(0.7, pixelRatio - 0.15);
+    else if (avg < 1 / 57 && pixelRatio < maxPixelRatio) pixelRatio = Math.min(maxPixelRatio, pixelRatio + 0.1);
+    else return;
+    renderer.setPixelRatio(pixelRatio);
+    resize();
   };
 
   const loop = (now: number) => {
@@ -912,20 +851,64 @@ export function createDriveEngine(
       last = now;
       return;
     }
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
+    // rAF timestamps can predate the end of a long task (like building this world): never step backwards
+    const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
+    last = Math.max(last, now);
     frame++;
-    step(dt, now / 1000);
+    input = mode === "drive" ? readInput() : { throttle: 0, steer: 0, boost: false, brake: false };
+
+    acc += dt;
+    let steps = 0;
+    while (acc >= FIXED && steps < 5) {
+      Object.assign(prev, { x: st.x, y: st.y, z: st.z, heading: st.heading });
+      carStep(FIXED);
+      physics.setCar(st.x, st.y, st.z, st.heading, st.pitch, st.roll, st.vx, st.vy, st.vz);
+      physics.step();
+      for (const h of physics.hits) {
+        const k = 1 - Math.min(0.12, h.mass * 0.025);
+        st.vx *= k;
+        st.vz *= k;
+        audio?.impact(h.strength * 0.8);
+      }
+      physics.hits.length = 0;
+      acc -= FIXED;
+      steps++;
+    }
+    if (steps === 5) acc = 0;
+    const down = physics.sync(acc / FIXED);
+    if (down !== pinsDown) {
+      pinsDown = down;
+      cb.onPins(down, physics.pinTotal);
+    }
+    frameUpdate(dt, now / 1000, acc / FIXED);
     renderer.render(scene, camera);
     placeLabels();
-    if (frame % 2 === 0) drawMinimap();
+    if (frame % 3 === 0) drawMinimap();
     if (frame === 2) cb.onReady();
+    adapt(dt);
   };
   raf = requestAnimationFrame(loop);
+  // Lets local test scripts place the jeepney; compiled out of production builds.
+  if (process.env.NODE_ENV === "development") (window as unknown as { __islandDrive?: unknown }).__islandDrive = {
+      st,
+      prev,
+      get state() {
+        return { mode, frame, disposed, hidden: document.hidden, acc };
+      },
+    };
+
+  const onVisibility = () => (document.hidden ? audio?.suspend() : audio?.resume());
+  document.addEventListener("visibilitychange", onVisibility);
 
   return {
     drive: () => {
       mode = "drive";
+      if (!audio) {
+        audio = createAudio();
+        audio?.setMuted(muted);
+      }
+      audio?.resume();
+      camYaw = st.heading;
       reset();
     },
     setControls: (c) => Object.assign(controls, c),
@@ -938,6 +921,19 @@ export function createDriveEngine(
       cb.onChallenge({ running: true, ms: 0 });
     },
     reset,
+    cycleCamera,
+    cycleTime,
+    horn,
+    setMuted: (m) => {
+      muted = m;
+      audio?.setMuted(m);
+    },
+    look: (dx, dy) => {
+      look.idle = 0;
+      const max = camMode === "cockpit" ? 1.9 : Math.PI;
+      look.yaw = clamp(look.yaw - dx * 0.006, -max, max);
+      look.pitch = clamp(look.pitch - dy * 0.004, -0.5, 0.45);
+    },
     dispose: () => {
       disposed = true;
       cancelAnimationFrame(raf);
@@ -945,6 +941,9 @@ export function createDriveEngine(
       removeEventListener("keydown", onKeyDown);
       removeEventListener("keyup", onKeyUp);
       removeEventListener("blur", onBlur);
+      document.removeEventListener("visibilitychange", onVisibility);
+      audio?.dispose();
+      physics.dispose();
       scene.traverse((o) => {
         const m = o as Mesh;
         m.geometry?.dispose?.();

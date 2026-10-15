@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import type { ShootExtras } from "@/lib/tools/quote";
 
 // Booking links in Neil's email ("Confirm", "Suggest another date", "Decline")
 // carry the booking itself, signed with HMAC-SHA256. No database needed, and
@@ -15,6 +16,8 @@ export interface BookingClaim {
   date: string; // YYYY-MM-DD
   phone: string;
   message: string;
+  /** Custom private shoots: time, place, people, add-ons and photo use. */
+  extras?: ShootExtras;
   /** Issued at (ms since epoch) */
   iat: number;
 }
