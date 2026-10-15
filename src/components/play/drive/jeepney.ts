@@ -15,7 +15,6 @@ import {
   type BufferGeometry,
   type Material,
 } from "three";
-import { glowTexture } from "./nature";
 
 // The jeepney: chrome, a hood horse, a route signboard, banderitas on the
 // roof, and a cockpit for the first-person view (wheel, dashboard plaque and
@@ -58,6 +57,28 @@ export function signTexture(text: string, bg: string, fg: string, w: number, h: 
   t.colorSpace = SRGBColorSpace;
   t.anisotropy = 4;
   return t;
+}
+
+/** Headlight spill on the road: brightest at the bumper, fanning out and fading ahead. */
+function beamTexture() {
+  const c = document.createElement("canvas");
+  c.width = 128;
+  c.height = 256;
+  const g = c.getContext("2d")!;
+  // Canvas bottom = the end nearest the jeepney
+  const grad = g.createRadialGradient(64, 262, 4, 64, 262, 250);
+  grad.addColorStop(0, "rgba(255,236,190,0.95)");
+  grad.addColorStop(0.45, "rgba(255,230,180,0.45)");
+  grad.addColorStop(1, "rgba(255,230,180,0)");
+  g.fillStyle = grad;
+  g.beginPath();
+  g.moveTo(44, 256);
+  g.lineTo(84, 256);
+  g.lineTo(128, 0);
+  g.lineTo(0, 0);
+  g.closePath();
+  g.fill();
+  return new CanvasTexture(c);
 }
 
 export function buildJeepney() {
@@ -178,10 +199,10 @@ export function buildJeepney() {
   const cabinMats = [dashMat, trimMat, rimMat];
 
   // Headlight beams on the ground, for night driving
-  const beamMat = new MeshBasicMaterial({ map: glowTexture("rgba(255,236,190,0.95)"), transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false });
-  const beam = new Mesh(new PlaneGeometry(7, 14), beamMat);
+  const beamMat = new MeshBasicMaterial({ map: beamTexture(), transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false });
+  const beam = new Mesh(new PlaneGeometry(9, 16), beamMat);
   beam.rotation.x = -Math.PI / 2;
-  beam.position.set(0, 0.08, -9);
+  beam.position.set(0, 0.08, -10.2);
   beam.renderOrder = 2;
   car.add(beam);
 
@@ -232,7 +253,7 @@ export function buildJeepney() {
       // A little cab light at night, so the dashboard doesn't vanish
       gaugeMat.emissiveIntensity = 0.15 + s.night * 1.6;
       if (cockpit.visible) {
-        for (const m of cabinMats) m.emissive.copy(m.color).multiplyScalar(s.night * 0.35);
+        for (const m of cabinMats) m.emissive.copy(m.color).multiplyScalar(0.35 + s.night * 0.3);
         plaqueMat.emissiveIntensity = s.night * 0.45;
       }
       headMat.emissiveIntensity = 1.2 + s.night * 2.5;

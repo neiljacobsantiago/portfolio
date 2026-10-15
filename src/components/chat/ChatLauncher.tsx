@@ -91,7 +91,7 @@ export default function ChatLauncher() {
   };
 
   return (
-    <div ref={rootRef} className="fixed right-4 z-40 flex flex-col items-end sm:right-6" style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+    <div ref={rootRef} className="fixed right-4 z-40 flex flex-col items-end sm:right-6 [html[data-immersive]_&]:hidden" style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}>
       {loaded && <NeilAI open={open} onClose={() => setOpen(false)} />}
 
       {teaser && !open && (

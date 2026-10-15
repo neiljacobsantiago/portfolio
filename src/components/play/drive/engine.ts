@@ -778,15 +778,17 @@ export function createDriveEngine(
       fovTarget = portrait ? 60 : 42;
     } else if (camMode === "chase") {
       camYaw = angleLerp(camYaw, heading + look.yaw, damp(st.air ? 2 : 4.5, dt));
-      const dist = 8.6 + speed * 0.07;
-      const height = 3.3 + speed * 0.035 + look.pitch * 4;
+      // Portrait phones: pull back and up so the jeepney doesn't fill the screen
+      const far = portrait ? 1.45 : 1;
+      const dist = (8.6 + speed * 0.07) * far;
+      const height = (3.3 + speed * 0.035) * far + look.pitch * 4;
       want.set(x + Math.sin(camYaw) * dist, y + height, z + Math.cos(camYaw) * dist);
       want.y = Math.max(want.y, groundAt(want.x, want.z) + 1.2);
       camPos.lerp(want, damp(st.air ? 4 : 7, dt));
       camera.position.copy(camPos);
       camTarget.set(x + fx * 3, y + 1.5, z + fz * 3);
       camera.lookAt(camTarget);
-      fovTarget = 56 + Math.min(18, speed * 0.55) + (input.boost && speed > 10 ? 5 : 0) + (portrait ? 14 : 0);
+      fovTarget = 56 + Math.min(18, speed * 0.55) + (input.boost && speed > 10 ? 5 : 0) + (portrait ? 10 : 0);
     } else if (camMode === "cockpit") {
       carMesh.updateMatrixWorld(true);
       body.localToWorld(seat.set(-0.5, 2.05, 0));
@@ -794,9 +796,10 @@ export function createDriveEngine(
       camera.position.copy(seat);
       camPos.copy(seat);
       body.getWorldQuaternion(qBody);
-      eLook.set(-0.05 + look.pitch, look.yaw + st.steer * 0.14, 0, "YXZ");
+      // Portrait screens are tall: look almost level, with a narrower view, so the road fills them
+      eLook.set((portrait ? -0.02 : -0.05) + look.pitch, look.yaw + st.steer * 0.14, 0, "YXZ");
       camera.quaternion.copy(qBody).multiply(qLook.setFromEuler(eLook));
-      fovTarget = 72 + Math.min(8, speed * 0.25) + (portrait ? 16 : 0);
+      fovTarget = (portrait ? 66 : 72) + Math.min(8, speed * 0.25);
     } else {
       const s = 1 + speed / 90;
       want.set(15.5 * s, 27 * s, 20.5 * s).applyAxisAngle(camera.up, look.yaw);

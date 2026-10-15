@@ -141,6 +141,15 @@ export default function DriveGame() {
     canvasRef.current?.focus({ preventScroll: true });
   };
 
+  // While driving, the game owns the screen: tuck away floating site widgets (the chat launcher).
+  useEffect(() => {
+    if (phase !== "driving") return;
+    document.documentElement.dataset.immersive = "";
+    return () => {
+      delete document.documentElement.dataset.immersive;
+    };
+  }, [phase]);
+
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
