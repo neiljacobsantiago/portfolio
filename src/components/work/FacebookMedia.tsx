@@ -34,7 +34,6 @@ export default function FacebookMedia({ items }: { items: Item[] }) {
             ) : (
               <button
                 type="button"
-                data-cursor="Play"
                 onClick={() => {
                   haptic();
                   setPlaying(0);

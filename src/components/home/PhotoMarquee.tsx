@@ -127,7 +127,6 @@ function PhotoRow({ photos, trackRef }: { photos: Photo[]; trackRef: (el: HTMLDi
               href={`/photography#${p.series}`}
               tabIndex={copy ? -1 : undefined}
               aria-hidden={copy ? true : undefined}
-              data-cursor="View"
               className="group/photo relative block h-44 shrink-0 overflow-hidden rounded-[2px] md:h-64"
               style={{ aspectRatio: `${p.width} / ${p.height}` }}
             >

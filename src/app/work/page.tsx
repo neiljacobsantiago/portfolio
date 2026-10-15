@@ -49,7 +49,7 @@ export default function WorkPage() {
               {projects.map((p, i) => (
                 <li key={p.slug} data-category={p.category} style={{ viewTransitionName: `work-${p.slug}` }} className={i === 0 ? "sm:col-span-2" : undefined}>
                   <Tilt max={4} className="rounded-[2px]">
-                    <Link href={`/work/${p.slug}`} data-cursor="Open" className="group block">
+                    <Link href={`/work/${p.slug}`} className="group block">
                       <ProjectCover
                         project={p}
                         priority={i === 0}

@@ -28,7 +28,6 @@ export default function SelectedWork() {
             <Tilt max={3} className="rounded-[2px]">
               <Link
                 href={`/work/${p.slug}`}
-                data-cursor="Open"
                 className={`group grid overflow-hidden rounded-[2px] border border-ink/10 shadow-[0_-20px_60px_-30px_rgb(0_48_73/0.35)] md:grid-cols-12 ${tones[i % tones.length]}`}
               >
                 <div className="flex flex-col justify-between gap-8 p-7 md:col-span-7 md:p-12">

@@ -128,7 +128,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         aria-modal="true"
         aria-label="Search the site"
         onClick={(e) => e.stopPropagation()}
-        className="animate-pop-in flex max-h-[70vh] w-full max-w-xl origin-top flex-col overflow-hidden rounded-[20px] bg-paper shadow-[0_40px_100px_-30px_rgb(0_48_73/0.7)] ring-1 ring-ink/15"
+        className="animate-blob-in flex max-h-[70vh] w-full max-w-xl origin-top flex-col overflow-hidden rounded-[20px] bg-paper shadow-[0_40px_100px_-30px_rgb(0_48_73/0.7)] ring-1 ring-ink/15"
       >
         <div className="flex items-center gap-3 border-b border-ink/10 px-5">
           <span aria-hidden className="font-display text-xl text-ember">⌕</span>

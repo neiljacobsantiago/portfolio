@@ -5,7 +5,8 @@ import { useEffect } from "react";
 /**
  * One IntersectionObserver for the whole app. Any element with `data-reveal`
  * (see `reveal()` in lib/reveal.ts) fades in once it scrolls into view.
- * A MutationObserver picks up elements added by client navigations.
+ * It also blooms `.logo-bloom` logos on touch screens. A MutationObserver
+ * picks up elements added by client navigations.
  */
 export default function RevealObserver() {
   useEffect(() => {
@@ -28,8 +29,32 @@ export default function RevealObserver() {
       { rootMargin: "0px 0px -8% 0px", threshold: 0.05 },
     );
 
-    const scan = (root: ParentNode) =>
+    // Phones have no hover, so logos bloom into colour while they pass through
+    // the middle band of the screen instead (a little staggered, row by row).
+    const touch = matchMedia("(hover: none)").matches;
+    const bloom = touch
+      ? new IntersectionObserver(
+          (entries) => {
+            let n = 0;
+            for (const entry of entries) {
+              const el = entry.target as HTMLElement;
+              if (entry.isIntersecting) {
+                el.style.transitionDelay = `${(n++ % 6) * 60}ms`;
+                el.setAttribute("data-inview", "");
+              } else {
+                el.style.transitionDelay = "";
+                el.removeAttribute("data-inview");
+              }
+            }
+          },
+          { rootMargin: "-22% 0px -22% 0px" },
+        )
+      : null;
+
+    const scan = (root: ParentNode) => {
       root.querySelectorAll("[data-reveal]:not([data-revealed])").forEach((el) => io.observe(el));
+      if (bloom) root.querySelectorAll(".logo-bloom").forEach((el) => bloom.observe(el));
+    };
 
     scan(document);
 
@@ -38,6 +63,7 @@ export default function RevealObserver() {
         m.addedNodes.forEach((node) => {
           if (!(node instanceof Element)) return;
           if (node.matches("[data-reveal]:not([data-revealed])")) io.observe(node);
+          if (bloom && node.matches(".logo-bloom")) bloom.observe(node);
           scan(node);
         });
       }
@@ -46,6 +72,7 @@ export default function RevealObserver() {
 
     return () => {
       io.disconnect();
+      bloom?.disconnect();
       mo.disconnect();
     };
   }, []);

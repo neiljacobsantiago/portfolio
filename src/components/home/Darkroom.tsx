@@ -65,7 +65,6 @@ export default function Darkroom() {
           haptic(12);
           setDeveloped((v) => !v);
         }}
-        data-cursor={developed ? "Reset" : "Develop"}
         role="button"
         tabIndex={0}
         aria-pressed={developed}

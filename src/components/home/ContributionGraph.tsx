@@ -132,7 +132,7 @@ export default function ContributionGraph({ weeks, byWeekday }: { weeks: (Day | 
       {tip && (
         <div
           role="status"
-          className="animate-pop-in pointer-events-none absolute z-10 origin-bottom -translate-x-1/2 -translate-y-[calc(100%+10px)] rounded-full bg-paper px-4 py-2 text-center whitespace-nowrap text-ink shadow-[0_12px_30px_-10px_rgb(0_0_0/0.6)]"
+          className="animate-blob-in pointer-events-none absolute z-10 origin-bottom -translate-x-1/2 -translate-y-[calc(100%+10px)] rounded-full bg-paper px-4 py-2 text-center whitespace-nowrap text-ink shadow-[0_12px_30px_-10px_rgb(0_0_0/0.6)]"
           style={{ left: tip.x, top: tip.y }}
         >
           <span className="font-display text-lg leading-none">{tip.day.count === 0 ? "No" : tip.day.count}</span>

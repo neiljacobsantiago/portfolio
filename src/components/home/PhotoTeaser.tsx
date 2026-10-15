@@ -27,10 +27,10 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
           const cover = s.photos[0];
           return (
             <li key={s.slug} {...reveal("up", i * 90)} className="w-[78vw] max-w-sm shrink-0 snap-start md:w-[24rem]">
-              <Link href={`/photography#${s.slug}`} data-cursor="View" className="group press block">
+              <Link href={`/photography#${s.slug}`} className="group press block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[2px]">
                   {cover ? (
-                    <Image src={cover.src} alt={cover.alt} fill sizes="(min-width: 768px) 24rem, 78vw" className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
+                    <Image src={cover.src} alt={cover.alt} fill sizes="(min-width: 768px) 24rem, 78vw" style={{ objectPosition: cover.focus }} className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
                   ) : (
                     <Plate index={i} title={s.title} className="transition-transform duration-[1.2s] group-hover:scale-105" />
                   )}

@@ -10,10 +10,12 @@ export interface Photo {
   alt: string;
   /** Secondary caption, e.g. "Shot on Nikon D780". */
   note?: string;
+  /** Where to anchor the photo when a layout has to crop it (CSS object-position). */
+  focus: string;
   series: string;
 }
 
-type Caption = string | { title: string; note?: string };
+type Caption = string | { title: string; note?: string; focus?: string };
 
 export interface SeriesWithPhotos extends Series {
   photos: Photo[];
@@ -31,8 +33,9 @@ const altFromFile = (file: string) => {
 /**
  * Reads /public/photography/<series-slug>/ at build time. Drop photos into a
  * series folder and they appear in the gallery. Optional `captions.json`
- * ({ "file.jpg": "Caption" } or { "file.jpg": { "title": "…", "note": "Shot on …" } })
- * overrides the alt text derived from file names.
+ * ({ "file.jpg": "Caption" } or { "file.jpg": { "title": "…", "note": "Shot on …", "focus": "50% 0%" } })
+ * overrides the alt text derived from file names; `focus` keeps the subject in
+ * frame wherever a layout crops (portraits default to their upper third).
  */
 /** "IMG_3854.JPG" and "img_3854.jpg" are the same photo for caption purposes. */
 const key = (file: string) => file.replace(IMAGE, "").toLowerCase();
@@ -64,7 +67,8 @@ async function loadSeries(series: Series): Promise<Photo[]> {
         const caption = byKey.get(key(file))?.caption;
         const alt = typeof caption === "string" ? caption : (caption?.title ?? altFromFile(file));
         const note = typeof caption === "object" ? caption.note : undefined;
-        return { src: `/photography/${series.slug}/${file}`, width, height, alt, note, series: series.slug };
+        const focus = (typeof caption === "object" && caption.focus) || (height > width ? "50% 25%" : "50% 50%");
+        return { src: `/photography/${series.slug}/${file}`, width, height, alt, note, focus, series: series.slug };
       } catch {
         return null;
       }
