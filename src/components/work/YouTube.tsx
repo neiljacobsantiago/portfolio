@@ -19,7 +19,7 @@ export default function YouTube({ id, title }: { id: string; title: string }) {
           className="absolute inset-0 h-full w-full"
         />
       ) : (
-        <button type="button" onClick={() => setPlaying(true)} data-cursor="Play" className="group absolute inset-0" aria-label={`Play ${title}`}>
+        <button type="button" onClick={() => setPlaying(true)} className="group absolute inset-0" aria-label={`Play ${title}`}>
           {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube poster */}
           <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover opacity-80 transition-[opacity,transform] duration-700 group-hover:scale-[1.03] group-hover:opacity-95" />
           <span className="absolute inset-0 flex items-center justify-center">

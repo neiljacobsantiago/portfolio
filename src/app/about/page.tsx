@@ -202,7 +202,6 @@ export default function AboutPage() {
               <li key={it.title} {...reveal("up", i * 80)} className="[perspective:1000px]">
                 <div
                   tabIndex={0}
-                  data-cursor="Flip"
                   className="group relative aspect-[4/5] cursor-pointer outline-none [transform-style:preserve-3d] transition-transform duration-700 ease-[var(--ease-spring)] focus:[transform:rotateY(180deg)] pointer-fine:hover:[transform:rotateY(180deg)]"
                 >
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 rounded-[2px] bg-paper-deep p-6 [backface-visibility:hidden]">

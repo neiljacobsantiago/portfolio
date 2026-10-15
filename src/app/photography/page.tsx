@@ -89,7 +89,7 @@ export default async function PhotographyPage() {
                 <ul className="divide-y divide-ink/10 border-y border-ink/10">
                   {featured.packages.map((p, i) => (
                     <li key={p.id}>
-                      <Link href={`/contact?service=${featured.id}&package=${p.id}`} className="group press flex items-baseline justify-between gap-4 py-3.5" data-cursor="Book">
+                      <Link href={`/contact?service=${featured.id}&package=${p.id}`} className="group press flex items-baseline justify-between gap-4 py-3.5">
                         <span className="min-w-0">
                           <span className="block font-serif text-xl transition-colors group-hover:text-ember">
                             {p.name}
@@ -140,7 +140,7 @@ export default async function PhotographyPage() {
                 <ul className="mt-6 flex-1 divide-y divide-paper/10 border-y border-paper/10">
                   {s.packages.map((p) => (
                     <li key={p.id}>
-                      <Link href={`/contact?service=${s.id}&package=${p.id}`} className="group press flex items-baseline justify-between gap-4 py-3" data-cursor="Book">
+                      <Link href={`/contact?service=${s.id}&package=${p.id}`} className="group press flex items-baseline justify-between gap-4 py-3">
                         <span>
                           <span className="block font-serif text-lg transition-colors group-hover:text-sky">{p.name}</span>
                           <span className="label text-[0.58rem] text-paper/50">{p.detail}</span>

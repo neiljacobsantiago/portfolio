@@ -105,7 +105,7 @@ export default function Practices() {
             >
               <div className="flex items-start justify-between">
                 <span className="label opacity-70">{p.n} / 0{practices.length}</span>
-                <Link href={p.href} className="label press rounded-full border border-current px-4 py-2 opacity-80 hover:opacity-100" data-cursor="Open">
+                <Link href={p.href} className="label press rounded-full border border-current px-4 py-2 opacity-80 hover:opacity-100">
                   Explore
                 </Link>
               </div>

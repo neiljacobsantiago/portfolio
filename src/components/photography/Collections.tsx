@@ -92,7 +92,7 @@ export default function Collections({ series }: { series: SeriesWithPhotos[] }) 
                   </div>
                 ) : (
                   <>
-                    <PhotoButton photo={feature} index={featureIndex} onOpen={open} feature sizes="(min-width: 1440px) 1360px, 100vw" />
+                    <FeatureSpread photo={feature} index={featureIndex} onOpen={open} count={s.photos.length} flip={si % 2 === 1} dark={s.tone !== "paper"} />
                     {rest.length > 0 && (
                       <ul className="mt-3 columns-2 gap-3 sm:mt-4 sm:gap-4 lg:columns-3 [&>li]:mb-3 sm:[&>li]:mb-4">
                         {rest.map((photo, i) => (
@@ -115,24 +115,55 @@ export default function Collections({ series }: { series: SeriesWithPhotos[] }) 
   );
 }
 
-function PhotoButton({
-  photo,
-  index,
-  onOpen,
-  feature,
-  sizes,
-}: {
-  photo: SeriesWithPhotos["photos"][number];
-  index: number;
-  onOpen: (i: number) => void;
-  feature?: boolean;
-  sizes: string;
-}) {
+type SeriesPhoto = SeriesWithPhotos["photos"][number];
+
+/**
+ * A collection's cover frame, shown whole (never cropped): the photo at its own
+ * shape, sized to fit the screen, with its caption beside it on wider screens.
+ */
+function FeatureSpread({ photo, index, onOpen, count, flip, dark }: { photo: SeriesPhoto; index: number; onOpen: (i: number) => void; count: number; flip: boolean; dark: boolean }) {
+  // Wide enough to leave room for the caption, short enough to fit on screen.
+  const width = `min(100% - 20rem, 82svh * ${(photo.width / photo.height).toFixed(4)})`;
+  return (
+    <figure className={cn("flex flex-col gap-6 md:flex-row md:items-end md:justify-center md:gap-10 lg:gap-14", flip && "md:flex-row-reverse")}>
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        data-lightbox-index={index}
+        aria-label={`View ${photo.alt}`}
+        style={{ "--feature-w": width } as React.CSSProperties}
+        className="group relative block w-full shrink-0 overflow-hidden rounded-[2px] bg-ink/20 shadow-[0_40px_90px_-45px_rgb(0_0_0/0.6)] transition-transform duration-500 ease-[var(--ease-spring)] active:scale-[0.985] md:w-[var(--feature-w)]"
+      >
+        <Image
+          src={photo.src}
+          alt={photo.alt}
+          width={photo.width}
+          height={photo.height}
+          sizes="(min-width: 768px) 70vw, 100vw"
+          className="h-auto w-full transition-transform duration-[1.4s] ease-[var(--ease-apple)] group-hover:scale-[1.03]"
+        />
+      </button>
+      <figcaption className="min-w-0 flex-1 md:max-w-[26rem] md:pb-1" data-reveal="up">
+        <p className="label text-[0.6rem] opacity-55">Cover frame · 01 / {String(count).padStart(2, "0")}</p>
+        <p className="mt-3 font-display text-[clamp(2.25rem,4.2vw,4.25rem)] leading-[0.95] md:mt-5">{photo.alt}</p>
+        {photo.note && <p className={cn("label mt-4 text-[0.62rem]", dark ? "text-sky" : "text-ember")}>{photo.note}</p>}
+        <button
+          type="button"
+          onClick={() => onOpen(index)}
+          className="label press mt-6 inline-flex items-center gap-2 rounded-full border border-current/25 px-5 py-3 text-[0.6rem] hover:border-current md:mt-8"
+        >
+          View full frame <span aria-hidden>↗</span>
+        </button>
+      </figcaption>
+    </figure>
+  );
+}
+
+function PhotoButton({ photo, index, onOpen, sizes }: { photo: SeriesPhoto; index: number; onOpen: (i: number) => void; sizes: string }) {
   return (
     <button
       type="button"
       onClick={() => onOpen(index)}
-      data-cursor="View"
       data-lightbox-index={index}
       className="group relative block w-full overflow-hidden rounded-[2px] bg-ink/20 transition-transform duration-500 ease-[var(--ease-spring)] active:scale-[0.985]"
     >
@@ -142,14 +173,11 @@ function PhotoButton({
         width={photo.width}
         height={photo.height}
         sizes={sizes}
-        className={cn(
-          "w-full transition-transform duration-[1.4s] ease-[var(--ease-apple)] group-hover:scale-[1.04]",
-          feature ? "max-h-[78vh] object-cover" : "h-auto",
-        )}
+        className="h-auto w-full transition-transform duration-[1.4s] ease-[var(--ease-apple)] group-hover:scale-[1.04]"
       />
-      <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-ink/85 via-ink/20 to-transparent p-4 text-left text-paper opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 md:p-6">
+      <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-ink/85 via-ink/20 to-transparent p-4 text-left text-paper opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100">
         <span>
-          <span className={cn("block font-display leading-none", feature ? "text-3xl md:text-5xl" : "text-xl")}>{photo.alt}</span>
+          <span className="block font-display text-xl leading-none">{photo.alt}</span>
           {photo.note && <span className="label mt-2 block text-[0.6rem] text-[#ff6b6b]">{photo.note}</span>}
         </span>
       </span>

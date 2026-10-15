@@ -115,7 +115,7 @@ export default function ChatLauncher() {
       {loaded && <NeilAI open={open} onClose={() => setOpen(false)} />}
 
       {teaser && !open && (
-        <div className="animate-pop-in mb-3 hidden max-w-[16rem] origin-bottom-right md:flex items-start gap-2 rounded-2xl rounded-br-sm bg-paper px-4 py-3 shadow-[0_18px_40px_-14px_rgb(0_48_73/0.5)] ring-1 ring-ink/10">
+        <div className="animate-blob-in mb-3 hidden max-w-[16rem] origin-bottom-right md:flex items-start gap-2 rounded-2xl rounded-br-sm bg-paper px-4 py-3 shadow-[0_18px_40px_-14px_rgb(0_48_73/0.5)] ring-1 ring-ink/10">
           <button type="button" onClick={toggle} className="text-left font-serif text-base leading-snug text-ink">
             {teaser}
           </button>

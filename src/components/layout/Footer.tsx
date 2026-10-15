@@ -21,7 +21,7 @@ export default function Footer() {
     <footer className="relative overflow-hidden bg-ink px-5 pt-20 pb-[max(2rem,env(safe-area-inset-bottom))] text-paper md:px-10 md:pt-28">
       <div className="mx-auto max-w-[90rem]">
         <p className="label text-sky">Have something in mind?</p>
-        <Link href="/contact" className="group mt-4 inline-block" data-cursor="Write" aria-label="Let's talk — go to the contact page">
+        <Link href="/contact" className="group mt-4 inline-block" aria-label="Let's talk — go to the contact page">
           <span aria-hidden className="flex font-display text-[clamp(3.25rem,13vw,11rem)] leading-[0.9]">
             {"Let's".split("").map((ch, i) => (
               <span key={i} className="inline-block transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-translate-y-[0.08em]" style={{ transitionDelay: `${i * 30}ms` }}>

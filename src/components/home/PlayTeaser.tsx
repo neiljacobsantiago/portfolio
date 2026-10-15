@@ -46,7 +46,7 @@ export default function PlayTeaser() {
 
         <div {...reveal("scale")} className="lg:col-span-7">
           <Tilt max={5} className="rounded-[18px]">
-            <Link href="/play" data-cursor="Play" className="group relative block overflow-hidden rounded-[18px] bg-sky shadow-[0_50px_100px_-40px_rgb(0_48_73/0.6)] ring-1 ring-ink/10">
+            <Link href="/play" className="group relative block overflow-hidden rounded-[18px] bg-sky shadow-[0_50px_100px_-40px_rgb(0_48_73/0.6)] ring-1 ring-ink/10">
               <Image
                 src="/play/island-preview.jpg"
                 alt="Island Drive at golden hour: the jeepney on the ring road, heading for a jump ramp between palms and flame trees"

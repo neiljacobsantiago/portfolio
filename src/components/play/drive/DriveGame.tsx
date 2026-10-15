@@ -388,7 +388,7 @@ export default function DriveGame() {
               key={arrival.id}
               ref={zoneLink}
               href={arrival.href}
-              className="animate-pop-in pointer-events-auto flex max-w-full items-center gap-2 rounded-full bg-ink/90 py-1.5 pr-1.5 pl-4 text-paper shadow-xl ring-1 ring-paper/15 backdrop-blur"
+              className="animate-blob-in pointer-events-auto origin-top flex max-w-full items-center gap-2 rounded-full bg-ink/90 py-1.5 pr-1.5 pl-4 text-paper shadow-xl ring-1 ring-paper/15 backdrop-blur"
             >
               <span className="truncate font-display text-base leading-none">{arrival.title}</span>
               <span className="label shrink-0 rounded-full bg-ember px-3 py-1.5 text-[0.5rem]">
@@ -400,7 +400,7 @@ export default function DriveGame() {
       )}
 
       {toast && showHud && (
-        <p key={toast} className="animate-pop-in label pointer-events-none absolute top-[34%] left-1/2 -translate-x-1/2 rounded-full bg-ink/90 px-5 py-3 text-[0.62rem] whitespace-nowrap text-paper shadow-xl">
+        <p key={toast} className="animate-blob-in label pointer-events-none absolute top-[34%] left-1/2 -translate-x-1/2 rounded-full bg-ink/90 px-5 py-3 text-[0.62rem] whitespace-nowrap text-paper shadow-xl">
           {toast}
         </p>
       )}
@@ -719,7 +719,7 @@ function PhotoMode({ engine, onClose }: { engine: React.RefObject<DriveEngine | 
       </div>
       {shot && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-ink/70 p-6 backdrop-blur-sm" onClick={() => setShot(null)}>
-          <div className="animate-pop-in w-full max-w-lg rounded-2xl bg-paper p-3 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="animate-blob-in w-full max-w-lg rounded-2xl bg-paper p-3 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element -- generated in the browser */}
             <img src={shot} alt="Your Island Drive photo" className="w-full rounded-xl" />
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">

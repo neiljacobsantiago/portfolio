@@ -187,7 +187,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       aria-hidden={!open}
       data-open={open}
       data-lenis-prevent
-      className="mb-3 flex h-[min(640px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[22px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,transform,visibility] duration-500 ease-[var(--ease-spring)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-90 data-[open=false]:opacity-0 data-[open=false]:duration-300 data-[open=false]:ease-[var(--ease-apple)] sm:max-w-md"
+      className="mb-3 flex h-[min(640px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[22px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,translate,scale,filter,visibility] duration-300 ease-[var(--ease-apple)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-x-[0.7] data-[open=false]:scale-y-[0.35] data-[open=false]:opacity-0 data-[open=false]:blur-sm data-[open=true]:animate-blob-in sm:max-w-md"
     >
       <div className="flex shrink-0 items-center justify-between gap-3 bg-ink px-4 py-3 text-paper">
         <div className="flex min-w-0 items-center gap-3">
