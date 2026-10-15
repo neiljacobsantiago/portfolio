@@ -1,0 +1,88 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { bookingTerms, services } from "@/content/sessions";
+import { haptic } from "@/lib/haptics";
+import { findService, peso, quote } from "@/lib/tools/quote";
+import { cn } from "@/lib/utils";
+import { Note } from "./ui";
+
+/** Price, downpayment and a pre-filled booking link for any photoshoot package. */
+export default function QuoteTool({ service: s0 = "graduation", package: p0, people: n0 = 1, compact }: { service?: string; package?: string; people?: number; compact?: boolean }) {
+  const start = findService(s0) ?? services[0];
+  const [serviceId, setServiceId] = useState(start.id);
+  const [packageId, setPackageId] = useState(() => (quote(start.id, p0) as Exclude<ReturnType<typeof quote>, { error: string }>).pkg.id);
+  const [people, setPeople] = useState(Math.max(3, n0));
+  const base = quote(serviceId, packageId);
+  if ("error" in base) return null;
+  // Group packages are priced per head (3 or more people).
+  const perHead = base.pkg.price.includes("/ head");
+  const q = perHead ? (quote(serviceId, packageId, people) as typeof base) : base;
+
+  return (
+    <div className="space-y-4">
+      <div className="no-scrollbar flex gap-1 overflow-x-auto">
+        {services.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            aria-pressed={serviceId === s.id}
+            onClick={() => {
+              haptic();
+              setServiceId(s.id);
+              setPackageId(s.packages[0].id);
+            }}
+            className="label press shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-[0.55rem] whitespace-nowrap aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
+          >
+            {s.name.replace(" Photoshoot", "").replace("In-House ", "")}
+          </button>
+        ))}
+      </div>
+
+      <ul className={cn("grid gap-2", !compact && "sm:grid-cols-2")}>
+        {q.service.packages.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              aria-pressed={q.pkg.id === p.id}
+              onClick={() => setPackageId(p.id)}
+              className="press flex w-full items-start justify-between gap-3 rounded-[2px] border border-ink/15 bg-paper/70 p-3 text-left aria-pressed:border-ember aria-pressed:ring-1 aria-pressed:ring-ember"
+            >
+              <span>
+                <span className="block font-serif text-base leading-snug">{p.name}</span>
+                <span className="label text-[0.52rem] text-ink/55">{p.detail}</span>
+              </span>
+              <span className="shrink-0 font-display text-base">{p.price}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {perHead && (
+        <div className="flex items-center gap-3">
+          <span className="label text-[0.55rem] text-ink/55">People</span>
+          <button type="button" onClick={() => setPeople(Math.max(3, people - 1))} aria-label="Fewer people" className="press h-8 w-8 rounded-full border border-ink/20">
+            −
+          </button>
+          <span className="w-8 text-center font-display text-xl tabular-nums">{people}</span>
+          <button type="button" onClick={() => setPeople(Math.min(50, people + 1))} aria-label="More people" className="press h-8 w-8 rounded-full border border-ink/20">
+            +
+          </button>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-end justify-between gap-4 rounded-[2px] bg-ink p-4 text-paper">
+        <div>
+          <p className="label text-[0.55rem] text-sky">{q.total === null ? "Price" : "Total"}</p>
+          <p className="font-display text-4xl leading-none">{q.total === null ? "By quote" : peso(q.total)}</p>
+          {q.downpayment !== null && <p className="mt-2 font-serif text-sm text-paper/70 italic">{peso(q.downpayment)} downpayment secures the date</p>}
+        </div>
+        <Link href={q.bookHref} className="btn bg-paper py-3 text-ink hover:bg-sky">
+          Book this <span className="arrow">→</span>
+        </Link>
+      </div>
+      {!compact && <Note>{bookingTerms.join(" ")}</Note>}
+    </div>
+  );
+}

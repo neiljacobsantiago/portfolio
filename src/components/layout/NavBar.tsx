@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isActivePath, mainNav, site, socials } from "@/lib/site";
 import { haptic } from "@/lib/haptics";
+import { openPalette } from "@/components/search/PaletteHost";
 import { cn } from "@/lib/utils";
 
 export default function NavBar() {
@@ -51,7 +52,7 @@ export default function NavBar() {
           <span className="font-serif text-lg italic opacity-60 transition-opacity group-hover:opacity-100">Santiago</span>
         </Link>
 
-        <ul className="hidden items-center gap-9 md:flex">
+        <ul className="hidden items-center gap-6 md:flex lg:gap-9">
           {mainNav.map((item) => {
             const active = isActivePath(pathname, item.href);
             return (
@@ -71,6 +72,21 @@ export default function NavBar() {
               </li>
             );
           })}
+          <li>
+            <button
+              type="button"
+              onClick={() => {
+                haptic();
+                openPalette();
+              }}
+              aria-label="Search the site (Ctrl or Command + K)"
+              title="Search · Ctrl/⌘ K"
+              className="label press flex items-center gap-2 rounded-full bg-ink/[0.06] px-3 py-2 text-ink/60 hover:bg-ink hover:text-paper"
+            >
+              <span aria-hidden className="text-sm leading-none">⌕</span>
+              <kbd className="hidden font-mono text-[0.6rem] lg:inline">⌘K</kbd>
+            </button>
+          </li>
         </ul>
 
         <button
@@ -110,6 +126,17 @@ export default function NavBar() {
             </li>
           ))}
         </ul>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            openPalette();
+          }}
+          className="animate-slide-in label mt-8 flex w-full items-center justify-between rounded-full bg-paper/10 px-5 py-4 text-paper"
+          style={{ animationDelay: "400ms" }}
+        >
+          Search projects, tools & photos <span aria-hidden>⌕</span>
+        </button>
         <div className="animate-slide-in mt-10 flex flex-wrap gap-x-6 gap-y-3" style={{ animationDelay: "420ms" }}>
           {socials.filter((s) => s.url).map((s) => (
             <a key={s.name} href={s.url!} target="_blank" rel="noopener noreferrer" className="label text-paper/70">

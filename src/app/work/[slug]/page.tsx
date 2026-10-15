@@ -8,9 +8,12 @@ import FacebookMedia from "@/components/work/FacebookMedia";
 import ProjectCover from "@/components/work/ProjectCover";
 import ProjectImages from "@/components/work/ProjectImages";
 import ScrollShot from "@/components/work/ScrollShot";
+import ToolView from "@/components/tools/ToolView";
+import AskNeilButton from "@/components/chat/AskNeilButton";
 import YouTube from "@/components/work/YouTube";
 import { categories, projectBySlug, projects } from "@/content/work";
 import { reveal } from "@/lib/reveal";
+import { toolById } from "@/lib/tools";
 
 export const dynamicParams = false;
 
@@ -80,7 +83,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       </Container>
 
       <Container className="grid gap-14 py-16 md:grid-cols-12 md:py-24">
-        <dl className="grid h-max grid-cols-2 gap-x-6 gap-y-8 md:sticky md:top-28 md:col-span-4 md:grid-cols-1">
+        <dl className="grid h-max min-w-0 grid-cols-2 gap-x-6 gap-y-8 md:sticky md:top-28 md:col-span-4 md:grid-cols-1">
           <Meta label="Role">{project.role}</Meta>
           <Meta label="Status">{project.status}</Meta>
           <div className="col-span-2 md:col-span-1">
@@ -115,7 +118,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           )}
         </dl>
 
-        <div className="md:col-span-8">
+        <div className="min-w-0 md:col-span-8">
           <div className="space-y-6 font-serif text-xl leading-relaxed text-ink/85 md:text-2xl">
             {project.body.map((para, i) => (
               <p key={i} {...reveal("up", i * 60)}>{para}</p>
@@ -145,6 +148,25 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 alt={project.scrollShot.alt}
                 host={project.links?.[0] ? new URL(project.links[0].href).host : project.title.toLowerCase()}
               />
+            </section>
+          )}
+
+          {project.tool && (
+            <section className="mt-14 rounded-[2px] bg-paper-deep/50 p-5 ring-1 ring-ink/10 md:p-8">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <h2 className="label text-ember">Try it yourself</h2>
+                  <p className="mt-2 font-display text-3xl leading-tight">{toolById(project.tool).title}</p>
+                  <p className="mt-2 max-w-xl font-serif text-lg text-ink/70">{toolById(project.tool).blurb}</p>
+                </div>
+                <Link href={`/lab#${project.tool}`} className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
+                  All Lab tools →
+                </Link>
+              </div>
+              <ToolView id={project.tool} />
+              <AskNeilButton className="mt-6" prompt={`Explain how ${project.title} works, in simple terms`}>
+                Ask NeilAI about {project.title}
+              </AskNeilButton>
             </section>
           )}
 

@@ -24,7 +24,7 @@ export default async function RightNow() {
         </span>
       </div>
 
-      <div className="grid gap-px overflow-hidden rounded-[2px] border border-ink/10 bg-ink/10 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[2px] border border-ink/10 bg-ink/10 md:grid-cols-3">
         <div {...reveal("up")} className="bg-paper p-7 md:col-span-2 md:p-10">
           <p className="label mb-6 text-ember">Local time · {site.location}</p>
           <LocalClock />
@@ -54,14 +54,14 @@ export default async function RightNow() {
           <p className="label mb-4 text-ink/70">Latest code pushed</p>
           {repo ? (
             <a href={repo.url} target="_blank" rel="noopener noreferrer" className="group block">
-              <span className="font-display text-3xl group-hover:text-ember">{repo.name} ↗</span>
+              <span className="font-display text-3xl break-words group-hover:text-ember">{repo.name} ↗</span>
               {repo.description && <span className="mt-2 block font-serif text-lg text-ink/75">{repo.description}</span>}
               <span className="label mt-3 block text-[0.65rem] text-ink/50">
                 {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeZone: site.timeZone }).format(new Date(repo.pushedAt))}
               </span>
             </a>
           ) : (
-            <a href={`https://github.com/${site.githubUser}`} target="_blank" rel="noopener noreferrer" className="font-display text-3xl hover:text-ember">
+            <a href={`https://github.com/${site.githubUser}`} target="_blank" rel="noopener noreferrer" className="font-display text-[clamp(1.5rem,6vw,1.875rem)] break-all hover:text-ember">
               github.com/{site.githubUser} ↗
             </a>
           )}
