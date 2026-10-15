@@ -1,3 +1,5 @@
+import type { ToolId } from "@/lib/tools";
+
 // Every project on the site. Pages, cards, the sitemap and NeilAI read from here.
 // Images live in /public (paths below). Add a project by adding an object.
 
@@ -41,6 +43,8 @@ export interface Project {
   notice?: string;
   /** A pull quote in the project's own words. */
   quote?: string;
+  /** A Lab tool built from this project, embedded on its page as "Try it". */
+  tool?: ToolId;
 }
 
 const fbVideo = (id: string) => `https://www.facebook.com/clsudit/videos/${id}/`;
@@ -49,6 +53,7 @@ const itscPost = (id: string) => `https://www.facebook.com/CLSU.ITSC/posts/${id}
 export const projects: Project[] = [
   {
     slug: "pathoscan",
+    tool: "pathoscan",
     title: "PathoScan",
     category: "systems",
     featured: 1,
@@ -114,6 +119,7 @@ export const projects: Project[] = [
   },
   {
     slug: "clirdec-network",
+    tool: "subnet",
     title: "CLIRDEC Network Architecture",
     category: "systems",
     featured: 3,
@@ -129,6 +135,7 @@ export const projects: Project[] = [
   },
   {
     slug: "cyber-awareness-series",
+    tool: "link",
     title: "Cyber Awareness Series",
     category: "media",
     plain: "Six short videos that make data privacy make sense to everyone.",
@@ -278,6 +285,7 @@ export const projects: Project[] = [
   },
   {
     slug: "memory-allocation-simulator",
+    tool: "memory",
     title: "Memory Allocation Simulator",
     category: "web",
     plain: "Shows, step by step, how a computer decides where to put things in memory.",

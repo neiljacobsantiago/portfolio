@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { useDeviceProfile } from "@/lib/device";
 import { haptic } from "@/lib/haptics";
+import { ASK_EVENT, stashAsk, type AskDetail } from "@/lib/neilai-events";
 import BlobAvatar from "./BlobAvatar";
 
 // The chat panel is only downloaded the first time someone opens it.
@@ -61,9 +62,29 @@ export default function ChatLauncher() {
     return () => clearTimeout(id);
   }, []);
 
+  // "Ask NeilAI" buttons, the command palette and Lab pages open the chat with a request.
+  const loadedRef = useRef(false);
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      setTeaser(null);
+      if (!loadedRef.current) {
+        // The panel isn't mounted yet: park the request for it to pick up.
+        stashAsk((e as CustomEvent<AskDetail>).detail);
+        loadedRef.current = true;
+        setLoaded(true);
+        requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
+      } else {
+        setOpen(true);
+      }
+    };
+    addEventListener(ASK_EVENT, onAsk);
+    return () => removeEventListener(ASK_EVENT, onAsk);
+  }, []);
+
   const toggle = () => {
     haptic();
     setTeaser(null);
+    loadedRef.current = true;
     setLoaded(true);
     if (!loaded) requestAnimationFrame(() => requestAnimationFrame(() => setOpen(true)));
     else setOpen((v) => !v);

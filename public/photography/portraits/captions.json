@@ -1,4 +1,8 @@
 {
+  "wp-4.jpg": {
+    "title": "Editorial Duo",
+    "note": "Fashion portrait"
+  },
   "wp-1.jpg": {
     "title": "Studio Light",
     "note": "Fashion portrait"
@@ -11,13 +15,21 @@
     "title": "Editorial Vibe",
     "note": "Fashion portrait"
   },
-  "wp-4.jpg": {
-    "title": "Editorial Duo",
-    "note": "Fashion portrait"
-  },
   "wp-5.jpg": {
     "title": "Casual Studio",
     "note": "Fashion portrait"
+  },
+  "untitled-9836.jpg": {
+    "title": "Tote Day",
+    "note": "BSIT · white seamless studio"
+  },
+  "untitled-9704.jpg": {
+    "title": "The Thinker",
+    "note": "BSIT · white seamless studio"
+  },
+  "untitled-9819.jpg": {
+    "title": "Monochrome",
+    "note": "BSIT · white seamless studio"
   },
   "photography-5.jpg": {
     "title": "Portrait Detail",

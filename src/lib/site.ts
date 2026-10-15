@@ -42,6 +42,7 @@ export const mainNav: NavItem[] = [
   { label: "Work", href: "/work", description: "Systems, web & productions" },
   { label: "Photography", href: "/photography", description: "Concerts, people & the night sky" },
   { label: "About", href: "/about", description: "Story, school & kit" },
+  { label: "Lab", href: "/lab", description: "Tools from real projects" },
   { label: "Contact", href: "/contact", description: "Start a project" },
 ];
 

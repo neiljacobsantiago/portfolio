@@ -4,6 +4,7 @@ import "./globals.css";
 import NavBar from "@/components/layout/NavBar";
 import Footer from "@/components/layout/Footer";
 import ChatLauncher from "@/components/chat/ChatLauncher";
+import PaletteHost from "@/components/search/PaletteHost";
 import CustomCursor from "@/components/effects/CustomCursor";
 import PaperField from "@/components/effects/PaperField";
 import RevealObserver from "@/components/effects/RevealObserver";
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </main>
         <Footer />
         <ChatLauncher />
+        <PaletteHost />
         <CustomCursor />
         <RevealObserver />
         <SiteEffects />

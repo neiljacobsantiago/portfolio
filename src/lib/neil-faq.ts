@@ -2,10 +2,13 @@
 // useful (and instant) even when the Gemini API is unavailable.
 
 import { projects } from "@/content/work";
+import { detectCards, introFor } from "@/lib/neilai/intents";
+import type { ChatCard } from "@/lib/tools";
 
 export interface FaqAnswer {
   text: string;
   links?: { label: string; href: string }[];
+  cards?: ChatCard[];
 }
 
 const RULES: { test: RegExp; answer: FaqAnswer }[] = [
@@ -93,6 +96,13 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
     },
   },
   {
+    test: /\b(tools?|lab|calculator|what can you do|help me|features?)\b/i,
+    answer: {
+      text: "I can run Neil's project tools right here: plan subnets and VLANs, visualize memory allocation, check a suspicious link, show how PathoScan decides, quote a photoshoot, or pull up his GitHub activity. Tap 🧰 above, or just ask — e.g. “subnet 192.168.1.0/26”. 🧪",
+      links: [{ label: "Open the Lab", href: "/lab" }],
+    },
+  },
+  {
     test: /\b(who|about|yourself|neil|introduce|sino)/i,
     answer: {
       text: "Neil Jacob Santiago — a third-year BSIT student at CLSU who designs networks, builds web systems and photographs concerts, campus life and the night sky. He's also the Production Director of the ITSC Media Group. 👋",
@@ -114,7 +124,12 @@ const FALLBACK: FaqAnswer = {
 };
 
 export function localAnswer(question: string): FaqAnswer {
-  return RULES.find((r) => r.test.test(question))?.answer ?? FALLBACK;
+  const cards = detectCards(question);
+  const rule = RULES.find((r) => r.test.test(question))?.answer;
+  // A working tool beats a canned answer; a project card rides along with the FAQ text.
+  if (cards.length && cards[0].kind !== "project") return { text: introFor(cards[0]), cards };
+  if (cards.length) return { ...(rule ?? { text: introFor(cards[0]) }), cards };
+  return rule ?? FALLBACK;
 }
 
 /** Turns site paths mentioned in an AI reply into link chips. */
@@ -122,6 +137,7 @@ export function linksIn(text: string) {
   const known: Record<string, string> = {
     ...Object.fromEntries(projects.map((p) => [`/work/${p.slug}`, p.title])),
     "/photography": "Photography",
+    "/lab": "The Lab",
     "/contact": "Contact",
     "/about": "About",
     "/work": "Work",
