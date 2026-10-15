@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { services } from "@/content/sessions";
 import { mailConfig, ownerEmail, senderEmail, sendMail, type Inquiry } from "@/lib/mail";
+import { signBooking } from "@/lib/booking-token";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { siteUrl } from "@/lib/site";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -78,7 +80,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const ok = await sendMail({ to, replyTo: inquiry.email, ...ownerEmail(inquiry) });
+    // Bookings get signed one-click links so Neil can answer the client from the site.
+    const b = inquiry.booking;
+    const token = b ? signBooking({ name: inquiry.name, email: inquiry.email, service: b.service.id, pkg: b.pkg.id, date: b.date, phone: b.phone, message: inquiry.message }) : null;
+    const link = (a: string) => `${siteUrl()}/bookings/respond?a=${a}&t=${token}`;
+    const respond = token ? { confirm: link("confirm"), reschedule: link("reschedule"), decline: link("decline") } : undefined;
+    const ok = await sendMail({ to, replyTo: inquiry.email, ...ownerEmail(inquiry, respond) });
     if (!ok) return NextResponse.json({ error: "The mail service didn't accept that. Please try again." }, { status: 502 });
     // Confirmation to the sender is a courtesy; its failure never fails the request.
     if (confirmations) await sendMail({ to: inquiry.email, replyTo: to, ...senderEmail(inquiry) }).catch(() => false);

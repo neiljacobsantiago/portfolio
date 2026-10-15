@@ -118,7 +118,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
           <input name="name" autoComplete="name" maxLength={80} required={booking} disabled={sending} className={field} placeholder="Juan Dela Cruz" />
         </label>
         <label className="block">
-          <span className="label text-ink/60">Email</span>
+          <span className="label text-ink/60">{booking ? "Your email — your confirmation goes here" : "Email"}</span>
           <input required type="email" name="email" autoComplete="email" inputMode="email" maxLength={254} disabled={sending} className={field} placeholder="you@example.com" />
         </label>
       </div>

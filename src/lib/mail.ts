@@ -50,7 +50,18 @@ function rows(inq: Inquiry): [string, string][] {
 }
 
 /** Email layout shared by both messages: paper background, ink type, ember accent. */
-function layout(heading: string, intro: string, table: [string, string][], note: string, footer: string) {
+type Action = { label: string; href: string; tone: "ember" | "ink" | "ghost" };
+
+function buttons(actions: Action[]) {
+  if (!actions.length) return "";
+  const style = { ember: "background:#c1121f;color:#fdf0d5", ink: "background:#003049;color:#fdf0d5", ghost: "background:transparent;color:#003049;border:1px solid #00304955" };
+  // Inline blocks rather than a table row, so the buttons wrap on phone mail apps.
+  return `<div style="margin:0 0 16px">${actions
+    .map((a) => `<a href="${esc(a.href)}" style="display:inline-block;margin:0 8px 8px 0;padding:12px 18px;border-radius:999px;${style[a.tone]};font:600 12px/1 'Courier New',monospace;letter-spacing:.12em;text-transform:uppercase;text-decoration:none">${esc(a.label)}</a>`)
+    .join("")}</div>`;
+}
+
+function layout(heading: string, intro: string, table: [string, string][], note: string, footer: string, actions: Action[] = []) {
   const tr = table
     .map(
       ([k, v]) =>
@@ -62,15 +73,17 @@ function layout(heading: string, intro: string, table: [string, string][], note:
 <p style="margin:0 0 6px;color:#c1121f;font:600 11px/1 'Courier New',monospace;letter-spacing:.16em;text-transform:uppercase">${esc(site.name)}</p>
 <h1 style="margin:0 0 12px;color:#003049;font:400 30px/1.15 Georgia,serif">${esc(heading)}</h1>
 <p style="margin:0 0 24px;color:#003049cc;font:italic 17px/1.5 Georgia,serif">${esc(intro)}</p>
+${buttons(actions)}
 <table style="width:100%;border-collapse:collapse;border-top:1px solid #00304922;border-bottom:1px solid #00304922">${tr}</table>
-<div style="margin:24px 0 0;padding:16px;background:#fdf0d5;color:#003049;font:16px/1.6 Georgia,serif;white-space:pre-wrap">${esc(note)}</div>
+${note ? `<div style="margin:24px 0 0;padding:16px;background:#fdf0d5;color:#003049;font:16px/1.6 Georgia,serif;white-space:pre-wrap">${esc(note)}</div>` : ""}
 <p style="margin:24px 0 0;color:#00304999;font:13px/1.5 Georgia,serif">${esc(footer)}</p>
 </div></body></html>`;
 }
 
 const plain = (heading: string, table: [string, string][], note: string) => `${heading}\n\n${table.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\n${note}\n`;
 
-export function ownerEmail(inq: Inquiry) {
+/** What Neil receives. Bookings come with one-click links to answer the client. */
+export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule: string; decline: string }) {
   const b = inq.booking;
   const who = inq.name || inq.email;
   const subject = b ? `📸 Booking request: ${b.pkg.name} (${b.service.name}) — ${who}` : `✉️ ${inq.topic} — ${who}`;
@@ -78,8 +91,18 @@ export function ownerEmail(inq: Inquiry) {
   const intro = b ? `${who} wants to book ${b.service.name} for ${prettyDate(b.date)}.` : `${who} wrote in about ${inq.topic.toLowerCase()}.`;
   const table = rows(inq);
   const note = inq.message;
-  const footer = "Hit reply to answer them directly. Sent from the contact form on your portfolio.";
-  return { subject, html: layout(heading, intro, table, note, footer), text: plain(heading, table, note) };
+  const actions: Action[] = respond
+    ? [
+        { label: "✓ Confirm booking", href: respond.confirm, tone: "ember" },
+        { label: "Suggest a date", href: respond.reschedule, tone: "ink" },
+        { label: "Decline", href: respond.decline, tone: "ghost" },
+      ]
+    : [];
+  const footer = respond
+    ? "The buttons open a page where you add details (time, place, payment) and send the client their confirmation. Or just hit reply to write to them directly."
+    : "Hit reply to answer them directly. Sent from the contact form on your portfolio.";
+  const links = respond ? `\n\nConfirm: ${respond.confirm}\nSuggest a date: ${respond.reschedule}\nDecline: ${respond.decline}\n` : "";
+  return { subject, html: layout(heading, intro, table, note, footer, actions), text: plain(heading, table, note) + links };
 }
 
 export function senderEmail(inq: Inquiry) {
@@ -106,4 +129,71 @@ export async function sendMail(msg: { to: string; replyTo?: string; subject: str
   });
   if (!res.ok) console.error("[contact] Resend rejected the message", res.status, await res.text().catch(() => ""));
   return res.ok;
+}
+
+/* ── Neil's answer to a booking request, sent to the client ── */
+
+export type BookingAnswer = "confirm" | "reschedule" | "decline";
+
+export interface AnswerDetails {
+  time?: string;
+  location?: string;
+  payment?: string;
+  newDates?: string;
+  note?: string;
+}
+
+export function bookingAnswerEmail(
+  b: { name: string; service: Service; pkg: Package; date: string; downpayment: number | null },
+  action: BookingAnswer,
+  d: AnswerDetails,
+) {
+  const first = b.name.split(" ")[0] || "there";
+  const when = prettyDate(b.date);
+  const sign = `— ${site.firstName}`;
+  const clean = (v?: string) => (v ?? "").trim();
+
+  if (action === "confirm") {
+    const table: [string, string][] = [
+      ["Service", b.service.name],
+      ["Package", `${b.pkg.name} — ${b.pkg.price}`],
+      ["Includes", b.pkg.detail],
+      ["Date", when],
+      ...(clean(d.time) ? ([["Call time", clean(d.time)]] as [string, string][]) : []),
+      ...(clean(d.location) ? ([["Location", clean(d.location)]] as [string, string][]) : []),
+      ["Downpayment", b.downpayment ? `₱${b.downpayment.toLocaleString("en-PH")} (30%) to lock the date` : "30% of the total to lock the date"],
+    ];
+    const note = [clean(d.payment) && `How to pay the downpayment:\n${clean(d.payment)}`, clean(d.note), bookingTerms.join("\n")].filter(Boolean).join("\n\n");
+    return {
+      subject: `✅ Confirmed: your ${b.service.name} on ${when}`,
+      html: layout(`You're booked, ${first}!`, `Your ${b.service.name.toLowerCase()} on ${when} is confirmed. Here are the details.`, table, note, `${sign} · Reply to this email if anything needs to change.`),
+      text: plain(`You're booked, ${first}!`, table, note) + `\n${sign}\n`,
+    };
+  }
+
+  if (action === "reschedule") {
+    const table: [string, string][] = [
+      ["Service", b.service.name],
+      ["Package", `${b.pkg.name} — ${b.pkg.price}`],
+      ["You asked for", when],
+      ...(clean(d.newDates) ? ([["Available instead", clean(d.newDates)]] as [string, string][]) : []),
+    ];
+    const note = clean(d.note) || `${when} is already taken, but I'd love to do your shoot. Reply with the date that works best and I'll lock it in.`;
+    return {
+      subject: `📅 About your ${b.service.name} booking — can we pick another date?`,
+      html: layout(`Can we move it, ${first}?`, `Thanks for booking! ${when} doesn't work on my side.`, table, note, `${sign} · Just reply to this email to choose a date.`),
+      text: plain(`Can we move it, ${first}?`, table, note) + `\n${sign}\n`,
+    };
+  }
+
+  const table: [string, string][] = [
+    ["Service", b.service.name],
+    ["Date requested", when],
+  ];
+  const note = clean(d.note) || "Thank you for thinking of me for your shoot. Unfortunately I can't take this booking, but I hope we get to work together another time.";
+  return {
+    subject: `About your ${b.service.name} booking request`,
+    html: layout(`Thank you, ${first}`, `I'm sorry — I can't take your booking for ${when}.`, table, note, `${sign} · You can always reply to this email.`),
+    text: plain(`Thank you, ${first}`, table, note) + `\n${sign}\n`,
+  };
 }

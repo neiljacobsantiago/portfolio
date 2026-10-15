@@ -47,6 +47,17 @@ export const mainNav: NavItem[] = [
   { label: "Contact", href: "/contact", description: "Start a project" },
 ];
 
+/** Legal and reference pages, linked from the footer and the HTML site map. */
+export const legalRoutes: NavItem[] = [
+  { label: "Privacy", href: "/privacy", description: "What's collected and your rights" },
+  { label: "Terms", href: "/terms", description: "Using the site, bookings and photos" },
+  { label: "Accessibility", href: "/accessibility", description: "How the site works for everyone" },
+  { label: "Site map", href: "/site-map", description: "Every page in one place" },
+];
+
+/** Shown at the top of each legal page. */
+export const LEGAL_UPDATED = "October 15, 2026";
+
 export const allRoutes: NavItem[] = [{ label: "Home", href: "/", description: "Start here" }, ...mainNav, { label: "Terminal", href: "/terminal", description: "For the curious" }];
 
 export interface Social {
