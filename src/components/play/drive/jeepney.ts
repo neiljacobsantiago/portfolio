@@ -81,6 +81,17 @@ function beamTexture() {
   return new CanvasTexture(c);
 }
 
+/** Paint jobs for the garage. */
+export const PAINTS = {
+  ember: { name: "Ember", body: "#c1121f", bands: ["#669bbc", "#c1121f"], metal: false },
+  sunburst: { name: "Sunburst", body: "#f2b134", bands: ["#c1121f", "#003049"], metal: false },
+  sky: { name: "Sky", body: "#669bbc", bands: ["#fdf0d5", "#003049"], metal: false },
+  wine: { name: "Wine", body: "#780000", bands: ["#ffd27a", "#c1121f"], metal: false },
+  ink: { name: "Midnight", body: "#003049", bands: ["#c1121f", "#669bbc"], metal: false },
+  chrome: { name: "Chrome", body: "#c9ccd1", bands: ["#c1121f", "#003049"], metal: true },
+} as const;
+export type PaintId = keyof typeof PAINTS;
+
 export function buildJeepney() {
   const car = new Group(); // follows the ground: position, heading, terrain pitch and roll
   const body = new Group(); // leans, squats and bounces on the suspension
@@ -130,11 +141,13 @@ export function buildJeepney() {
     body.add(plate);
   }
   // Painted bands around the body: open frames, so the cab's ceiling stays clear from inside
+  const bands: MeshStandardMaterial[] = [];
   for (const [y, color] of [
     [1.05, C.sky],
     [2.36, C.ember],
   ] as const) {
     const band = std(color);
+    bands.push(band);
     for (const x of [-1.11, 1.11]) body.add(part(new BoxGeometry(0.05, 0.1, 3.26), band, x, y, 0.65));
     for (const z of [-0.96, 2.26]) body.add(part(new BoxGeometry(2.25, 0.1, 0.05), band, 0, y, z));
   }
@@ -234,6 +247,15 @@ export function buildJeepney() {
   let swing = 0;
   let swingV = 0;
   return {
+    /** Repaints the body and its two painted bands. */
+    paint(id: PaintId) {
+      const p = PAINTS[id] ?? PAINTS.ember;
+      red.color.set(p.body);
+      red.metalness = p.metal ? 0.85 : 0.1;
+      red.roughness = p.metal ? 0.22 : 0.4;
+      bands[0].color.set(p.bands[0]);
+      bands[1].color.set(p.bands[1]);
+    },
     car,
     body,
     wheels,

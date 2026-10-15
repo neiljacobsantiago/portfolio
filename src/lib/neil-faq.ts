@@ -39,7 +39,7 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
   {
     test: /\b(gear|camera|lens|canon|nikon|iphone|dji|gimbal|equipment)/i,
     answer: {
-      text: "The bag: Canon EOS 1500D (with a 50mm f/1.8) and EOS 80D, a Nikon D780, an iPhone 14 Pro Max shooting ProRAW, a DJI Osmo Mobile 7 and a Ronin mini gimbal, plus a studio-style lighting setup. 📸",
+      text: "The bag: Canon EOS 1500D (with a 50mm f/1.8) and EOS 80D, a Nikon D780, an iPhone 14 Pro Max shooting ProRAW, a DJI Osmo Mobile 7 and a Ronin mini gimbal. 📸",
       links: [{ label: "See the gear", href: "/about#gear" }],
     },
   },
@@ -60,7 +60,7 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
   {
     test: /\b(concert|opm|aurora|festival|ben ?& ?ben|kamikazee|parokya|sb19|ivos|iv of spades)/i,
     answer: {
-      text: "Concerts are his favourite chaos: Aurora Music Festival 2026 meant 12+ hours at the barricade shooting Kitchie Nadal, Parokya ni Edgar, Kamikazee, Sexbomb Girls, IV of Spades and more — all in manual through strobes and haze. 🎸",
+      text: "Concerts are a favourite: Aurora Music Festival 2026 meant 12+ hours at the front barrier shooting Kitchie Nadal, Parokya ni Edgar, Kamikazee, Sexbomb Girls, IV of Spades and more — all in manual through strobes and haze. 🎸",
       links: [
         { label: "Aurora Fest story", href: "/work/aurora-fest-2026" },
         { label: "Live concerts", href: "/photography#concerts" },
@@ -70,7 +70,7 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
   {
     test: /\b(web|website|next|react|code|coding|develop|app|system|build)/i,
     answer: {
-      text: "Web dev is a big part of what he does — vibe-coded, yes, but always architected first. Highlights: BuildIT (a PC part picker store), WorkTayo, ParkMate, BankoSantiago, Eco-Fashion and this very site, built with Next.js.",
+      text: "Web development is a big part of what he does — architecture first, then fast, careful iteration. Highlights: BuildIT (a PC part picker store), WorkTayo, ParkMate, BankoSantiago, Eco-Fashion and this very site, built with Next.js.",
       links: [{ label: "Web & software work", href: "/work#web" }],
     },
   },

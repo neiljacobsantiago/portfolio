@@ -28,9 +28,10 @@ import {
   WebGLRenderer,
 } from "three";
 import { createAudio, type DriveAudio } from "./audio";
-import { buildJeepney, C, part, std } from "./jeepney";
+import { buildJeepney, C, type PaintId, part, std } from "./jeepney";
 import { type Animated, buildLandmark, rng } from "./landmarks";
 import { buildNature, type Static } from "./nature";
+import { createPasada, type PasadaEvent, type PasadaStatus } from "./pasada";
 import { createPhysics, FIXED } from "./physics";
 import { buildClouds, buildRamps, buildSea, buildSky, buildStars, buildTerrain, groundAt, heightAt, rampHeight } from "./terrain";
 import { cones, crates, ISLAND_RADIUS, landmarks, packets, pins, ramps, ROAD_RADIUS, BALL, type Landmark } from "./world";
@@ -62,11 +63,15 @@ export interface DriveCallbacks {
   onAir: (seconds: number) => void;
   onCamera: (mode: CameraMode) => void;
   onTime: (time: TimeOfDay) => void;
+  /** Pasada (passenger) mode: where to go next, and what just happened. */
+  onMission: (status: PasadaStatus, event?: PasadaEvent) => void;
   onReady: () => void;
 }
 
 export interface DriveEngine {
   drive: () => void;
+  /** Back to the orbiting title view: input off, sound paused. */
+  stop: () => void;
   setControls: (c: Partial<Controls>) => void;
   startChallenge: () => void;
   reset: () => void;
@@ -76,6 +81,10 @@ export interface DriveEngine {
   setMuted: (muted: boolean) => void;
   /** Drag-to-look, in pixels. */
   look: (dx: number, dy: number) => void;
+  setPasada: (on: boolean) => void;
+  setPaint: (id: PaintId) => void;
+  /** A JPEG of the current view, for photo mode. */
+  capture: () => string | null;
   dispose: () => void;
 }
 
@@ -197,6 +206,9 @@ export function createDriveEngine(
     blocked: (x, z, r) => Math.hypot(x, z) < 11 || keepClear.some(([cx, cz, cr]) => Math.hypot(cx - x, cz - z) < cr + r),
   });
   scene.add(nature.group);
+
+  /* Pasada: stops, passengers and the guide arrow (their sheds are solid, so before physics) */
+  const pasada = createPasada(scene, statics, rng(11));
 
   /* Physics props */
   const physics = createPhysics(scene, statics, { iterations: Math.round(6 + 4 * Q), shadows });
@@ -754,6 +766,17 @@ export function createDriveEngine(
       cb.onZone(near);
     }
 
+    // Pasada: pick-ups, drop-offs and the way to the next one
+    if (mode === "drive") {
+      const event = pasada.update(t, { x, y, z, heading, speed: st.vF, air: st.air });
+      if (event?.boarded) audio?.chime();
+      if (event?.delivered) audio?.chime(true);
+      if (event || frame % 8 === 0) {
+        const status = pasada.status({ x, z, heading });
+        if (status.phase !== "off") cb.onMission(status, event ?? undefined);
+      }
+    }
+
     for (const a of animated) a.update(t, dt);
     wind.value = t;
     sea.uniforms.uTime.value = t;
@@ -783,6 +806,21 @@ export function createDriveEngine(
       const dist = (8.6 + speed * 0.07) * far;
       const height = (3.3 + speed * 0.035) * far + look.pitch * 4;
       want.set(x + Math.sin(camYaw) * dist, y + height, z + Math.cos(camYaw) * dist);
+      // Don't let trees, lamps or landmarks get between the camera and the jeepney
+      let reach = 1;
+      const lx = want.x - x;
+      const lz = want.z - z;
+      const len2 = lx * lx + lz * lz;
+      for (const o of statics) {
+        const ox = o.x - x;
+        const oz = o.z - z;
+        if (Math.abs(ox) > dist + o.r + 2 || Math.abs(oz) > dist + o.r + 2) continue;
+        const k = Math.max(0, Math.min(1, (ox * lx + oz * lz) / len2));
+        const r = o.r + 0.9;
+        if (k > 0.2 && (ox - lx * k) ** 2 + (oz - lz * k) ** 2 < r * r) reach = Math.min(reach, Math.max(0.55, k - r / Math.sqrt(len2)));
+      }
+      // Pull in a little and rise, so the camera looks down over whatever is in the way
+      if (reach < 1) want.set(x + lx * reach, want.y + (1 - reach) * 5, z + lz * reach);
       want.y = Math.max(want.y, groundAt(want.x, want.z) + 1.2);
       camPos.lerp(want, damp(st.air ? 4 : 7, dt));
       camera.position.copy(camPos);
@@ -927,6 +965,30 @@ export function createDriveEngine(
     cycleCamera,
     cycleTime,
     horn,
+    stop: () => {
+      mode = "attract";
+      keys.clear();
+      Object.assign(controls, { throttle: 0, steer: 0, boost: false, brake: false });
+      pasada.setActive(false);
+      audio?.suspend();
+      if (zoneId) {
+        zoneId = null;
+        cb.onZone(null);
+      }
+    },
+    setPasada: (on) => {
+      pasada.setActive(on);
+      cb.onMission(pasada.status({ x: st.x, z: st.z, heading: st.heading }));
+    },
+    setPaint: (id) => jeep.paint(id),
+    capture: () => {
+      try {
+        renderer.render(scene, camera);
+        return canvas.toDataURL("image/jpeg", 0.92);
+      } catch {
+        return null;
+      }
+    },
     setMuted: (m) => {
       muted = m;
       audio?.setMuted(m);
