@@ -423,6 +423,58 @@ html.low-power {
   animation: slide-in 0.75s var(--ease-settle) both;
 }
 
+/* ---------- Image protection (components/effects/ImageShield) ---------- */
+img,
+video,
+a:has(img),
+button:has(img) {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+img,
+video {
+  user-select: none;
+}
+/* Screenshot shortcut, window handed to a snipping tool, or page hidden */
+html[data-shield] :is(img, video) {
+  filter: blur(28px) brightness(0.35) saturate(0.3) !important;
+}
+.shield-badge {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+html[data-shield] .shield-badge {
+  opacity: 1;
+  visibility: visible;
+}
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  /* Only the page itself prints: no nav, footer, chat or background */
+  body > :not(main) {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  img,
+  video,
+  canvas {
+    visibility: hidden !important;
+  }
+  body:has(main img)::before {
+    content: "Photographs on this site are © Neil Jacob Santiago and are not available for printing.";
+    display: block;
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid currentColor;
+    font: 12px/1.4 var(--font-mono);
+  }
+}
+
 /* ---------- Lenis smooth scrolling (desktop only) ---------- */
 html.lenis,
 html.lenis body {

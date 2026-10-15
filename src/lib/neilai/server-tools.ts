@@ -1,4 +1,6 @@
 import type { FunctionDeclaration } from "@google/genai";
+import { certificates, education, gear, inProgress, interests, organizations, profiles, toolkit } from "@/content/about";
+import { seriesList } from "@/content/series";
 import { categories, projectBySlug, projects, type Category } from "@/content/work";
 import { addOns, EXTRA_PERSON, PRIVATE_PEOPLE_INCLUDED, privateTerms, services } from "@/content/sessions";
 import { getGitHubActivity } from "@/lib/github";
@@ -9,17 +11,49 @@ import { ALGORITHMS, allocate, type Algorithm } from "@/lib/tools/memory";
 import { screen } from "@/lib/tools/pathoscan";
 import { quote } from "@/lib/tools/quote";
 import { subnet, vlsm } from "@/lib/tools/subnet";
+import { resolveTopic, type Source, type SourceKind } from "./sources";
 
 // NeilAI's tools: the model decides when to call them, the server runs them
 // (validating every argument), and each can attach a live card to the reply.
 
 type Args = Record<string, unknown>;
-type Output = { result: unknown; card?: ChatCard };
+type Output = { result: unknown; card?: ChatCard; sources?: Source[] };
+
+const KINDS: SourceKind[] = ["place", "person", "band", "organization", "thing", "event"];
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const nums = (v: unknown) => (Array.isArray(v) ? v.map(Number).filter((n) => Number.isFinite(n) && n > 0 && n <= 1_000_000).slice(0, 12) : []);
 
 export const declarations: FunctionDeclaration[] = [
+  {
+    name: "about_neil",
+    description:
+      "Detailed facts about Neil himself: schools and years, organisations and roles, certificates (with verify links), skills and tools, camera gear, hobbies, photo collections and portraits. Use it for any personal or background question before answering in detail.",
+    parametersJsonSchema: {
+      type: "object",
+      properties: { topic: { type: "string", enum: ["all", "education", "organizations", "certificates", "skills", "gear", "interests", "photography"], description: "Optional; defaults to all." } },
+    },
+  },
+  {
+    name: "learn_more",
+    description:
+      "Attach outside links (shown as tappable chips, opened only after the visitor confirms) for places, people, bands, organisations, events or things you mention that live outside this site, e.g. CLSU, Kamikazee, Clark Global City, TensorFlow.js, the Andromeda Galaxy. Use when someone wants to know more about something, or asks where a place is. Never write URLs in your reply; the chips carry them.",
+    parametersJsonSchema: {
+      type: "object",
+      properties: {
+        topics: {
+          type: "array",
+          maxItems: 3,
+          items: {
+            type: "object",
+            properties: { name: { type: "string", description: "The proper name, e.g. 'Kamikazee' or 'Clark Global City'." }, kind: { type: "string", enum: KINDS } },
+            required: ["name", "kind"],
+          },
+        },
+      },
+      required: ["topics"],
+    },
+  },
   {
     name: "search_projects",
     description: "Find Neil's projects by topic or category. Use for questions like 'what web projects has he done?' or 'anything with networking?'.",
@@ -118,8 +152,37 @@ export const declarations: FunctionDeclaration[] = [
 
 const summary = (p: (typeof projects)[number]) => ({ slug: p.slug, title: p.title, category: p.category, oneLine: p.plain, role: p.role, status: p.status, page: `/work/${p.slug}` });
 
+function profile(topic: string) {
+  const all = topic === "all" || !topic;
+  return {
+    ...((all || topic === "education") && { education: education.map((e) => `${e.school} (${e.years}): ${e.level}. ${e.detail}`) }),
+    ...((all || topic === "organizations") && { organizations: organizations.map((o) => `${o.name} (${o.short}): ${o.role}. ${o.detail}`) }),
+    ...((all || topic === "certificates") && {
+      certificates: certificates.map((c) => `${c.title}, ${c.issuer}, ${c.date}${c.note ? ` (${c.note})` : ""}${c.verify ? "; verifiable online" : ""}`),
+      workingTowards: inProgress.map((c) => `${c.title} (${c.detail})`),
+      certificatesPage: "/about#credentials",
+    }),
+    ...((all || topic === "skills") && { toolkit: toolkit.map((g) => `${g.group}: ${g.tools.map((t) => t.name).join(", ")}`) }),
+    ...((all || topic === "gear") && { gear: gear.map((g) => `${g.brand}: ${g.items.join(", ")}`) }),
+    ...((all || topic === "interests") && { interests: interests.map((i) => `${i.title}: ${i.text}`) }),
+    ...((all || topic === "photography") && {
+      collections: seriesList.map((s) => `${s.title} (/photography#${s.slug}): ${s.story} Gear: ${s.gear}.`),
+      portraitsOfNeil: profiles.map((p) => `${p.title}: ${p.caption}`),
+    }),
+  };
+}
+
 export async function runTool(name: string | undefined, args: Args = {}): Promise<Output> {
   switch (name) {
+    case "about_neil":
+      return { result: profile(str(args.topic, 20)) };
+    case "learn_more": {
+      const topics = (Array.isArray(args.topics) ? args.topics : []).slice(0, 3).map((t) => (t ?? {}) as Args);
+      const sources = topics
+        .map((t) => resolveTopic(str(t.name, 80), (KINDS.includes(str(t.kind) as SourceKind) ? str(t.kind) : "thing") as SourceKind))
+        .filter((x): x is Source => x !== null);
+      return { result: { shown: sources.map((x) => x.label), note: "Chips are shown under your reply. Don't paste URLs." }, sources };
+    }
     case "search_projects": {
       const q = str(args.query).toLowerCase();
       const category = str(args.category) as Category;

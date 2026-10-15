@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { haptic } from "@/lib/haptics";
 import { linksIn, localAnswer } from "@/lib/neil-faq";
 import { introFor } from "@/lib/neilai/intents";
+import { hostOf, sourcesIn, type Source } from "@/lib/neilai/sources";
 import { ASK_EVENT, takeAsk, type AskDetail } from "@/lib/neilai-events";
 import { starterCard, tools, type ChatCard } from "@/lib/tools";
 import BlobAvatar from "./BlobAvatar";
@@ -16,6 +17,8 @@ interface ChatMessage {
   sender: "ai" | "user";
   text: string;
   links?: { label: string; href: string }[];
+  /** Outside links (vetted), opened only after the visitor confirms. */
+  sources?: Source[];
   /** Live widgets shown under an AI reply. */
   cards?: ChatCard[];
   /** Characters revealed so far (typewriter effect for AI replies). */
@@ -49,7 +52,14 @@ function suggestionsFor(path: string, round: number) {
 }
 
 const TOOL_ICONS: Record<string, string> = { pathoscan: "🔬", subnet: "🌐", memory: "🧠", link: "🛡️", quote: "📸" };
-const STORE = "neilai-chat-v2";
+const STORE = "neilai-chat-v3";
+
+/** Only well-formed outside links from the server make it into a message. */
+const cleanSources = (raw: unknown): Source[] =>
+  (Array.isArray(raw) ? raw : [])
+    .filter((x): x is Source => !!x && typeof x.href === "string" && typeof x.label === "string" && /^https:\/\//.test(x.href))
+    .slice(0, 4)
+    .map((x) => ({ label: x.label.slice(0, 80), href: x.href, host: hostOf(x.href) }));
 const TYPE_MS = 14;
 
 function restore(): { messages: ChatMessage[]; round: number } | null {
@@ -61,6 +71,13 @@ function restore(): { messages: ChatMessage[]; round: number } | null {
   }
 }
 
+/** The offline brain's answer, with outside links for anything it names. */
+function offline(question: string) {
+  const answer = localAnswer(question);
+  const sources = sourcesIn(answer.text);
+  return sources.length ? { ...answer, sources } : answer;
+}
+
 export default function NeilAI({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const [saved] = useState(restore);
@@ -69,6 +86,8 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
   const [isTyping, setIsTyping] = useState(false);
   const [round, setRound] = useState(saved?.round ?? 0);
   const [drawer, setDrawer] = useState(false);
+  const [leaving, setLeaving] = useState<Source | null>(null);
+  const stayRef = useRef<HTMLButtonElement>(null);
   const nextId = useRef(Math.max(0, ...(saved?.messages ?? WELCOME).map((m) => m.id)) + 1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -101,10 +120,19 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
   useEffect(() => {
     if (!open) return;
     if (matchMedia("(hover: hover) and (pointer: fine)").matches) inputRef.current?.focus({ preventScroll: true });
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // Escape backs out of the leaving-the-site sheet first, then closes the chat.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (leaving) setLeaving(null);
+      else onClose();
+    };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onClose, leaving]);
+
+  useEffect(() => {
+    if (leaving) stayRef.current?.focus({ preventScroll: true });
+  }, [leaving]);
 
   const push = (msg: Omit<ChatMessage, "id">) => setMessages((prev) => [...prev, { ...msg, id: nextId.current++ }]);
 
@@ -129,22 +157,22 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
     setInput("");
     setIsTyping(true);
 
-    let reply: { text: string; links?: { label: string; href: string }[]; cards?: ChatCard[] };
+    let reply: { text: string; links?: { label: string; href: string }[]; cards?: ChatCard[]; sources?: Source[] };
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, history, page: pathname }),
       });
-      const data = (await res.json()) as { reply?: string; cards?: ChatCard[] };
+      const data = (await res.json()) as { reply?: string; cards?: ChatCard[]; sources?: unknown };
       // AI unavailable (no key, rate limit, outage) → the offline brain, which can still run every tool.
-      reply = res.ok && data.reply ? { text: data.reply, links: linksIn(data.reply), cards: data.cards } : localAnswer(message);
+      reply = res.ok && data.reply ? { text: data.reply, links: linksIn(data.reply), cards: data.cards, sources: cleanSources(data.sources) } : offline(message);
     } catch {
-      reply = localAnswer(message);
+      reply = offline(message);
     }
 
     setIsTyping(false);
-    push({ sender: "ai", text: reply.text, links: reply.links, cards: reply.cards?.length ? reply.cards : undefined, shown: 0 });
+    push({ sender: "ai", text: reply.text, links: reply.links, cards: reply.cards?.length ? reply.cards : undefined, sources: reply.sources?.length ? reply.sources : undefined, shown: 0 });
     setRound((r) => r + 1);
   };
 
@@ -171,6 +199,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
   const reset = () => {
     haptic();
     setDrawer(false);
+    setLeaving(null);
     setRound(0);
     setMessages(WELCOME.map((m) => ({ ...m })));
     nextId.current = WELCOME.length + 1;
@@ -187,7 +216,16 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       aria-hidden={!open}
       data-open={open}
       data-lenis-prevent
-      className="mb-3 flex h-[min(640px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[22px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,translate,scale,filter,visibility] duration-300 ease-[var(--ease-apple)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-x-[0.7] data-[open=false]:scale-y-[0.35] data-[open=false]:opacity-0 data-[open=false]:blur-sm data-[open=true]:animate-blob-in sm:max-w-md"
+      onClickCapture={(e) => {
+        // Every outside link in the chat (chips, cards) asks before leaving.
+        const a = (e.target as Element).closest?.("a[href]");
+        const href = a?.getAttribute("href") ?? "";
+        if (!a || a.hasAttribute("data-leave-ok") || !/^https?:\/\//.test(href) || new URL(href).host === location.host) return;
+        e.preventDefault();
+        haptic(5);
+        setLeaving({ label: a.getAttribute("data-label") ?? a.textContent?.trim() ?? hostOf(href), href, host: hostOf(href) });
+      }}
+      className="relative mb-3 flex h-[min(640px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[22px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,translate,scale,filter,visibility] duration-300 ease-[var(--ease-apple)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-x-[0.7] data-[open=false]:scale-y-[0.35] data-[open=false]:opacity-0 data-[open=false]:blur-sm data-[open=true]:animate-blob-in sm:max-w-md"
     >
       <div className="flex shrink-0 items-center justify-between gap-3 bg-ink px-4 py-3 text-paper">
         <div className="flex min-w-0 items-center gap-3">
@@ -276,6 +314,29 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
                   ))}
                 </div>
               )}
+              {done && msg.sources && msg.sources.length > 0 && (
+                <div className="animate-pop-in mt-2 w-full max-w-[85%]" style={{ animationDelay: "90ms" }}>
+                  <p className="label mb-1.5 text-[0.5rem] text-ink/40">Learn more · outside this site</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {msg.sources.map((src) => (
+                      <a
+                        key={src.href}
+                        href={src.href}
+                        data-label={src.label}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="press flex max-w-full items-center gap-2 rounded-full bg-paper py-1 pr-3.5 pl-1 ring-1 ring-ink/15 hover:ring-ink"
+                      >
+                        <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky/20 text-[0.8rem] text-ink">↗</span>
+                        <span className="min-w-0 text-left">
+                          <span className="block truncate font-serif text-[0.92rem] leading-tight text-ink">{src.label}</span>
+                          <span className="label block truncate text-[0.46rem] text-ink/45">{src.host}</span>
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -333,6 +394,46 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
           ↑
         </button>
       </form>
+
+      {/* Leaving the site: one more tap, with the destination spelled out */}
+      {leaving && (
+        <div className="animate-page-in absolute inset-0 z-20 flex items-end bg-ink/40 p-3 backdrop-blur-[2px]" onClick={() => setLeaving(null)}>
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="leave-title"
+            aria-describedby="leave-desc"
+            onClick={(e) => e.stopPropagation()}
+            className="animate-blob-in w-full origin-bottom rounded-[20px] bg-paper p-5 shadow-[0_30px_60px_-20px_rgb(0_48_73/0.6)] ring-1 ring-ink/10"
+          >
+            <p className="label text-[0.55rem] text-ember">Leaving Neil&apos;s site</p>
+            <p id="leave-title" className="mt-2 font-display text-[1.7rem] leading-[1.05] break-words text-ink">{leaving.host}</p>
+            <p className="mt-1 font-serif text-ink/70 italic">{leaving.label}</p>
+            <p className="mt-3 rounded-xl bg-paper-deep/80 px-3 py-2 font-mono text-[0.68rem] leading-snug break-all text-ink/70">{leaving.href}</p>
+            <p id="leave-desc" className="mt-3 font-serif text-[0.95rem] leading-snug text-ink/75">
+              This opens another website in a new tab. Neil doesn&apos;t run it, so browse with the usual care.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button ref={stayRef} type="button" onClick={() => setLeaving(null)} className="label press rounded-full border border-ink/20 py-3 text-[0.58rem] hover:border-ink">
+                Stay here
+              </button>
+              <a
+                href={leaving.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-leave-ok
+                onClick={() => {
+                  haptic();
+                  setLeaving(null);
+                }}
+                className="label press flex items-center justify-center gap-1.5 rounded-full bg-ink py-3 text-[0.58rem] text-paper hover:bg-ember"
+              >
+                Open link <span aria-hidden>↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
