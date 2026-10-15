@@ -38,6 +38,18 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Headings break into even lines; paragraphs avoid a lonely last word */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
   ::selection {
     @apply bg-ember text-paper;
   }

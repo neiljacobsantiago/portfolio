@@ -338,8 +338,8 @@ export default function DriveGame() {
         onPointerCancel={onLookEnd}
       />
 
-      {/* Landmark labels, positioned from 3D every frame */}
-      <div ref={labelsRef} aria-hidden className={cn("pointer-events-none absolute inset-0 transition-opacity", photo && "opacity-0")}>
+      {/* Landmark labels, positioned from 3D every frame (kept off the title card on phones) */}
+      <div ref={labelsRef} aria-hidden className={cn("pointer-events-none absolute inset-0 transition-opacity", photo && "opacity-0", !driving && "max-md:opacity-0")}>
         {landmarks.map((l) => (
           <div key={l.id} data-landmark={l.id} className="group absolute top-0 left-0 opacity-0 transition-opacity duration-300 will-change-transform data-[active=true]:z-10">
             <span className="label block rounded-full bg-paper/90 px-3 py-1.5 text-[0.52rem] whitespace-nowrap text-ink shadow-[0_8px_20px_-10px_rgb(0_48_73/0.6)] ring-1 ring-ink/10 transition-[background-color,color,transform] duration-300 group-data-[active=true]:scale-110 group-data-[active=true]:bg-ember group-data-[active=true]:text-paper">

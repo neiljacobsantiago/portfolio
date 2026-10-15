@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils";
  */
 export default function ProjectCover({ project, sizes, className, priority }: { project: Project; sizes: string; className?: string; priority?: boolean }) {
   if (project.slug === "pathoscan") return <PathoScanArt className={className} priority={priority} />;
+  if (project.slug === "memory-allocation-simulator") return <MemoryArt className={className} />;
+  if (project.slug === "whisper-transcription") return <WhisperArt className={className} />;
+  if (project.slug === "osint-forensics") return <OsintArt className={className} />;
 
   if (project.cover) {
     return (
@@ -41,7 +44,111 @@ export default function ProjectCover({ project, sizes, className, priority }: { 
   const tone = { systems: "from-ink to-sky", web: "from-paper-deep to-sky/60", media: "from-wine to-ember" }[project.category];
   return (
     <div className={cn("relative flex items-end overflow-hidden bg-gradient-to-br p-6", tone, className)} aria-hidden>
-      <span className="font-display text-[clamp(2rem,5vw,3.5rem)] leading-none text-paper/90 mix-blend-overlay">{project.title}</span>
+      <div className="absolute inset-0 bg-[linear-gradient(rgb(253_240_213/0.08)_1px,transparent_1px),linear-gradient(90deg,rgb(253_240_213/0.08)_1px,transparent_1px)] bg-[size:28px_28px]" />
+      <span className="relative font-display text-[clamp(2rem,5vw,3.5rem)] leading-none text-paper/90">{project.title}</span>
+    </div>
+  );
+}
+
+/** Memory Allocation Simulator: the same jobs placed by First-, Best- and Worst-Fit. */
+function MemoryArt({ className }: { className?: string }) {
+  const rows: { label: string; blocks: [number, string | null][] }[] = [
+    { label: "First-Fit", blocks: [[18, "P1"], [10, null], [24, "P2"], [8, "P3"], [22, null], [18, "P4"]] },
+    { label: "Best-Fit", blocks: [[18, "P1"], [12, "P3"], [24, "P2"], [6, null], [22, "P4"], [18, null]] },
+    { label: "Worst-Fit", blocks: [[18, null], [10, "P3"], [24, "P1"], [8, null], [22, "P2"], [18, "P4"]] },
+  ];
+  const colors: Record<string, string> = { P1: "bg-ember", P2: "bg-sky", P3: "bg-[#ffd27a]", P4: "bg-paper" };
+  return (
+    <div className={cn("relative flex flex-col justify-center gap-[5%] overflow-hidden bg-ink p-[7%] text-paper", className)} aria-hidden>
+      <div className="absolute -right-20 -bottom-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgb(102_155_188/0.35),transparent)]" />
+      <p className="label relative text-[0.55rem] text-sky">memsim · 128K · 4 processes</p>
+      {rows.map((r, i) => (
+        <div key={r.label} className="relative">
+          <p className="mb-1.5 font-mono text-[0.6rem] text-paper/60">{r.label}</p>
+          <div className="flex h-7 gap-[3px] md:h-8">
+            {r.blocks.map(([w, pid], j) => (
+              <span
+                key={j}
+                style={{ width: `${w}%`, transitionDelay: `${i * 80 + j * 40}ms` }}
+                className={cn(
+                  "flex min-w-0 items-center justify-center overflow-hidden rounded-[3px] font-mono text-[0.55rem] text-ink transition-transform duration-700 ease-[var(--ease-spring)] group-hover:-translate-y-0.5",
+                  pid ? colors[pid] : "border border-dashed border-paper/25 text-paper/30",
+                )}
+              >
+                {pid ?? (w >= 14 ? "free" : null)}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Whisper AI Transcription: a waveform becoming timestamped text. */
+function WhisperArt({ className }: { className?: string }) {
+  const bars = Array.from({ length: 44 }, (_, i) => 18 + Math.abs(Math.sin(i * 0.7) * 50 + Math.sin(i * 0.23) * 30));
+  const lines = [
+    ["00:04", "Good morning, and welcome to the session."],
+    ["00:11", "Today we're looking at the network design…"],
+    ["00:19", "…starting with the VLAN plan."],
+  ];
+  return (
+    <div className={cn("relative flex flex-col justify-center gap-[6%] overflow-hidden bg-gradient-to-br from-wine to-ember p-[7%] text-paper", className)} aria-hidden>
+      <div className="flex h-[30%] items-center gap-[2px]">
+        {bars.map((h, i) => (
+          <span key={i} style={{ height: `${Math.min(100, h)}%`, transitionDelay: `${i * 12}ms` }} className="w-full rounded-full bg-paper/80 transition-transform duration-500 group-hover:scale-y-75" />
+        ))}
+      </div>
+      <div className="space-y-1.5 rounded-xl bg-ink/30 p-[4%] ring-1 ring-paper/15">
+        {lines.map(([t, text]) => (
+          <p key={t} className="truncate font-mono text-[0.6rem] md:text-[0.65rem]">
+            <span className="mr-2 text-[#ffd27a]">{t}</span>
+            {text}
+          </p>
+        ))}
+      </div>
+      <p className="label text-[0.5rem] text-paper/70">whisper · transcribe · en</p>
+    </div>
+  );
+}
+
+/** OSINT & Digital Forensics: a QR code and a cipher, decoded. */
+function OsintArt({ className }: { className?: string }) {
+  // A fixed pseudo-random pattern, with the three finder squares a QR code always has
+  const n = 21;
+  const cells: boolean[] = Array.from({ length: n * n }, (_, i) => ((i * 7919) % 13) % 3 === 0);
+  const finder = (x: number, y: number) => {
+    for (const [fx, fy] of [
+      [0, 0],
+      [n - 7, 0],
+      [0, n - 7],
+    ]) {
+      if (x >= fx && x < fx + 7 && y >= fy && y < fy + 7) {
+        const dx = x - fx;
+        const dy = y - fy;
+        return dx === 0 || dy === 0 || dx === 6 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4) ? 1 : 0;
+      }
+    }
+    return -1;
+  };
+  return (
+    <div className={cn("relative flex items-center gap-[7%] overflow-hidden bg-[#0b1726] p-[7%] text-paper", className)} aria-hidden>
+      <div className="grid aspect-square w-[38%] shrink-0 rounded-md bg-paper p-[3%]" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
+        {cells.map((on, i) => {
+          const f = finder(i % n, Math.floor(i / n));
+          return <span key={i} className={(f === -1 ? on : f === 1) ? "bg-ink" : ""} />;
+        })}
+      </div>
+      <div className="min-w-0 flex-1 space-y-2 font-mono text-[0.6rem] md:text-[0.68rem]">
+        <p className="text-paper/45">$ decode --rot13 post.txt</p>
+        <p className="truncate text-ember line-through decoration-ember/60">Pbbeqvangrf sbyybj</p>
+        <p className="truncate text-[#7bd88f]">Coordinates follow</p>
+        <p className="text-paper/45">$ exif photo.jpg | grep GPS</p>
+        <p className="truncate">
+          <span className="rounded-sm bg-paper/80 px-1 text-transparent">15.7915° N</span> · <span className="text-sky">trace resolved</span>
+        </p>
+      </div>
     </div>
   );
 }

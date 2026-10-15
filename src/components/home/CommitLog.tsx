@@ -19,7 +19,9 @@ function ago(iso: string) {
 
 /** A year on GitHub: contribution heatmap, streaks, languages and fresh repos. */
 export default async function CommitLog() {
-  const data = await getGitHubActivity();
+  // An empty calendar means GitHub didn't answer properly; show the quiet version rather than "0 contributions".
+  const fetched = await getGitHubActivity();
+  const data = fetched && fetched.total > 0 ? fetched : null;
   const profile = `https://github.com/${site.githubUser}`;
 
   return (

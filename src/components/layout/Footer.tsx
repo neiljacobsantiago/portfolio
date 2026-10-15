@@ -50,7 +50,7 @@ export default function Footer() {
             <p className="label mt-6 text-paper/40">{site.coordinates}</p>
           </div>
 
-          <nav aria-label="Footer" className="grid gap-10 sm:col-span-2 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-4">
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-2 lg:col-span-8 lg:grid-cols-4">
             <div>
               <Column title="Explore">
                 {[{ label: "Home", href: "/" }, ...mainNav].map((r) => (
