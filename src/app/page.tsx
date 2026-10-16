@@ -38,10 +38,12 @@ export default async function HomePage() {
   // A few frames from every collection for the moving strip.
   const strip = series.flatMap((s) => s.photos.slice(0, 4)).slice(0, 18);
   const sheet = contactSheet(series, strip);
+  // Two prints for the hero: a concert frame and a landscape, if those collections exist.
+  const prints = ["concerts", "landscapes", "astro"].map((slug) => series.find((s) => s.slug === slug)?.photos[1] ?? series.find((s) => s.slug === slug)?.photos[0]).filter((p) => p !== undefined);
   // Pinned scenes are spaced out so two never run back to back.
   return (
     <>
-      <Hero />
+      <Hero prints={prints} collections={series.length} />
       <Statement />
       <PhotoMarquee photos={strip} />
       <Practices />
