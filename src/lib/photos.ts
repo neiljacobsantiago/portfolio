@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { imageSizeFromFile } from "image-size/fromFile";
 import { seriesList, type Series } from "@/content/series";
+import { contextOf, folderOf, listPortfolio, ROOT as CLOUD_ROOT, variantsOf, type CloudAsset } from "@/lib/cloudinary";
 
 export interface Photo {
   src: string;
@@ -13,6 +14,8 @@ export interface Photo {
   /** Where to anchor the photo when a layout has to crop it (CSS object-position). */
   focus: string;
   series: string;
+  /** Cloudinary photos: signed URLs by width (see components/photography/Photo). */
+  variants?: Record<number, string>;
 }
 
 type Caption = string | { title: string; note?: string; focus?: string };
@@ -77,6 +80,66 @@ async function loadSeries(series: Series): Promise<Photo[]> {
   return photos.filter((p): p is Photo => p !== null);
 }
 
+/** "Weddings" for a folder named "weddings" that has no entry in content/series. */
+const titleFromSlug = (slug: string) => slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * Cloudinary collections: folder portfolio/<slug> is the collection <slug>.
+ * Order: the photo tagged "cover" first, then new uploads (newest first), then
+ * photos with an "order" number, ascending. Captions come from each photo's
+ * Title (caption) and Description (alt) fields, or the custom "note" field.
+ */
+function fromCloudinary(assets: CloudAsset[]): SeriesWithPhotos[] {
+  const bySlug = new Map<string, CloudAsset[]>();
+  for (const a of assets) {
+    const slug = folderOf(a).slice(CLOUD_ROOT.length + 1).split("/")[0];
+    if (slug) bySlug.set(slug, [...(bySlug.get(slug) ?? []), a]);
+  }
+  const extra: Series[] = [...bySlug.keys()]
+    .filter((slug) => !seriesList.some((s) => s.slug === slug))
+    .sort()
+    .map((slug, i) => ({ slug, title: titleFromSlug(slug), kicker: `${String(seriesList.length + i + 1).padStart(2, "0")} — Collection`, story: "", gear: "", tone: "paper" as const }));
+
+  const rank = (a: CloudAsset) => {
+    const order = Number(contextOf(a).order);
+    return a.tags?.includes("cover") ? [0, 0] : Number.isFinite(order) && contextOf(a).order ? [2, order] : [1, -Date.parse(a.created_at)];
+  };
+  return [...seriesList, ...extra].map((s) => ({
+    ...s,
+    photos: (bySlug.get(s.slug) ?? [])
+      .map((a) => ({ a, r: rank(a) }))
+      .sort((x, y) => x.r[0] - y.r[0] || x.r[1] - y.r[1])
+      .map(({ a }): Photo => {
+        const ctx = contextOf(a);
+        const variants = variantsOf(a);
+        const name = a.display_name ?? a.filename ?? a.public_id.split("/").pop() ?? "";
+        return {
+          src: variants[1600],
+          width: a.width,
+          height: a.height,
+          alt: ctx.caption || ctx.title || altFromFile(name),
+          note: ctx.note || ctx.alt || undefined,
+          focus: ctx.focus || (a.height > a.width ? "50% 25%" : "50% 50%"),
+          series: s.slug,
+          variants,
+        };
+      }),
+  }));
+}
+
+const fromDisk = () => Promise.all(seriesList.map(async (s) => ({ ...s, photos: await loadSeries(s) })));
+
+/**
+ * The photography collections. With Cloudinary configured (see docs/PHOTOS.md)
+ * they come from there; until then, or if it can't be reached, from the files
+ * in /public/photography.
+ */
 export async function getSeries(): Promise<SeriesWithPhotos[]> {
-  return Promise.all(seriesList.map(async (s) => ({ ...s, photos: await loadSeries(s) })));
+  try {
+    const assets = await listPortfolio();
+    if (assets?.length) return fromCloudinary(assets);
+  } catch (error) {
+    console.error("[photos] Cloudinary unavailable, using local photos", error);
+  }
+  return fromDisk();
 }

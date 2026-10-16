@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Photo from "./Photo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { haptic } from "@/lib/haptics";
@@ -12,6 +12,8 @@ export interface LightboxItem {
   alt: string;
   note?: string;
   group?: string;
+  /** Cloudinary signed URLs by width */
+  variants?: Record<number, string>;
 }
 
 type VTDocument = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
@@ -115,9 +117,10 @@ function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; i
       </div>
 
       <div className="relative flex min-h-0 flex-1 items-center justify-center p-2 md:p-8" onClick={onClose}>
-        <Image
+        <Photo
           key={item.src}
           src={item.src}
+          variants={item.variants}
           alt={item.alt}
           width={item.width ?? 1600}
           height={item.height ?? 1000}

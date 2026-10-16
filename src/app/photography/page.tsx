@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     "Freelance photography by Neil Jacob Santiago — school events, fashion portraits, landscapes, live OPM concerts and astrophotography. Custom private shoots from ₱1,999 an hour; sessions from ₱299.",
 };
 
+// Picks up new Cloudinary uploads at least every 10 minutes (instantly with the webhook).
+export const revalidate = 600;
+
 export default async function PhotographyPage() {
   const series = await getSeries();
   const featured = services.find((s) => s.custom);

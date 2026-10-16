@@ -239,7 +239,7 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
       if (!s) return { result: { error: "No such collection." } };
       return {
         result: { title: s.title, story: s.story, frames: s.photos.length, highlights: s.photos.slice(0, 6).map((p) => p.alt), page: `/photography#${s.slug}` },
-        card: { kind: "collection", slug: s.slug, title: s.title, count: s.photos.length, cover: s.photos[0]?.src ?? null },
+        card: { kind: "collection", slug: s.slug, title: s.title, count: s.photos.length, cover: s.photos[0] ? (s.photos[0].variants?.[768] ?? s.photos[0].src) : null },
       };
     }
     case "github_activity": {

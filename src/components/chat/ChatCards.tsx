@@ -43,7 +43,7 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
     return (
       <Link href={`/photography#${card.slug}`} onClick={onNavigate} className="group block">
         <div className="relative aspect-[16/9] overflow-hidden bg-ink">
-          {card.cover && <Image src={card.cover} alt="" fill sizes="380px" className="object-cover transition-transform duration-700 group-hover:scale-105" />}
+          {card.cover && <Image src={card.cover} alt="" fill sizes="380px" unoptimized={card.cover.startsWith("https://")} className="object-cover transition-transform duration-700 group-hover:scale-105" />}
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent" />
           <p className="absolute bottom-3 left-3.5 font-display text-2xl text-paper">{card.title}</p>
         </div>
