@@ -3,9 +3,9 @@ import type { Algorithm } from "./memory";
 // The Lab: small working tools, each grown out of a real project.
 // The Lab page, project pages, the command palette and NeilAI all read this list.
 
-export type ToolId = "subnet" | "memory" | "link" | "pathoscan" | "quote" | "whisper";
-/** Tools NeilAI can open as a chat card. Whisper needs the full page (files, mic, a big model), so it stays in the Lab. */
-export type ChatToolId = Exclude<ToolId, "whisper">;
+export type ToolId = "subnet" | "memory" | "link" | "pathoscan" | "quote" | "whisper" | "registrar";
+/** Tools NeilAI can open as a chat card. Whisper needs the full page (files, mic, a big model) and the registrar demo a wide form, so they stay in the Lab. */
+export type ChatToolId = Exclude<ToolId, "whisper" | "registrar">;
 
 export interface ToolMeta {
   id: ToolId;
@@ -31,6 +31,13 @@ export const tools: ToolMeta[] = [
     blurb: "Turn a recording into editable text and subtitles with OpenAI's Whisper — running in your browser, so the audio never leaves your device.",
     project: { slug: "whisper-transcription", title: "Whisper AI Transcription" },
     keywords: "whisper speech to text transcribe transcription audio video subtitles srt vtt captions translate tagalog filipino voice recording ai",
+  },
+  {
+    id: "registrar",
+    title: "Registrar API playground",
+    blurb: "Sign in as a registrar, an adviser or a student and send requests to the Student Information System's Laravel API — see who's allowed, what fails validation and why.",
+    project: { slug: "student-information-system", title: "Student Information System" },
+    keywords: "laravel php api rest crud sanctum policy validation 422 403 student information system registrar database mysql backend",
   },
   {
     id: "subnet",

@@ -11,6 +11,7 @@ export default function ProjectCover({ project, sizes, className, priority }: { 
   if (project.slug === "pathoscan") return <PathoScanArt className={className} priority={priority} />;
   if (project.slug === "memory-allocation-simulator") return <MemoryArt className={className} />;
   if (project.slug === "whisper-transcription") return <WhisperArt className={className} />;
+  if (project.slug === "student-information-system") return <RegistrarArt className={className} />;
 
   if (project.cover) {
     return (
@@ -80,6 +81,49 @@ function MemoryArt({ className }: { className?: string }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Student Information System: a student file on the React side, the Laravel API answering on the other. */
+function RegistrarArt({ className }: { className?: string }) {
+  const rows = [
+    ["ID126-0001", "Santos, Miguel", "BSIT 1-1"],
+    ["ID126-0002", "Reyes, Angela", "BSIT 1-1"],
+    ["ID125-0003", "Garcia, Paolo", "BSIT 2-1"],
+  ];
+  return (
+    <div className={cn("relative flex items-center gap-[5%] overflow-hidden bg-[#0f2317] p-[7%] text-paper", className)} aria-hidden>
+      <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgb(242_183_5/0.22),transparent)]" />
+      {/* The React app: a records list in CLSU green and gold */}
+      <div className="relative w-[56%] shrink-0 rounded-lg bg-[#fafaf8] p-[4%] text-[#0f2317] shadow-2xl transition-transform duration-700 ease-[var(--ease-spring)] group-hover:-translate-y-1 group-hover:-rotate-1">
+        <p className="font-serif text-[0.8rem] leading-tight md:text-sm">Student records</p>
+        <div className="mt-2 h-px bg-[#e4e1d8]" />
+        {rows.map(([id, name, sec]) => (
+          <div key={id} className="mt-2 flex items-center gap-2 border-t-2 border-[#f2b705] bg-white px-2 py-1.5 shadow-sm">
+            <span className="font-mono text-[0.45rem] text-[#2e7d32] md:text-[0.5rem]">{id}</span>
+            <span className="min-w-0 flex-1 truncate text-[0.55rem] md:text-[0.6rem]">{name}</span>
+            <span className="hidden font-mono text-[0.45rem] text-[#8b7355] sm:inline">{sec}</span>
+          </div>
+        ))}
+        <span className="mt-2.5 inline-block rounded-full bg-[#1b5e20] px-2.5 py-1 font-mono text-[0.45rem] text-white">+ New record</span>
+      </div>
+      {/* The Laravel API answering */}
+      <div className="relative min-w-0 flex-1 space-y-2 font-mono text-[0.5rem] leading-relaxed md:text-[0.58rem]">
+        <p className="truncate text-[#8fcb9b]">POST /api/registrar/students</p>
+        <div className="rounded-md bg-black/30 p-2 ring-1 ring-white/10 transition-transform delay-75 duration-700 ease-[var(--ease-spring)] group-hover:translate-x-1">
+          <p>
+            <span className="rounded bg-[#f2b705] px-1 text-[#0f2317]">422</span> <span className="text-white/60">section_id</span>
+          </p>
+          <p className="truncate text-white/80">&quot;BSIT 1-1 is at its capacity of 40.&quot;</p>
+        </div>
+        <div className="rounded-md bg-black/30 p-2 ring-1 ring-white/10 transition-transform delay-150 duration-700 ease-[var(--ease-spring)] group-hover:translate-x-1">
+          <p>
+            <span className="rounded bg-[#c1121f] px-1">403</span> <span className="text-white/60">StudentPolicy@delete</span>
+          </p>
+        </div>
+        <p className="label pt-1 text-[0.45rem] text-white/50">laravel · sanctum · mysql</p>
+      </div>
     </div>
   );
 }

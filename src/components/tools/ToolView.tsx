@@ -5,6 +5,7 @@ import LinkCheckTool from "./LinkCheckTool";
 import MemoryTool from "./MemoryTool";
 import PathoScanTool from "./PathoScanTool";
 import QuoteTool from "./QuoteTool";
+import RegistrarTool from "./RegistrarTool";
 import SubnetTool from "./SubnetTool";
 import WhisperTool from "./WhisperTool";
 
@@ -41,6 +42,8 @@ export default function ToolView({ id, card, compact }: { id?: ToolId; card?: Ch
       return <QuoteTool compact={compact} />;
     case "whisper":
       return <WhisperTool compact={compact} />;
+    case "registrar":
+      return <RegistrarTool compact={compact} />;
     default:
       return null;
   }
