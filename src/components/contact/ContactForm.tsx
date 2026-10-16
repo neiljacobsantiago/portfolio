@@ -16,15 +16,20 @@ import {
   services,
   type PhotoUse,
 } from "@/content/sessions";
+import { briefFor, briefs, briefSections, requiredIn, type Brief, type BriefAnswers, type Field, type TopicId } from "@/content/briefs";
 import { haptic } from "@/lib/haptics";
 import { site } from "@/lib/site";
 import { bookingSections, peso, quote, time12 } from "@/lib/tools/quote";
 import { cn } from "@/lib/utils";
 
-type Status = { state: "idle" | "sending" } | { state: "success"; summary?: string; confirmation?: boolean } | { state: "error"; message: string };
+type Status = { state: "idle" | "sending" } | { state: "success"; summary?: string; brief?: string; confirmation?: boolean } | { state: "error"; message: string };
 
-const topics = ["A network", "Security", "A website", "Photography", "Something else"];
-const PHOTO = "Photography";
+// The chips at the top: photo bookings plus every project brief.
+const topics: { id: TopicId; label: string }[] = [
+  { id: "website", label: "A website" },
+  { id: "photography", label: "Book a photoshoot" },
+  ...briefs.filter((b) => b.id !== "website").map((b) => ({ id: b.id, label: b.button })),
+];
 
 const field =
   "w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink outline-none transition-colors placeholder:text-ink/35 focus:border-ember disabled:opacity-60";
@@ -51,7 +56,9 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
   const presetService = services.find((s) => s.id === preset?.service);
   const presetPackage = presetService?.packages.find((p) => p.id === preset?.package);
   const [status, setStatus] = useState<Status>({ state: "idle" });
-  const [topic, setTopic] = useState(presetService || preset?.topic === "photography" ? PHOTO : topics[0]);
+  const [topic, setTopic] = useState<TopicId>(presetService || preset?.topic === "photography" ? "photography" : (briefFor(preset?.topic)?.id ?? "website"));
+  // Project brief answers. Kept across topic switches so shared ones (phone, handle) carry over.
+  const [answers, setAnswers] = useState<BriefAnswers>({});
   const [serviceId, setServiceId] = useState(presetService?.id ?? "");
   const [packageId, setPackageId] = useState(presetPackage?.id ?? "");
   // Custom private shoot details
@@ -66,7 +73,9 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
   const bind = (k: keyof typeof EMPTY) => ({ name: k, value: d[k], onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD((v) => ({ ...v, [k]: e.target.value })) });
   const sending = status.state === "sending";
   const service = services.find((s) => s.id === serviceId);
-  const booking = topic === PHOTO;
+  const booking = topic === "photography";
+  const brief = booking ? undefined : briefFor(topic);
+  const briefSummary = brief ? briefSections(brief, answers) : [];
   const custom = booking && service?.custom;
   const pkg = service?.packages.find((p) => p.id === packageId);
   const estimate = booking && service && pkg ? quote(serviceId, packageId, people, custom ? picked : []) : null;
@@ -94,6 +103,13 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    // Chip questions can't use the browser's own "required", so check them here.
+    const unanswered = brief?.steps.flatMap((st) => st.fields).find((f) => requiredIn(brief).includes(f.id) && f.kind !== "confirm" && !answers[f.id]?.length);
+    if (unanswered) {
+      setStatus({ state: "error", message: `Please answer “${unanswered.label}”.` });
+      document.getElementById(`q-${unanswered.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setStatus({ state: "sending" });
     try {
       const res = await fetch("/api/contact", {
@@ -103,8 +119,9 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
           name: data.name,
           email: data.email,
           company: data.company,
-          topic,
+          topic: brief?.topic ?? "Photography",
           message: data.message,
+          brief: brief ? { id: brief.id, answers: Object.fromEntries(Object.entries(answers).filter(([k]) => brief.steps.some((st) => st.fields.some((f) => f.id === k)))) } : undefined,
           booking: booking
             ? {
                 service: serviceId,
@@ -122,9 +139,11 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
         form.reset();
         const sent = d;
         setD(EMPTY);
+        setAnswers({});
         setStatus({
           state: "success",
           confirmation: result.confirmation,
+          brief: brief && brief.id !== "other" ? brief.topic : undefined,
           summary:
             booking && pkg && service
               ? `${pkg.name} · ${service.name} · ${new Date(`${sent.date}T00:00:00`).toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" })}${sent.time ? ` · ${time12(sent.time)}` : ""}`
@@ -142,11 +161,11 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
   if (status.state === "success") {
     return (
       <div className="animate-pop-in py-12 text-center" role="status">
-        <p className="label text-ember">{booking ? "Booking request received" : "Message received"}</p>
+        <p className="label text-ember">{booking ? "Booking request received" : status.brief ? `${status.brief} received` : "Message received"}</p>
         <p className="mt-4 font-display text-5xl">Thank you.</p>
         {status.summary && <p className="label mx-auto mt-6 inline-block rounded-full bg-paper-deep px-4 py-2 text-ink/70">{status.summary}</p>}
         <p className="mx-auto mt-4 max-w-sm font-serif text-xl text-ink/75 italic">
-          {booking ? "I'll confirm availability within 24 hours and send the downpayment details." : "I read every message myself and reply within 24 hours."}
+          {booking ? "I'll confirm availability within 24 hours and send the downpayment details." : status.brief ? "I'll read it and reply within 24 hours, with questions if anything is unclear." : "I read every message myself and reply within 24 hours."}
           {status.confirmation && " A copy is on its way to your inbox."}
         </p>
         <button type="button" onClick={() => setStatus({ state: "idle" })} className="label press mt-10 rounded-full border border-ink/25 px-6 py-3 hover:border-ink">
@@ -163,16 +182,17 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
         <div className="flex flex-wrap gap-2">
           {topics.map((t) => (
             <button
-              key={t}
+              key={t.id}
               type="button"
               onClick={() => {
                 haptic();
-                setTopic(t);
+                setTopic(t.id);
+                if (status.state === "error") setStatus({ state: "idle" });
               }}
-              aria-pressed={topic === t}
+              aria-pressed={topic === t.id}
               className="label press rounded-full border border-ink/20 px-4 py-2.5 hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
             >
-              {t === PHOTO ? "Book a photoshoot" : t}
+              {t.label}
             </button>
           ))}
         </div>
@@ -181,10 +201,10 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
       <div className="grid gap-10 sm:grid-cols-2">
         <label className="block">
           <span className="label text-ink/60">Your name</span>
-          <input name="name" autoComplete="name" maxLength={80} required={booking} disabled={sending} className={field} placeholder="Juan Dela Cruz" />
+          <input name="name" autoComplete="name" maxLength={80} required={booking || (brief && brief.id !== "other")} disabled={sending} className={field} placeholder="Juan Dela Cruz" />
         </label>
         <label className="block">
-          <span className="label text-ink/60">{booking ? "Your email — your confirmation goes here" : "Email"}</span>
+          <span className="label text-ink/60">{booking || (brief && brief.id !== "other") ? "Your email — your copy goes here" : "Email"}</span>
           <input required type="email" name="email" autoComplete="email" inputMode="email" maxLength={254} disabled={sending} className={field} placeholder="you@example.com" />
         </label>
       </div>
@@ -432,8 +452,10 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
         </div>
       )}
 
+      {brief && <BriefForm key={brief.id} brief={brief} answers={answers} onChange={setAnswers} summary={briefSummary} />}
+
       <label className="block">
-        <span className="label text-ink/60">{booking ? "Creative vision & notes" : "Tell me about it"}</span>
+        <span className="label text-ink/60">{booking ? "Creative vision & notes" : (brief?.message.label ?? "Tell me about it")}</span>
         <textarea
           required
           name="message"
@@ -442,7 +464,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
           maxLength={5000}
           disabled={sending}
           className={`${field} resize-y`}
-          placeholder={custom ? "The concept, the feeling, outfits, anything you'd like to avoid…" : booking ? "The vibe, lighting, outfits, location ideas…" : "Dates, places, what you have in mind…"}
+          placeholder={custom ? "The concept, the feeling, outfits, anything you'd like to avoid…" : booking ? "The vibe, lighting, outfits, location ideas…" : (brief?.message.placeholder ?? "Dates, places, what you have in mind…")}
         />
       </label>
 
@@ -466,7 +488,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
       <div className="flex flex-wrap items-center gap-6">
         <button type="submit" disabled={sending} className="btn bg-ember text-paper hover:bg-ink disabled:opacity-60">
-          {sending ? "Sending…" : booking ? "Request booking" : "Send message"} <span className="arrow">→</span>
+          {sending ? "Sending…" : booking ? "Request booking" : brief && brief.id !== "other" ? "Send brief" : "Send message"} <span className="arrow">→</span>
         </button>
         <p aria-live="polite" className="font-serif text-ember italic">
           {status.state === "error" && status.message}
@@ -477,15 +499,15 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 }
 
 /** A numbered section of the booking form, with a line on why it's asked. */
-function Step({ n, title, hint, children }: { n: number; title: string; hint?: string; children: React.ReactNode }) {
+function Step({ n, title, hint, id = String(n), children }: { n: number; title: string; hint?: string; id?: string; children: React.ReactNode }) {
   return (
-    <section className="animate-pop-in" aria-labelledby={`step-${n}`}>
+    <section className="animate-pop-in" aria-labelledby={`step-${id}`}>
       <div className="mb-6 flex items-start gap-4 border-b border-ink/10 pb-4">
         <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink font-display text-lg text-paper">
           {n}
         </span>
         <div>
-          <h3 id={`step-${n}`} className="font-display text-2xl leading-tight">
+          <h3 id={`step-${id}`} className="font-display text-2xl leading-tight">
             {title}
           </h3>
           {hint && <p className="mt-1 font-serif text-ink/60 italic">{hint}</p>}
@@ -517,4 +539,154 @@ function Chips({ label, options, value, onChange }: { label: string; options: re
       ))}
     </div>
   );
+}
+
+/** A project brief: its steps, a live summary and what happens next. */
+function BriefForm({ brief, answers, onChange, summary }: { brief: Brief; answers: BriefAnswers; onChange: React.Dispatch<React.SetStateAction<BriefAnswers>>; summary: ReturnType<typeof briefSections> }) {
+  const set = (id: string, v: string | string[]) => onChange((a) => ({ ...a, [id]: v }));
+  const light = brief.id === "other";
+  const required = requiredIn(brief);
+  return (
+    <div className={cn("animate-pop-in space-y-12", !light && "rounded-[2px] bg-paper-deep/60 p-5 sm:p-8")}>
+      {brief.intro && <p className="max-w-xl font-serif text-lg leading-snug text-ink/75 italic">{brief.intro}</p>}
+      {brief.steps.map((st, i) => (
+        <Step key={st.title} n={i + 1} title={st.title} hint={st.hint} id={`${brief.id}-${i}`}>
+          {st.fields.map((f) => (
+            <BriefField key={f.id} f={f} value={answers[f.id]} required={required.includes(f.id)} onChange={(v) => set(f.id, v)} />
+          ))}
+        </Step>
+      ))}
+      {!light && summary.length > 0 && (
+        <aside className="animate-pop-in rounded-[2px] bg-ink p-5 text-paper sm:p-7" aria-live="polite" aria-label="Your brief summary">
+          <p className="label text-[0.55rem] text-sky">Your brief, exactly as Neil will see it</p>
+          <p className="mt-2 font-display text-3xl leading-tight">{brief.topic}</p>
+          <dl className="mt-5 grid gap-x-8 gap-y-5 border-t border-paper/15 pt-5 sm:grid-cols-2">
+            {summary.map((sec) => (
+              <div key={sec.title}>
+                <dt className="label mb-2 text-[0.52rem] text-sky">{sec.title}</dt>
+                <dd>
+                  <ul className="space-y-1 font-serif text-[0.98rem] leading-snug">
+                    {sec.rows.map(([k, v]) => (
+                      <li key={k} className="break-words">
+                        <span className="text-paper/55">{k}:</span> {v}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <div className="mt-6 border-t border-paper/15 pt-5">
+            <p className="label text-[0.55rem] text-sky">What happens next</p>
+            <ol className="mt-3 space-y-2">
+              {brief.next.map((step, i) => (
+                <li key={step} className="flex gap-3 font-serif text-paper/85">
+                  <span className={cn("font-display", i === 0 ? "text-ember" : "text-sky")}>{i + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </aside>
+      )}
+    </div>
+  );
+}
+
+function BriefField({ f, value, required, onChange }: { f: Field; value: string | string[] | undefined; required: boolean; onChange: (v: string | string[]) => void }) {
+  const wide = f.wide && "sm:col-span-2";
+  const caption = (
+    <>
+      {f.label}
+      {f.optional && " (optional)"}
+    </>
+  );
+  const one = typeof value === "string" ? value : "";
+  switch (f.kind) {
+    case "chips":
+      return (
+        <div id={`q-${f.id}`} className={cn("scroll-mt-28", wide)}>
+          <span className="label mb-3 block text-ink/60">
+            {caption}
+            {required && <span className="text-ember"> *</span>}
+          </span>
+          <Chips label={f.label} options={f.options} value={one} onChange={onChange} />
+        </div>
+      );
+    case "multi": {
+      const list = Array.isArray(value) ? value : [];
+      return (
+        <div className={cn(wide)}>
+          <span className="label mb-3 block text-ink/60">
+            {caption} <span className="normal-case tracking-normal text-ink/40 italic">· pick any</span>
+          </span>
+          <div role="group" aria-label={f.label} className="flex flex-wrap gap-2">
+            {f.options.map((o) => (
+              <button
+                key={o}
+                type="button"
+                aria-pressed={list.includes(o)}
+                onClick={() => {
+                  haptic();
+                  onChange(list.includes(o) ? list.filter((x) => x !== o) : [...list, o]);
+                }}
+                className="label press flex items-center gap-1.5 rounded-full border border-ink/20 bg-paper/60 px-4 py-2.5 text-[0.58rem] hover:border-ink aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-paper"
+              >
+                <span aria-hidden className="text-[0.7rem] leading-none">
+                  {list.includes(o) ? "✓" : "+"}
+                </span>
+                {o}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "select":
+      return (
+        <label className={cn("block", wide)}>
+          <span className="label text-ink/60">{caption}</span>
+          <select name={`brief-${f.id}`} value={one} onChange={(e) => onChange(e.target.value)} className={`${field} cursor-pointer`}>
+            <option value="">Choose…</option>
+            {f.options.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </select>
+        </label>
+      );
+    case "date":
+      return (
+        <label className={cn("block", wide)}>
+          <span className="label text-ink/60">{caption}</span>
+          <input type="date" name={`brief-${f.id}`} value={one} onChange={(e) => onChange(e.target.value)} min={today()} suppressHydrationWarning className={field} />
+        </label>
+      );
+    case "confirm":
+      return (
+        <label className={cn("flex cursor-pointer items-start gap-3 rounded-[2px] border border-ember/40 bg-paper/70 p-4 font-serif text-lg text-ink/85", wide)}>
+          <input type="checkbox" required checked={one === "yes"} onChange={(e) => onChange(e.target.checked ? "yes" : "")} className="mt-1.5 h-4 w-4 shrink-0 accent-[var(--color-ember)]" />
+          <span>{f.label}</span>
+        </label>
+      );
+    default:
+      return (
+        <label className={cn("block", wide)}>
+          <span className="label text-ink/60">{caption}</span>
+          <input
+            name={`brief-${f.id}`}
+            type={f.kind}
+            value={one}
+            onChange={(e) => onChange(e.target.value)}
+            maxLength={f.max}
+            inputMode={f.kind === "tel" ? "tel" : f.kind === "url" ? "url" : undefined}
+            autoComplete={f.kind === "tel" ? "tel" : undefined}
+            pattern={f.kind === "tel" ? "[0-9+()\\s-]{7,20}" : undefined}
+            className={field}
+            placeholder={f.placeholder}
+          />
+        </label>
+      );
+  }
 }

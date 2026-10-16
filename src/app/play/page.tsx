@@ -15,6 +15,7 @@ export default function PlayPage() {
     <>
       <DriveGame />
 
+      <div id="arcade" className="scroll-mt-16" />
       <Container className="py-24 md:py-32">
         <div className="mb-14 grid gap-6 md:grid-cols-12">
           <p className="label text-ember md:col-span-3">The arcade</p>

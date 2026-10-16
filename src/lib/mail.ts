@@ -1,3 +1,4 @@
+import { briefCard, briefSections, type Brief, type BriefAnswers } from "@/content/briefs";
 import { bookingSteps, bookingTerms, privateTerms, type Package, type Service } from "@/content/sessions";
 import { site } from "@/lib/site";
 import { bookingSections, time12, type Section, type ShootExtras } from "@/lib/tools/quote";
@@ -12,6 +13,8 @@ export interface Inquiry {
   topic: string;
   message: string;
   booking?: { service: Service; pkg: Package; date: string; phone: string; extras?: ShootExtras };
+  /** A project brief (website, video, network, security…), already checked. */
+  brief?: { brief: Brief; answers: BriefAnswers };
 }
 
 /** Booking terms, plus the private-shoot rules for custom shoots. */
@@ -109,7 +112,7 @@ ${m.card.lines.map((l) => `<p style="margin:4px 0 0;color:${C.ink};font:17px/1.4
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(m.preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page}"><tr><td align="center" style="padding:28px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:${C.paper};border:1px solid ${C.ink}22">
-<tr><td style="background:${C.wine};padding:22px 32px"><p style="${label(C.paper)}">${esc(site.name)}</p><p style="margin:6px 0 0;color:${C.paper}cc;font:italic 15px/1.3 ${SERIF}">Photography · Networks · Web</p></td></tr>
+<tr><td style="background:${C.wine};padding:22px 32px"><p style="${label(C.paper)}">${esc(site.name)}</p><p style="margin:6px 0 0;color:${C.paper}cc;font:italic 15px/1.3 ${SERIF}">Web · Photo &amp; Video · Networks</p></td></tr>
 ${block(`<p style="${label(C.ember)}">${esc(m.eyebrow)}</p><h1 style="margin:10px 0 0;color:${C.ink};font:400 34px/1.1 ${SERIF}">${esc(m.heading)}</h1><p style="margin:14px 0 0;color:${C.ink}cc;font:italic 18px/1.5 ${SERIF}">${esc(m.intro)}</p>`, "32px 32px 24px")}
 ${card}
 ${m.actions?.length ? block(buttons(m.actions), "0 32px 16px") : ""}
@@ -149,13 +152,35 @@ function cardLines(b: NonNullable<Inquiry["booking"]>) {
 export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule: string; decline: string }) {
   const b = inq.booking;
   const who = inq.name || inq.email;
+  const br = inq.brief;
+  if (!b && br && br.brief.id !== "other") {
+    const card = briefCard(br.brief, br.answers);
+    const phone = typeof br.answers.phone === "string" ? br.answers.phone : "";
+    const tel = phone.replace(/[^\d+]/g, "");
+    return out(`${br.brief.emoji} ${br.brief.topic}: ${card.title} — ${who}`, {
+      preheader: [card.title, ...card.lines].join(" · "),
+      eyebrow: `New ${br.brief.topic.toLowerCase()} brief`,
+      heading: `${who} has a ${br.brief.topic.toLowerCase()}`,
+      intro: "Everything they filled in is below, grouped the way they answered it. Hit reply to answer them directly; they've been told to expect a reply within 24 hours.",
+      card,
+      actions: [
+        { label: "Reply by email", href: `mailto:${inq.email}?subject=${encodeURIComponent(`Re: your ${br.brief.topic.toLowerCase()}`)}`, tone: "ember" },
+        ...(tel ? ([{ label: "Call client", href: `tel:${tel}`, tone: "ghost" }] as Action[]) : []),
+      ],
+      sections: [{ title: "Client", rows: [["Name", inq.name], ["Email", inq.email]] }, ...briefSections(br.brief, br.answers)],
+      note: { title: "In their words", body: inq.message },
+      steps: { title: "What they were told happens next", items: br.brief.next },
+      footer: "Sent from the project brief form on your portfolio.",
+    });
+  }
   if (!b) {
+    const extra = br ? briefSections(br.brief, br.answers).flatMap((s) => s.rows) : [];
     return out(`✉️ ${inq.topic} — ${who}`, {
       preheader: inq.message.slice(0, 120),
       eyebrow: "New message",
       heading: `${who} wrote in`,
       intro: `About ${inq.topic.toLowerCase()}. Hit reply to answer them directly.`,
-      sections: [{ title: "From", rows: [["Name", inq.name || "—"], ["Email", inq.email], ["Topic", inq.topic]] }],
+      sections: [{ title: "From", rows: [["Name", inq.name || "—"], ["Email", inq.email], ["Topic", inq.topic], ...extra] }],
       note: { title: "Their message", body: inq.message },
       footer: "Sent from the contact form on your portfolio.",
     });
@@ -190,6 +215,21 @@ export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule
 export function senderEmail(inq: Inquiry) {
   const b = inq.booking;
   const first = inq.name.split(" ")[0] || "there";
+  const br = inq.brief;
+  if (!b && br && br.brief.id !== "other") {
+    const topic = br.brief.topic.toLowerCase();
+    return out(`Your ${topic} brief — received`, {
+      preheader: "Your brief is in. Neil replies within 24 hours.",
+      eyebrow: "Brief received",
+      heading: `Thanks, ${first}. It's in.`,
+      intro: `Thank you for thinking of me for your ${topic}. Here's your brief exactly as I received it, so we're on the same page. Nothing is booked or charged yet.`,
+      card: briefCard(br.brief, br.answers),
+      sections: briefSections(br.brief, br.answers),
+      note: { title: "In your words", body: inq.message },
+      steps: { title: "What happens next", items: br.brief.next },
+      footer: `— ${site.firstName} · Reply to this email to add anything or send files.`,
+    });
+  }
   if (!b) {
     return out(`Thanks for reaching out, ${first}`, {
       preheader: "Your message is in. Neil replies within 24 hours.",
