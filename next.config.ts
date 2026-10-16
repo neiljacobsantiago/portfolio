@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
       { source: "/clearance", destination: "/about#credentials", permanent: true },
       { source: "/logs", destination: "/about", permanent: true },
       { source: "/work/philmech-pathogen-classifier", destination: "/work/pathoscan", permanent: true },
+      // Projects taken down from the site
+      { source: "/work/clirdec-network", destination: "/work", permanent: false },
+      { source: "/work/intrusion-auditing", destination: "/work", permanent: false },
+      { source: "/work/osint-forensics", destination: "/work", permanent: false },
     ];
   },
   async headers() {

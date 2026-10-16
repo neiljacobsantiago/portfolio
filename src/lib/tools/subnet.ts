@@ -1,4 +1,4 @@
-// IPv4 subnetting — the everyday maths behind the CLIRDEC network design.
+// IPv4 subnetting: the everyday maths of network design.
 // Pure functions: used by the Lab widget, NeilAI's tool calls and its offline brain.
 
 export interface SubnetInfo {

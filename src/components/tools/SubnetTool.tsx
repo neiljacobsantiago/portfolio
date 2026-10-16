@@ -13,7 +13,7 @@ const DEFAULT_NEEDS: Need[] = [
   { name: "Router link", hosts: 2 },
 ];
 
-/** Subnet calculator + VLSM planner — the maths behind the CLIRDEC network design. */
+/** Subnet calculator + VLSM planner. */
 export default function SubnetTool({
   initial = "192.168.10.0/24",
   initialNeeds,

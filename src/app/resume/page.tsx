@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 // Everything here comes from the same content as the rest of the site, so the
 // résumé never drifts out of date.
-const MORE = ["cyber-awareness-series", "intrusion-auditing", "memory-allocation-simulator", "img-stratcom"];
+const MORE = ["memory-allocation-simulator", "whisper-transcription", "img-stratcom", "worktayo"];
 
 function Block({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (

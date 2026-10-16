@@ -23,7 +23,8 @@ export default function ImageShield() {
     const root = document.documentElement;
     const reasons = new Set<string>();
     let flashTimer = 0;
-    const sync = () => root.toggleAttribute("data-shield", reasons.size > 0);
+    // Only pages that actually show photos get blacked out (and the © badge).
+    const sync = () => root.toggleAttribute("data-shield", reasons.size > 0 && !!document.querySelector("img, video"));
     const on = (why: string) => {
       reasons.add(why);
       sync();

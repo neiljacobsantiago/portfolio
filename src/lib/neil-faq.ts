@@ -91,8 +91,8 @@ const RULES: { test: RegExp; answer: FaqAnswer }[] = [
   {
     test: /\b(network|cisco|ccna|security|hack|kali|snort|audit|vlan|router)/i,
     answer: {
-      text: "On the network side: the CLIRDEC network design at CLSU, intrusion auditing with Kali, Nmap and Snort, and a Cisco NetAcad certificate — with CCNA and CompTIA Security+ in progress. 🛡️",
-      links: [{ label: "Systems & security", href: "/work#systems" }],
+      text: "Networking is his major: Network Systems & Infrastructure Engineering at CLSU. He holds a Cisco NetAcad certificate in network addressing and troubleshooting, is working towards CCNA and CompTIA Security+, and you can try his subnet and VLAN planner in the Lab. 🛡️",
+      links: [{ label: "The Lab", href: "/lab" }],
     },
   },
   {

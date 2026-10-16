@@ -17,12 +17,17 @@ export interface Service {
   custom?: boolean;
   /** What every package of this service comes with. */
   includes?: string[];
+  /** Shot at Neil's in-house studio, so the booking form doesn't ask where. */
+  atStudio?: boolean;
+  /** Example answer for "What's the occasion?" */
+  occasion?: string;
 }
 
 export const services: Service[] = [
   {
     id: "private",
     name: "Custom Private Photoshoot",
+    occasion: "e.g. a birthday concept, a couple shoot, a personal brand",
     blurb: "One-on-one and built around your idea — your place, your pace, and photos that stay private unless you say so.",
     custom: true,
     packages: [
@@ -44,6 +49,8 @@ export const services: Service[] = [
   {
     id: "id_portrait",
     name: "ID & Corporate Headshots",
+    atStudio: true,
+    occasion: "e.g. job application, company ID, LinkedIn",
     blurb: "Clean, professional portraits for IDs, CVs and profiles.",
     packages: [
       { id: "id_express", name: "Express Editorial ID", price: "₱299", detail: "15 mins · 1×1 / 2×2 prints + digital" },
@@ -54,6 +61,7 @@ export const services: Service[] = [
   {
     id: "graduation",
     name: "Graduation Photoshoot",
+    occasion: "e.g. BSIT graduation, CLSU Class of 2027",
     blurb: "Celebrate the milestone — solo, duo or with the barkada.",
     packages: [
       { id: "grad_solo", name: "Solo", price: "₱1,799", detail: "2 hrs · 1–2 outfits · 15 retouches" },
@@ -65,6 +73,8 @@ export const services: Service[] = [
   {
     id: "studio",
     name: "In-House Studio Portraits",
+    atStudio: true,
+    occasion: "e.g. portfolio update, family portrait",
     blurb: "Controlled light, editorial looks, your choice of backdrop.",
     packages: [
       { id: "studio_a", name: "Standard", price: "₱1,999", detail: "Up to 2 hrs · 15 retouches" },
@@ -75,6 +85,7 @@ export const services: Service[] = [
   {
     id: "funshoot",
     name: "Outside Funshoot & Lifestyle",
+    occasion: "e.g. barkada day out, café shoot",
     blurb: "Streets, cafés and parks — relaxed, natural and cinematic.",
     packages: [
       { id: "fun_a", name: "Quick", price: "₱499", detail: "40 mins · 1 location" },
@@ -86,6 +97,7 @@ export const services: Service[] = [
   {
     id: "pre_event",
     name: "Pre-Debut / Pre-Birthday",
+    occasion: "e.g. 18th birthday on 12 December",
     blurb: "Studio or on-location shoots before the big day.",
     packages: [
       { id: "pre_studio", name: "Studio Pre-Shoot", price: "₱2,499", detail: "Photos only · flash-controlled studio" },
@@ -96,6 +108,7 @@ export const services: Service[] = [
   {
     id: "event",
     name: "Full Event Coverage",
+    occasion: "e.g. wedding, seminar, company party (with expected guests)",
     blurb: "Birthdays, debuts, weddings, seminars and live gigs.",
     packages: [
       { id: "evt_standard", name: "Standard Photo Coverage", price: "₱4,999", detail: "Photos only · unlimited captures" },
@@ -148,4 +161,21 @@ export const privateTerms = [
 export const bookingTerms = [
   "A 30% non-refundable downpayment secures the shoot date.",
   "Strictly no RAW files — every delivered image is edited to the studio's standard.",
+];
+
+/** How the client would like to be reached about the booking. */
+export const contactPrefs = ["Email", "Call or text", "Messenger", "Viber"] as const;
+
+/** How the client plans to pay the 30% downpayment. */
+export const paymentMethods = ["GCash", "Maya", "Bank transfer", "Cash on meet-up"] as const;
+
+export const referralSources = ["Instagram", "Facebook", "TikTok", "A friend", "Saw Neil at an event", "Google", "Other"] as const;
+
+/** What happens after a booking request, in the order it happens. Shown on the form and in both emails. */
+export const bookingSteps = [
+  "The date is checked and you get a reply within 24 hours.",
+  "You pay the 30% downpayment to lock the date; payment details come with the reply.",
+  "A quick call or chat to plan outfits, places and the shot list.",
+  "Shoot day: arrive ready, the posing is directed for you.",
+  "Your edited photos arrive in a private online gallery.",
 ];
