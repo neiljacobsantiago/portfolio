@@ -8,7 +8,7 @@ import { linksIn, localAnswer } from "@/lib/neil-faq";
 import { introFor } from "@/lib/neilai/intents";
 import { hostOf, sourcesIn, type Source } from "@/lib/neilai/sources";
 import { ASK_EVENT, takeAsk, type AskDetail } from "@/lib/neilai-events";
-import { starterCard, tools, type ChatCard } from "@/lib/tools";
+import { chatTools, starterCard, type ChatCard } from "@/lib/tools";
 import BlobAvatar from "./BlobAvatar";
 import ChatCards from "./ChatCards";
 
@@ -264,7 +264,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       <div className="grid shrink-0 bg-ink transition-[grid-template-rows] duration-500 ease-[var(--ease-apple)]" style={{ gridTemplateRows: drawer ? "1fr" : "0fr" }}>
         <div className="overflow-hidden">
           <div className="grid grid-cols-2 gap-1.5 px-3 pb-3">
-            {tools.map((t, i) => (
+            {chatTools.map((t, i) => (
               <button
                 key={t.id}
                 type="button"

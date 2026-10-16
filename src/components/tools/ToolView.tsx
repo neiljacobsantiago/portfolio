@@ -6,6 +6,7 @@ import MemoryTool from "./MemoryTool";
 import PathoScanTool from "./PathoScanTool";
 import QuoteTool from "./QuoteTool";
 import SubnetTool from "./SubnetTool";
+import WhisperTool from "./WhisperTool";
 
 /** Renders a Lab tool by id, or pre-filled from a NeilAI card. */
 export default function ToolView({ id, card, compact }: { id?: ToolId; card?: ChatCard; compact?: boolean }) {
@@ -38,6 +39,8 @@ export default function ToolView({ id, card, compact }: { id?: ToolId; card?: Ch
       return <PathoScanTool compact={compact} />;
     case "quote":
       return <QuoteTool compact={compact} />;
+    case "whisper":
+      return <WhisperTool compact={compact} />;
     default:
       return null;
   }

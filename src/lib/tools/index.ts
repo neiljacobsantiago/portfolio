@@ -3,7 +3,9 @@ import type { Algorithm } from "./memory";
 // The Lab: small working tools, each grown out of a real project.
 // The Lab page, project pages, the command palette and NeilAI all read this list.
 
-export type ToolId = "subnet" | "memory" | "link" | "pathoscan" | "quote";
+export type ToolId = "subnet" | "memory" | "link" | "pathoscan" | "quote" | "whisper";
+/** Tools NeilAI can open as a chat card. Whisper needs the full page (files, mic, a big model), so it stays in the Lab. */
+export type ChatToolId = Exclude<ToolId, "whisper">;
 
 export interface ToolMeta {
   id: ToolId;
@@ -24,10 +26,17 @@ export const tools: ToolMeta[] = [
     keywords: "pathoscan aspergillus ai classifier threshold pcr confidence fungus",
   },
   {
+    id: "whisper",
+    title: "Whisper transcription",
+    blurb: "Turn a recording into editable text and subtitles with OpenAI's Whisper — running in your browser, so the audio never leaves your device.",
+    project: { slug: "whisper-transcription", title: "Whisper AI Transcription" },
+    keywords: "whisper speech to text transcribe transcription audio video subtitles srt vtt captions translate tagalog filipino voice recording ai",
+  },
+  {
     id: "subnet",
     title: "Subnet & VLAN planner",
     blurb: "Break any IPv4 network into hosts, masks and ranges — or plan VLAN subnets for a whole building.",
-    project: { slug: "clirdec-network", title: "CLIRDEC Network Architecture" },
+    project: { href: "/play", title: "Practise it in Subnet Sprint" },
     keywords: "subnet cidr ip mask vlsm vlan network calculator",
   },
   {
@@ -72,10 +81,13 @@ export type ChatCard =
   | { kind: "quote"; service: string; package?: string; people?: number; addOns?: string[] };
 
 /** Opening a tool from the chat's tool drawer. */
-export const starterCard: Record<ToolId, ChatCard> = {
+export const starterCard: Record<ChatToolId, ChatCard> = {
   subnet: { kind: "subnet", input: "192.168.10.0/24" },
   memory: { kind: "memory", blocks: [100, 500, 200, 300, 600], processes: [212, 417, 112, 426], algorithm: "best" },
   link: { kind: "link", url: "" },
   pathoscan: { kind: "pathoscan", species: "A. flavus", confidence: 94 },
   quote: { kind: "quote", service: "graduation" },
 };
+
+/** The tools offered inside NeilAI (drawer, command palette "Run … in NeilAI"). */
+export const chatTools = tools.filter((t): t is ToolMeta & { id: ChatToolId } => t.id in starterCard);

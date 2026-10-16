@@ -6,7 +6,7 @@ import type { ToolId } from "@/lib/tools";
 export type Category = "systems" | "web" | "media";
 
 export const categories: Record<Category, { label: string; blurb: string }> = {
-  systems: { label: "Systems & Security", blurb: "Networks, auditing and applied AI" },
+  systems: { label: "Systems & AI", blurb: "Operating systems and applied AI" },
   web: { label: "Web & Software", blurb: "Planned architecture, built fast" },
   media: { label: "Media & Production", blurb: "Directing, filming and coverage" },
 };
@@ -57,7 +57,7 @@ export const projects: Project[] = [
     slug: "pathoscan",
     tool: "pathoscan",
     title: "PathoScan",
-    category: "systems",
+    category: "web",
     featured: 1,
     plain: "Point a phone at a fungal culture and it names the species in seconds — no internet needed.",
     context: "COMSCI 3100 · for DA PhilMech",
@@ -125,24 +125,9 @@ export const projects: Project[] = [
     ],
   },
   {
-    slug: "clirdec-network",
-    tool: "subnet",
-    title: "CLIRDEC Network Architecture",
-    category: "systems",
-    featured: 3,
-    plain: "Planned how an entire research facility's computers talk to each other — and what it would cost.",
-    context: "Network design · CLSU",
-    role: "Network designer",
-    status: "Deployed & stable",
-    body: [
-      "Physical and logical topologies for the CLIRDEC facility at CLSU: inter-VLAN routing, static routes and RIP, plus a complete hardware bill of materials priced in pesos for procurement.",
-    ],
-    stack: ["Cisco Packet Tracer", "VLANs", "RIP", "Static routing", "Subnetting"],
-    cover: "/projects/thumb-server.jpg",
-  },
-  {
     slug: "cyber-awareness-series",
     tool: "link",
+    featured: 3,
     title: "Cyber Awareness Series",
     category: "media",
     plain: "Six short videos that make data privacy make sense to everyone.",
@@ -198,20 +183,6 @@ export const projects: Project[] = [
       { src: "/projects/aurora-fest/amf-bg9.jpg", alt: "The SB19 stage" },
       { src: "/projects/aurora-fest/amf-bg2.jpg", alt: "Neil at Aurora Fest" },
     ],
-  },
-  {
-    slug: "intrusion-auditing",
-    title: "Vulnerability & Intrusion Auditing",
-    category: "systems",
-    plain: "Played the attacker on purpose, so the defences could be tested and tightened.",
-    context: "Security lab",
-    role: "Security auditor",
-    status: "Audit complete",
-    body: [
-      "Isolated dual-boot Linux labs for network vulnerability scans, with custom Snort intrusion-detection rules watching packet traffic and stopping simulated attack payloads.",
-    ],
-    stack: ["Kali Linux", "Nmap", "Snort", "Metasploit", "Wireshark"],
-    cover: "/projects/thumb-network.jpg",
   },
   {
     slug: "parkmate",
@@ -294,7 +265,7 @@ export const projects: Project[] = [
     slug: "memory-allocation-simulator",
     tool: "memory",
     title: "Memory Allocation Simulator",
-    category: "web",
+    category: "systems",
     plain: "Shows, step by step, how a computer decides where to put things in memory.",
     context: "COMSCI 2101 · Operating Systems final project",
     role: "Front-end CLI & user interface",
@@ -308,6 +279,7 @@ export const projects: Project[] = [
   },
   {
     slug: "whisper-transcription",
+    tool: "whisper",
     title: "Whisper AI Transcription",
     category: "systems",
     plain: "Taught a machine to turn hours of recorded speech into accurate text.",
@@ -316,17 +288,6 @@ export const projects: Project[] = [
     status: "Model trained",
     body: ["Python pipelines that pair a classification step with OpenAI's Whisper speech recognition to sort, clean and transcribe recorded audio datasets."],
     stack: ["Python", "Pandas", "Whisper", "Google Colab"],
-  },
-  {
-    slug: "osint-forensics",
-    title: "OSINT & Digital Forensics",
-    category: "systems",
-    plain: "Followed digital breadcrumbs — QR codes, social posts, ciphers — to solve the case.",
-    context: "Security coursework",
-    role: "Investigator",
-    status: "Trace resolved",
-    body: ["Open-source intelligence challenges from security coursework: decoding encrypted messages hidden in Mastodon posts and QR codes to recover locations and identifiers."],
-    stack: ["Open-source intelligence", "Decryption tools", "CLI queries"],
   },
   {
     slug: "ircite-2026",

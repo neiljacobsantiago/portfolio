@@ -11,7 +11,6 @@ export default function ProjectCover({ project, sizes, className, priority }: { 
   if (project.slug === "pathoscan") return <PathoScanArt className={className} priority={priority} />;
   if (project.slug === "memory-allocation-simulator") return <MemoryArt className={className} />;
   if (project.slug === "whisper-transcription") return <WhisperArt className={className} />;
-  if (project.slug === "osint-forensics") return <OsintArt className={className} />;
 
   if (project.cover) {
     return (
@@ -109,46 +108,6 @@ function WhisperArt({ className }: { className?: string }) {
         ))}
       </div>
       <p className="label text-[0.5rem] text-paper/70">whisper · transcribe · en</p>
-    </div>
-  );
-}
-
-/** OSINT & Digital Forensics: a QR code and a cipher, decoded. */
-function OsintArt({ className }: { className?: string }) {
-  // A fixed pseudo-random pattern, with the three finder squares a QR code always has
-  const n = 21;
-  const cells: boolean[] = Array.from({ length: n * n }, (_, i) => ((i * 7919) % 13) % 3 === 0);
-  const finder = (x: number, y: number) => {
-    for (const [fx, fy] of [
-      [0, 0],
-      [n - 7, 0],
-      [0, n - 7],
-    ]) {
-      if (x >= fx && x < fx + 7 && y >= fy && y < fy + 7) {
-        const dx = x - fx;
-        const dy = y - fy;
-        return dx === 0 || dy === 0 || dx === 6 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4) ? 1 : 0;
-      }
-    }
-    return -1;
-  };
-  return (
-    <div className={cn("relative flex items-center gap-[7%] overflow-hidden bg-[#0b1726] p-[7%] text-paper", className)} aria-hidden>
-      <div className="grid aspect-square w-[38%] shrink-0 rounded-md bg-paper p-[3%]" style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
-        {cells.map((on, i) => {
-          const f = finder(i % n, Math.floor(i / n));
-          return <span key={i} className={(f === -1 ? on : f === 1) ? "bg-ink" : ""} />;
-        })}
-      </div>
-      <div className="min-w-0 flex-1 space-y-2 font-mono text-[0.6rem] md:text-[0.68rem]">
-        <p className="text-paper/45">$ decode --rot13 post.txt</p>
-        <p className="truncate text-ember line-through decoration-ember/60">Pbbeqvangrf sbyybj</p>
-        <p className="truncate text-[#7bd88f]">Coordinates follow</p>
-        <p className="text-paper/45">$ exif photo.jpg | grep GPS</p>
-        <p className="truncate">
-          <span className="rounded-sm bg-paper/80 px-1 text-transparent">15.7915° N</span> · <span className="text-sky">trace resolved</span>
-        </p>
-      </div>
     </div>
   );
 }

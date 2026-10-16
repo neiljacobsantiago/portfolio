@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { imageSizeFromFile } from "image-size/fromFile";
+import { captionFor, nameFromFile } from "@/content/photo-captions";
 import { seriesList, type Series } from "@/content/series";
 import { contextOf, folderOf, listPortfolio, ROOT as CLOUD_ROOT, variantsOf, type CloudAsset } from "@/lib/cloudinary";
 
@@ -27,11 +28,8 @@ export interface SeriesWithPhotos extends Series {
 const ROOT = path.join(process.cwd(), "public", "photography");
 const IMAGE = /\.(jpe?g|png|webp|avif)$/i;
 
-/** "andromeda-stack_02.jpg" → "Andromeda stack 02" */
-const altFromFile = (file: string) => {
-  const words = file.replace(IMAGE, "").replace(/[-_]+/g, " ").trim();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-};
+/** A readable name from a file name, or the collection's title when the file name is just a camera number. */
+const altFromFile = (file: string, fallback = "Untitled") => nameFromFile(file) || fallback;
 
 /**
  * Reads /public/photography/<series-slug>/ at build time. Drop photos into a
@@ -68,7 +66,7 @@ async function loadSeries(series: Series): Promise<Photo[]> {
         const { width, height } = await imageSizeFromFile(path.join(dir, file));
         if (!width || !height) return null;
         const caption = byKey.get(key(file))?.caption;
-        const alt = typeof caption === "string" ? caption : (caption?.title ?? altFromFile(file));
+        const alt = typeof caption === "string" ? caption : (caption?.title ?? altFromFile(file, series.title));
         const note = typeof caption === "object" ? caption.note : undefined;
         const focus = (typeof caption === "object" && caption.focus) || (height > width ? "50% 25%" : "50% 50%");
         return { src: `/photography/${series.slug}/${file}`, width, height, alt, note, focus, series: series.slug };
@@ -113,14 +111,18 @@ function fromCloudinary(assets: CloudAsset[]): SeriesWithPhotos[] {
       .map(({ a }): Photo => {
         const ctx = contextOf(a);
         const variants = variantsOf(a);
-        const name = a.display_name ?? a.filename ?? a.public_id.split("/").pop() ?? "";
+        const base = a.public_id.split("/").pop();
+        const name = a.display_name ?? a.filename ?? base ?? "";
+        // Typed into Cloudinary first, then the site's caption list, then a cleaned-up file name.
+        const known = captionFor(a.display_name, a.filename, base);
+        const knownObj = typeof known === "object" ? known : undefined;
         return {
           src: variants[1600],
           width: a.width,
           height: a.height,
-          alt: ctx.caption || ctx.title || altFromFile(name),
-          note: ctx.note || ctx.alt || undefined,
-          focus: ctx.focus || (a.height > a.width ? "50% 25%" : "50% 50%"),
+          alt: ctx.caption || ctx.title || (typeof known === "string" ? known : knownObj?.title) || altFromFile(name, s.title),
+          note: ctx.note || ctx.alt || knownObj?.note || undefined,
+          focus: ctx.focus || knownObj?.focus || (a.height > a.width ? "50% 25%" : "50% 50%"),
           series: s.slug,
           variants,
         };
@@ -128,7 +130,7 @@ function fromCloudinary(assets: CloudAsset[]): SeriesWithPhotos[] {
   }));
 }
 
-const fromDisk = () => Promise.all(seriesList.map(async (s) => ({ ...s, photos: await loadSeries(s) })));
+const fromDisk = async () => (await Promise.all(seriesList.map(async (s) => ({ ...s, photos: await loadSeries(s) })))).filter((s) => s.photos.length > 0);
 
 /**
  * The photography collections. With Cloudinary configured (see docs/PHOTOS.md)

@@ -64,7 +64,9 @@ export async function POST(req: Request) {
     if (!service || !pkg) return NextResponse.json({ error: "Please choose a service and a package." }, { status: 400 });
     if (!DATE_RE.test(date)) return NextResponse.json({ error: "Please pick a target date." }, { status: 400 });
     if (!inquiry.name) return NextResponse.json({ error: "Please add your name so I know who's booking." }, { status: 400 });
-    inquiry.booking = { service, pkg, date, phone: field(b.phone, LIMITS.phone), extras: service.custom ? cleanExtras(b.extras) : undefined };
+    const phone = field(b.phone, LIMITS.phone);
+    if (phone.replace(/\D/g, "").length < 7) return NextResponse.json({ error: "Please add a phone number for coordinating on the day." }, { status: 400 });
+    inquiry.booking = { service, pkg, date, phone, extras: cleanExtras(b.extras, Boolean(service.custom)) };
   }
 
   const { apiKey, to, confirmations } = mailConfig();

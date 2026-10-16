@@ -16,7 +16,7 @@ export interface BookingClaim {
   date: string; // YYYY-MM-DD
   phone: string;
   message: string;
-  /** Custom private shoots: time, place, people, add-ons and photo use. */
+  /** Time, place, people, contact and payment preferences (add-ons for custom shoots). */
   extras?: ShootExtras;
   /** Issued at (ms since epoch) */
   iat: number;
@@ -42,7 +42,7 @@ export function signBooking(claim: Omit<BookingClaim, "iat">): string | null {
 
 export function verifyBooking(token: string | null | undefined): BookingClaim | null {
   const key = secret();
-  if (!key || !token || token.length > 4000) return null;
+  if (!key || !token || token.length > 8000) return null;
   const [body, sig] = token.split(".");
   if (!body || !sig) return null;
   const expected = sign(body, key);

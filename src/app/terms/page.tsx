@@ -78,7 +78,7 @@ export default function TermsPage() {
                 {privateTerms.map((t) => (
                   <li key={t}>{t}</li>
                 ))}
-                <li>Your choice under &ldquo;Your photos afterwards&rdquo; is respected. Photos marked private are never posted, and you can change your mind later by email.</li>
+                <li>Your choice under &ldquo;After the shoot&rdquo; is respected. Photos marked private are never posted, and you can change your mind later by email.</li>
               </ul>
               <p>
                 Anything not covered here — dates, locations, schedules and delivery — is agreed with Neil by email before the shoot. See the packages on the{" "}

@@ -44,9 +44,17 @@ export const seriesList: Series[] = [
     tone: "ink",
   },
   {
+    slug: "everyday",
+    title: "Everyday",
+    kicker: "05 — Collection",
+    story: "Cats, small objects and quiet corners: the frames that happen between assignments, when nobody asked for a photo.",
+    gear: "",
+    tone: "paper",
+  },
+  {
     slug: "astro",
     title: "Astrophotography",
-    kicker: "05 — Collection",
+    kicker: "06 — Collection",
     story: "Andromeda, the Moon and a blood-red eclipse — long nights, many frames, stacked into one quiet image.",
     gear: "Nikon D780 · Canon EOS 1500D · Sequator",
     tone: "night",

@@ -21,7 +21,7 @@ import {
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { heightAt, tint } from "./terrain";
-import { ISLAND_RADIUS, lamps, ROAD_RADIUS } from "./world";
+import { ISLAND_RADIUS, lamps, roadDist } from "./world";
 
 // Trees, grass, rocks and street lamps. Everything is instanced (one draw
 // call per kind) and sways in a shared wind uniform.
@@ -118,9 +118,10 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
   const shadows = quality > 0.4;
 
   // Palms near the beach and scattered inland; leafy and flame trees on the hills.
-  const palms = new InstancedMesh(palmGeometry(rand), sway(new MeshStandardMaterial({ vertexColors: true, flatShading: true, side: DoubleSide, roughness: 0.9 }), wind, 0.35, 6), Math.round(26 + 24 * quality));
-  const leafy = new InstancedMesh(broadleafGeometry("#8ea866", "#6f8b4f"), sway(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9 }), wind, 0.18, 5), Math.round(26 + 30 * quality));
-  const flame = new InstancedMesh(broadleafGeometry("#c1121f", "#e2483a"), sway(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9 }), wind, 0.18, 5), Math.round(6 + 8 * quality));
+  // (the island is about 2.8x the area it used to be, so there are more of everything)
+  const palms = new InstancedMesh(palmGeometry(rand), sway(new MeshStandardMaterial({ vertexColors: true, flatShading: true, side: DoubleSide, roughness: 0.9 }), wind, 0.35, 6), Math.round(48 + 40 * quality));
+  const leafy = new InstancedMesh(broadleafGeometry("#8ea866", "#6f8b4f"), sway(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9 }), wind, 0.18, 5), Math.round(50 + 50 * quality));
+  const flame = new InstancedMesh(broadleafGeometry("#c1121f", "#e2483a"), sway(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9 }), wind, 0.18, 5), Math.round(12 + 14 * quality));
   for (const [mesh, coastal] of [
     [palms, true],
     [leafy, false],
@@ -132,7 +133,7 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
       const d = coastal && rand() < 0.7 ? ISLAND_RADIUS - 14 + rand() * 7 : 12 + rand() * (ISLAND_RADIUS - 24);
       const x = Math.cos(a) * d;
       const z = Math.sin(a) * d;
-      if (Math.abs(d - ROAD_RADIUS) < 6 || blocked(x, z, 3)) continue;
+      if (roadDist(x, z) < 3 || blocked(x, z, 3)) continue;
       if (statics.some((s) => Math.hypot(s.x - x, s.z - z) < s.r + 2.6)) continue;
       const s = 0.8 + rand() * 0.55;
       tmp.position.set(x, heightAt(x, z) - 0.1, z);
@@ -156,7 +157,7 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
   const base = new Color("#7f9450");
   const tip = new Color("#d8dc96");
   blade.setAttribute("color", new Float32BufferAttribute([base.r, base.g, base.b, base.r, base.g, base.b, tip.r, tip.g, tip.b], 3));
-  const bladeCount = Math.round(1400 + 9600 * quality * quality);
+  const bladeCount = Math.round(2400 + 14000 * quality * quality);
   const grass = new InstancedMesh(blade, sway(new MeshLambertMaterial({ vertexColors: true, side: DoubleSide }), wind, 0.16, 0.8), bladeCount);
   const shade = new Color();
   let nb = 0;
@@ -166,7 +167,7 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
     const d = 11 + rand() * (ISLAND_RADIUS - 22);
     const cx = Math.cos(a) * d;
     const cz = Math.sin(a) * d;
-    if (Math.abs(d - ROAD_RADIUS) < 4.4 || blocked(cx, cz, 1.5)) continue;
+    if (roadDist(cx, cz) < 1.3 || blocked(cx, cz, 1.5)) continue;
     const k = 6 + Math.floor(rand() * 10);
     for (let i = 0; i < k && nb < bladeCount; i++) {
       const x = cx + (rand() - 0.5) * 2.6;
@@ -185,15 +186,15 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
   g.add(grass);
 
   // Flowers and shrubs
-  const bushes = new InstancedMesh(new DodecahedronGeometry(0.7, 0), new MeshStandardMaterial({ flatShading: true, roughness: 0.9 }), 120);
+  const bushes = new InstancedMesh(new DodecahedronGeometry(0.7, 0), new MeshStandardMaterial({ flatShading: true, roughness: 0.9 }), 220);
   const flowerColors = ["#c1121f", "#fdf0d5", "#6f8b4f", "#ffd27a", "#6f8b4f"].map((c) => new Color(c));
   let nf = 0;
-  for (let guard = 0; nf < 120 && guard < 3000; guard++) {
+  for (let guard = 0; nf < 220 && guard < 5000; guard++) {
     const a = rand() * Math.PI * 2;
     const d = 11 + rand() * (ISLAND_RADIUS - 21);
     const x = Math.cos(a) * d;
     const z = Math.sin(a) * d;
-    if (Math.abs(d - ROAD_RADIUS) < 4.5 || blocked(x, z, 1.5) || statics.some((s) => Math.hypot(s.x - x, s.z - z) < s.r + 1.2)) continue;
+    if (roadDist(x, z) < 1.4 || blocked(x, z, 1.5) || statics.some((s) => Math.hypot(s.x - x, s.z - z) < s.r + 1.2)) continue;
     const s = 0.35 + rand() * 0.5;
     tmp.position.set(x, heightAt(x, z) + s * 0.4, z);
     tmp.rotation.set(rand() * 3, rand() * 3, 0);
@@ -208,19 +209,22 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
   g.add(bushes);
 
   // Rocks along the shoreline
-  const rocks = new InstancedMesh(new DodecahedronGeometry(1, 0), new MeshStandardMaterial({ color: "#b9a58a", flatShading: true, roughness: 1 }), 46);
-  for (let i = 0; i < 46; i++) {
+  const rocks = new InstancedMesh(new DodecahedronGeometry(1, 0), new MeshStandardMaterial({ color: "#b9a58a", flatShading: true, roughness: 1 }), 72);
+  let nr = 0;
+  for (let guard = 0; nr < 72 && guard < 400; guard++) {
     const a = rand() * Math.PI * 2;
     const d = ISLAND_RADIUS - 2 + rand() * 6;
     const s = 0.6 + rand() * 1.7;
     const x = Math.cos(a) * d;
     const z = Math.sin(a) * d;
+    if (blocked(x, z, s)) continue; // the pier
     tmp.position.set(x, heightAt(x, z) - 0.2, z);
     tmp.rotation.set(rand() * 3, rand() * 3, rand() * 3);
     tmp.scale.set(s, s * 0.7, s);
     tmp.updateMatrix();
-    rocks.setMatrixAt(i, tmp.matrix);
+    rocks.setMatrixAt(nr++, tmp.matrix);
   }
+  rocks.count = nr;
   rocks.castShadow = shadows;
   rocks.receiveShadow = true;
   rocks.computeBoundingSphere();
@@ -236,19 +240,19 @@ export function buildNature(opts: { rand: Rand; quality: number; blocked: (x: nu
   const bulbs = new InstancedMesh(new SphereGeometry(0.26, 10, 8), bulbMat, lamps.length);
   const poolMat = new MeshBasicMaterial({ map: glowTexture(), transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false });
   const pools = new InstancedMesh(new CircleGeometry(4.6, 24), poolMat, lamps.length);
-  lamps.forEach(([x, z], i) => {
-    const a = Math.atan2(z, x);
-    tmp.position.set(x, heightAt(x, z), z);
+  lamps.forEach(({ x, z, a, y: base }, i) => {
+    const y = base ?? heightAt(x, z);
+    tmp.position.set(x, y, z);
     tmp.rotation.set(0, -a, 0); // arm points back towards the road
     tmp.scale.setScalar(1);
     tmp.updateMatrix();
     poles.setMatrixAt(i, tmp.matrix);
     const bx = x - Math.cos(a) * 1.4;
     const bz = z - Math.sin(a) * 1.4;
-    tmp.position.set(bx, 4.35, bz);
+    tmp.position.set(bx, y + 4.35, bz);
     tmp.updateMatrix();
     bulbs.setMatrixAt(i, tmp.matrix);
-    tmp.position.set(bx, 0.06, bz);
+    tmp.position.set(bx, (base ?? heightAt(bx, bz)) + 0.06, bz);
     tmp.rotation.set(-Math.PI / 2, 0, 0);
     tmp.updateMatrix();
     pools.setMatrixAt(i, tmp.matrix);

@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Group, Line, LineBasicMaterial, type Material, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry, Vector3 } from "three";
+import { BoxGeometry, type BufferGeometry, ConeGeometry, CylinderGeometry, Group, type Material, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry } from "three";
 import { std } from "./jeepney";
 import { heightAt } from "./terrain";
 import type { Landmark } from "./world";
@@ -98,30 +98,6 @@ export function buildLandmark(l: Landmark, animated: Animated[]): Group {
         g.add(fan);
       });
       animated.push({ update: (t) => fans.forEach((f, i) => (f.rotation.z = t * (3 + i))) });
-      break;
-    }
-    case "network": {
-      const nodes: [number, number, number][] = [
-        [-4, 5, -2],
-        [4, 6, -1],
-        [0, 4, 4],
-      ];
-      for (const [x, y, z] of nodes) {
-        g.add(mesh(new CylinderGeometry(0.25, 0.35, y, 8), std(C.silver, { metalness: 0.4 }), x, y / 2, z));
-        g.add(mesh(new SphereGeometry(0.9, 14, 10), new MeshStandardMaterial({ color: C.ember, emissive: C.ember, emissiveIntensity: 0.8 }), x, y + 0.5, z));
-      }
-      g.add(mesh(new BoxGeometry(3, 1, 2), std(C.ink), 0, 0.5, 0));
-      const pts = [...nodes, nodes[0]].map(([x, y, z]) => new Vector3(x, y + 0.5, z));
-      g.add(new Line(new BufferGeometry().setFromPoints(pts), new LineBasicMaterial({ color: C.ink })));
-      const pulses = nodes.map(() => mesh(new SphereGeometry(0.28, 8, 6), new MeshStandardMaterial({ color: C.sky, emissive: C.sky, emissiveIntensity: 2 }), 0, 0, 0, false));
-      pulses.forEach((p) => g.add(p));
-      animated.push({
-        update: (t) =>
-          pulses.forEach((p, i) => {
-            const k = (t * 0.6 + i / 3) % 1;
-            p.position.lerpVectors(pts[i], pts[i + 1], k);
-          }),
-      });
       break;
     }
     case "memory": {

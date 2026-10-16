@@ -1,11 +1,18 @@
 // Island Drive's sound, synthesised with Web Audio (no files to download):
 // an engine note that follows the speed, a two-tone jeepney horn, tyre
-// screech when drifting, thuds for collisions and a chime for packets.
+// screech when drifting, thuds for collisions, a chime for packets, and a
+// voice for each prop you can knock over (wooden pins clack, cones bonk,
+// crates thunk, drums clang, balls boing) plus a fanfare for a strike.
+
+export type KnockKind = "pin" | "cone" | "crate" | "drum" | "ball";
 
 export interface DriveAudio {
   update: (s: { speed: number; throttle: number; slip: number; boost: boolean }) => void;
   horn: () => void;
   impact: (strength: number) => void;
+  /** A prop being hit: by the jeepney, or by something else (another prop, the ground). */
+  knock: (kind: KnockKind, strength: number) => void;
+  strike: () => void;
   chime: (big?: boolean) => void;
   setMuted: (muted: boolean) => void;
   suspend: () => void;
@@ -73,7 +80,38 @@ export function createAudio(): DriveAudio | null {
     o.stop(start + dur + 0.02);
   };
 
+  // A short pitched blip with an exponential tail (no sustain), optionally sliding in pitch
+  const blip = (freq: number, to: number, start: number, dur: number, type: OscillatorType, vol: number) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, start);
+    if (to !== freq) o.frequency.exponentialRampToValueAtTime(to, start + dur);
+    g.gain.setValueAtTime(vol, start);
+    g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
+    o.connect(g);
+    g.connect(master);
+    o.start(start);
+    o.stop(start + dur + 0.02);
+  };
+  const burst = (start: number, dur: number, type: BiquadFilterType, freq: number, vol: number) => {
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    const f = ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, start);
+    g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
+    src.connect(f);
+    f.connect(g);
+    g.connect(master);
+    src.start(start, Math.random() * 0.6, dur + 0.05);
+  };
+
   let lastImpact = 0;
+  let lastKnock = 0;
+  const lastKind: Record<KnockKind, number> = { pin: 0, cone: 0, crate: 0, drum: 0, ball: 0 };
   return {
     update({ speed, throttle, slip, boost }) {
       const s = Math.abs(speed);
@@ -110,6 +148,39 @@ export function createAudio(): DriveAudio | null {
       f.connect(g);
       g.connect(master);
       src.start(t, Math.random() * 0.5, 0.3);
+    },
+    knock(kind, strength) {
+      const t = now();
+      // At most ~25 voices a second, and one per kind per 45 ms: a strike clatters, it doesn't roar
+      if (strength < 1 || t - lastKnock < 0.04 || t - lastKind[kind] < 0.045) return;
+      lastKnock = lastKind[kind] = t;
+      const v = Math.min(1, 0.25 + strength / 14);
+      const j = 1 + (Math.random() - 0.5) * 0.12; // a little variety
+      if (kind === "pin") {
+        // Hard maple: a bright clack with a hollow ring
+        blip(1250 * j, 900 * j, t, 0.09, "triangle", 0.16 * v);
+        blip(2350 * j, 2100 * j, t, 0.05, "sine", 0.07 * v);
+        burst(t, 0.04, "highpass", 2500, 0.12 * v);
+      } else if (kind === "cone") {
+        blip(340 * j, 170 * j, t, 0.12, "square", 0.05 * v);
+        burst(t, 0.05, "bandpass", 900, 0.08 * v);
+      } else if (kind === "crate") {
+        blip(150 * j, 90 * j, t, 0.16, "sine", 0.22 * v);
+        burst(t, 0.12, "lowpass", 700, 0.22 * v);
+      } else if (kind === "drum") {
+        blip(210 * j, 190 * j, t, 0.45, "square", 0.045 * v);
+        blip(317 * j, 300 * j, t, 0.38, "triangle", 0.06 * v);
+        burst(t, 0.08, "bandpass", 1800, 0.1 * v);
+      } else {
+        blip(160 * j, 420 * j, t, 0.16, "sine", 0.16 * v);
+      }
+    },
+    strike() {
+      // Pins crashing, then a little arcade fanfare
+      const t = now();
+      burst(t, 0.5, "highpass", 1800, 0.18);
+      [523, 659, 784, 1047, 1319].forEach((n, i) => tone(n, t + 0.18 + i * 0.075, 0.14, "triangle", 0.07));
+      tone(1568, t + 0.6, 0.35, "sine", 0.06);
     },
     chime(big) {
       const t = now();

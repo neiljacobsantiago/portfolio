@@ -99,7 +99,7 @@ export function introFor(card: ChatCard): string {
     case "subnet":
       return `Here's ${card.input} broken down 👇 Drag the slider to try other prefix lengths.`;
     case "vlsm":
-      return `Planned it largest-first from ${card.base}, the way the CLIRDEC VLANs were carved out 👇`;
+      return `Planned it largest-first from ${card.base}, biggest segment first, so nothing overlaps 👇`;
     case "memory":
       return "Here's the allocation, drawn to scale 👇 Switch algorithms or step through process by process.";
     case "link":
