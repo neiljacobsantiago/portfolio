@@ -11,6 +11,7 @@ import ProjectImages from "@/components/work/ProjectImages";
 import ScrollShot from "@/components/work/ScrollShot";
 import ToolView from "@/components/tools/ToolView";
 import AskNeilButton from "@/components/chat/AskNeilButton";
+import KindWords from "@/components/testimonials/KindWords";
 import YouTube from "@/components/work/YouTube";
 import { categories, projectBySlug, projects } from "@/content/work";
 import { reveal } from "@/lib/reveal";
@@ -210,6 +211,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
               </ul>
             </section>
           )}
+
+          <KindWords project={project.slug} compact className="mt-14 border-t border-ink/15 pt-8" />
 
           {gallery.length > 0 && (
             <section className="mt-14">

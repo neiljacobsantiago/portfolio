@@ -15,6 +15,9 @@ const JUMPS: { key: string; href: string; label: string }[] = [
   { key: "l", href: "/lab", label: "Lab" },
   { key: "y", href: "/play", label: "Play" },
   { key: "c", href: "/contact", label: "Contact" },
+  { key: "s", href: "/services", label: "Services" },
+  { key: "n", href: "/now", label: "Now" },
+  { key: "u", href: "/uses", label: "Uses" },
 ];
 
 const OTHER: [string[], string][] = [
@@ -84,7 +87,7 @@ export default function Shortcuts() {
     <>
       {pending && (
         <p aria-hidden className="animate-blob-in label pointer-events-none fixed bottom-6 left-1/2 z-[96] -translate-x-1/2 rounded-full bg-ink px-4 py-2.5 text-[0.58rem] text-paper shadow-xl">
-          g → h w p a r l y c
+          g → {JUMPS.map((j) => j.key).join(" ")}
         </p>
       )}
       {open && (

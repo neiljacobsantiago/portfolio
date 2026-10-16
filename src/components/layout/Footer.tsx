@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { getAvailability } from "@/content/availability";
 import { seriesList } from "@/content/series";
 import { featuredProjects } from "@/content/work";
-import { legalRoutes, mainNav, site, socials } from "@/lib/site";
+import { legalRoutes, mainNav, moreRoutes, site, socials } from "@/lib/site";
+import AvailabilityBadge from "./AvailabilityBadge";
 import BackToTop from "./BackToTop";
 
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
@@ -15,8 +17,9 @@ function Column({ title, children }: { title: string; children: React.ReactNode 
 
 const item = "ulink transition-colors hover:text-sky";
 
-export default function Footer() {
+export default async function Footer() {
   const year = new Date().getFullYear();
+  const availability = await getAvailability();
   return (
     <footer className="relative overflow-hidden bg-ink px-5 pt-20 pb-[max(2rem,env(safe-area-inset-bottom))] text-paper md:px-10 md:pt-28">
       <div className="mx-auto max-w-[90rem]">
@@ -37,20 +40,14 @@ export default function Footer() {
             <p className="max-w-sm font-serif text-lg leading-relaxed text-paper/80">
               {site.name} — networks, web systems and photography from {site.location}, {site.country}.
             </p>
-            <p className="mt-4 flex items-center gap-2 font-serif text-paper/70 italic">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7bd88f]/60" />
-                <span className="relative h-2 w-2 rounded-full bg-[#7bd88f]" />
-              </span>
-              Booking shoots and taking on projects
-            </p>
+            <AvailabilityBadge availability={availability} className="mt-5 -ml-1" />
             <Link href="/contact" className="label mt-6 inline-flex rounded-full border border-paper/25 px-4 py-2.5 text-[0.6rem] transition-colors hover:border-paper hover:bg-paper hover:text-ink">
               Start a conversation →
             </Link>
             <p className="label mt-6 text-paper/40">{site.coordinates}</p>
           </div>
 
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-2 lg:col-span-8 lg:grid-cols-4">
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-2 sm:grid-cols-3 lg:col-span-8 lg:grid-cols-5">
             <div>
               <Column title="Explore">
                 {[{ label: "Home", href: "/" }, ...mainNav, { label: "Résumé", href: "/resume" }].map((r) => (
@@ -58,6 +55,18 @@ export default function Footer() {
                     <Link href={r.href} className={item}>{r.label}</Link>
                   </li>
                 ))}
+              </Column>
+            </div>
+            <div>
+              <Column title="Work with me">
+                {moreRoutes.map((r) => (
+                  <li key={r.href}>
+                    <Link href={r.href} className={item}>{r.label}</Link>
+                  </li>
+                ))}
+                <li>
+                  <Link href="/uses#colophon" className={item}>Colophon</Link>
+                </li>
               </Column>
             </div>
             <div>

@@ -22,6 +22,9 @@ npm run dev
 | `/photography` | Filterable gallery with full-screen lightbox, plus series notes and a link to the dedicated photo site |
 | `/about` | Story, timeline, credentials, toolkit and gear |
 | `/contact` | Contact form → `/api/contact` |
+| `/services` | Work with me: offers, process, principles, FAQ, kind words; CTAs to `/contact?topic=…` |
+| `/now` | A now page: this season's focus and availability |
+| `/uses` | Gear, software and the site's colophon |
 | `/terminal` | The old command line, kept as an easter egg (linked in the footer) |
 
 Old URLs (`/systems`, `/media`, `/gear`, `/clearance`, `/logs`) redirect to their new homes.
@@ -34,6 +37,14 @@ Old URLs (`/systems`, `/media`, `/gear`, `/clearance`, `/logs`) redirect to thei
 - **Projects** — `src/content/work.ts`
 - **Photography series** — `src/content/series.ts`
 - **Timeline, credentials, toolkit, gear** — `src/content/about.ts`
+- **Availability badge** ("Taking bookings for November") — `src/content/availability.ts`
+- **Now page** (bump `updated` when you edit) — `src/content/now.ts`
+- **Services, process, principles, FAQ** — `src/content/offers.ts` (photo prices come from `src/content/sessions.ts`)
+- **Gear, tools & colophon** — `src/content/uses.ts`
+- **Kind words / testimonials** — `src/content/testimonials.ts` (starts empty; only real quotes with permission)
+
+Each of these is read through an async getter (`getAvailability()`, `getNow()`, …) so a
+backend can replace the source later. See `docs/BACKEND.md`.
 
 ### Adding photos
 

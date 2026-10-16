@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
+import { getOffers } from "@/content/offers";
 import { seriesList } from "@/content/series";
 import { categories, projects, type Category } from "@/content/work";
 import { allRoutes, legalRoutes, site } from "@/lib/site";
@@ -29,13 +30,15 @@ function Group({ title, items }: { title: string; items: { label: string; href: 
   );
 }
 
-export default function SiteMapPage() {
+export default async function SiteMapPage() {
   const keys = Object.keys(categories) as Category[];
+  const offers = await getOffers();
   return (
     <>
       <PageHeader eyebrow="Site map" title={<>Every page, <em className="font-serif text-ember">one list.</em></>} lead="For finding things fast — or for search engines, which also get it as /sitemap.xml." />
       <Container className="grid gap-12 pb-24 sm:grid-cols-2 md:pb-32 lg:grid-cols-4">
         <Group title="Pages" items={allRoutes.map((r) => ({ label: r.label, href: r.href, note: r.description }))} />
+        <Group title="Work with me" items={[...offers.map((o) => ({ label: o.title, href: `/services#${o.id}`, note: o.price.label })), { label: "Colophon", href: "/uses#colophon", note: "How this site is built" }]} />
         {keys.map((k) => (
           <Group key={k} title={categories[k].label} items={projects.filter((p) => p.category === k).map((p) => ({ label: p.title, href: `/work/${p.slug}`, note: p.context }))} />
         ))}
