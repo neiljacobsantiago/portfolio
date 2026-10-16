@@ -279,6 +279,7 @@ export const projects: Project[] = [
   },
   {
     slug: "whisper-transcription",
+    tool: "whisper",
     title: "Whisper AI Transcription",
     category: "systems",
     plain: "Taught a machine to turn hours of recorded speech into accurate text.",

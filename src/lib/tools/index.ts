@@ -36,7 +36,7 @@ export const tools: ToolMeta[] = [
     id: "subnet",
     title: "Subnet & VLAN planner",
     blurb: "Break any IPv4 network into hosts, masks and ranges — or plan VLAN subnets for a whole building.",
-    project: { slug: "clirdec-network", title: "CLIRDEC Network Architecture" },
+    project: { href: "/play", title: "Practise it in Subnet Sprint" },
     keywords: "subnet cidr ip mask vlsm vlan network calculator",
   },
   {
