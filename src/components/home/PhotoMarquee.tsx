@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import PhotoImage from "@/components/photography/Photo";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { Photo } from "@/lib/photos";
@@ -130,7 +130,7 @@ function PhotoRow({ photos, trackRef }: { photos: Photo[]; trackRef: (el: HTMLDi
               className="group/photo relative block h-44 shrink-0 overflow-hidden rounded-[2px] md:h-64"
               style={{ aspectRatio: `${p.width} / ${p.height}` }}
             >
-              <Image src={p.src} alt={copy ? "" : p.alt} fill sizes="(min-width: 768px) 360px, 240px" className="object-cover transition-transform duration-700 ease-[var(--ease-apple)] group-hover/photo:scale-110" />
+              <PhotoImage src={p.src} variants={p.variants} alt={copy ? "" : p.alt} fill sizes="(min-width: 768px) 360px, 240px" className="object-cover transition-transform duration-700 ease-[var(--ease-apple)] group-hover/photo:scale-110" />
               <span className="label absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/90 to-transparent px-3 pt-8 pb-2.5 text-[0.55rem] text-paper transition-transform duration-500 ease-[var(--ease-apple)] group-hover/photo:translate-y-0">
                 {p.alt}
               </span>

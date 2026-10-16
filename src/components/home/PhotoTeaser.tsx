@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import Photo from "@/components/photography/Photo";
 import Plate from "@/components/photography/Plate";
 import Magnetic from "@/components/ui/Magnetic";
 import type { SeriesWithPhotos } from "@/lib/photos";
@@ -30,7 +30,7 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
               <Link href={`/photography#${s.slug}`} className="group press block">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-[2px]">
                   {cover ? (
-                    <Image src={cover.src} alt={cover.alt} fill sizes="(min-width: 768px) 24rem, 78vw" style={{ objectPosition: cover.focus }} className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
+                    <Photo src={cover.src} variants={cover.variants} alt={cover.alt} fill sizes="(min-width: 768px) 24rem, 78vw" style={{ objectPosition: cover.focus }} className="object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
                   ) : (
                     <Plate index={i} title={s.title} className="transition-transform duration-[1.2s] group-hover:scale-105" />
                   )}

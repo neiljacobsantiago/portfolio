@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { SeriesWithPhotos } from "@/lib/photos";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useLightbox } from "./Lightbox";
+import Photo from "./Photo";
 import Plate from "./Plate";
 
 const TONES = {
@@ -78,8 +78,8 @@ export default function Collections({ series }: { series: SeriesWithPhotos[] }) 
                     {s.title}
                   </h2>
                   <span aria-hidden className="mt-5 block h-0.5 w-16 bg-ember" />
-                  <p className="mt-5 max-w-2xl font-serif text-lg leading-relaxed opacity-75">{s.story}</p>
-                  <p className={cn("label mt-4 text-[0.62rem]", tone.muted)}>{s.gear}</p>
+                  {s.story && <p className="mt-5 max-w-2xl font-serif text-lg leading-relaxed opacity-75">{s.story}</p>}
+                  {s.gear && <p className={cn("label mt-4 text-[0.62rem]", tone.muted)}>{s.gear}</p>}
                 </div>
               </div>
             </header>
@@ -134,8 +134,9 @@ function FeatureSpread({ photo, index, onOpen, count, flip, dark }: { photo: Ser
         style={{ "--feature-w": width } as React.CSSProperties}
         className="group relative block w-full shrink-0 overflow-hidden rounded-[2px] bg-ink/20 shadow-[0_40px_90px_-45px_rgb(0_0_0/0.6)] transition-transform duration-500 ease-[var(--ease-spring)] active:scale-[0.985] md:w-[var(--feature-w)]"
       >
-        <Image
+        <Photo
           src={photo.src}
+          variants={photo.variants}
           alt={photo.alt}
           width={photo.width}
           height={photo.height}
@@ -167,8 +168,9 @@ function PhotoButton({ photo, index, onOpen, sizes }: { photo: SeriesPhoto; inde
       data-lightbox-index={index}
       className="group relative block w-full overflow-hidden rounded-[2px] bg-ink/20 transition-transform duration-500 ease-[var(--ease-spring)] active:scale-[0.985]"
     >
-      <Image
+      <Photo
         src={photo.src}
+        variants={photo.variants}
         alt={photo.alt}
         width={photo.width}
         height={photo.height}
