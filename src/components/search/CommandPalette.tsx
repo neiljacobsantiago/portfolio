@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { offerIndex } from "@/content/offers";
 import { categories, projects } from "@/content/work";
 import { seriesList } from "@/content/series";
 import { haptic } from "@/lib/haptics";
@@ -13,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 type Item = {
   id: string;
-  group: "Ask" | "Pages" | "Tools" | "Projects" | "Photography" | "Actions";
+  group: "Ask" | "Pages" | "Services" | "Tools" | "Projects" | "Photography" | "Actions";
   title: string;
   hint: string;
   /** Searchable text beyond the title. */
@@ -22,10 +23,19 @@ type Item = {
   run?: () => void;
 };
 
-const ICON: Record<Item["group"], string> = { Ask: "✦", Pages: "◎", Tools: "🧪", Projects: "▣", Photography: "◐", Actions: "→" };
+const ICON: Record<Item["group"], string> = { Ask: "✦", Pages: "◎", Services: "✳", Tools: "🧪", Projects: "▣", Photography: "◐", Actions: "→" };
 
 const BASE: Item[] = [
   ...allRoutes.map((r) => ({ id: `page:${r.href}`, group: "Pages" as const, title: r.label, hint: r.description, keywords: r.href, href: r.href })),
+  { id: "page:/uses#colophon", group: "Pages", title: "Colophon", hint: "How this site is built", keywords: "built with stack next.js tailwind cloudinary credits fonts", href: "/uses#colophon" },
+  ...offerIndex.map((o) => ({
+    id: `offer:${o.id}`,
+    group: "Services" as const,
+    title: o.title,
+    hint: o.pitch,
+    keywords: `services hire work with me freelance price timeline ${o.short} ${o.topic}`,
+    href: `/services#${o.id}`,
+  })),
   ...tools.map((t) => ({
     id: `tool:${t.id}`,
     group: "Tools" as const,

@@ -6,9 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { haptic } from "@/lib/haptics";
 import { linksIn, localAnswer } from "@/lib/neil-faq";
 import { introFor } from "@/lib/neilai/intents";
+import { freshSeed, mix } from "@/lib/neilai/random";
 import { hostOf, sourcesIn, type Source } from "@/lib/neilai/sources";
+import { pickSuggestions, topicOf } from "@/lib/neilai/suggest";
+import { greeting, starterFor, surprise } from "@/lib/neilai/variety";
 import { ASK_EVENT, takeAsk, type AskDetail } from "@/lib/neilai-events";
-import { chatTools, starterCard, type ChatCard } from "@/lib/tools";
+import { chatTools, type ChatCard } from "@/lib/tools";
 import BlobAvatar from "./BlobAvatar";
 import ChatCards from "./ChatCards";
 
@@ -25,34 +28,27 @@ interface ChatMessage {
   shown?: number;
 }
 
-const WELCOME: ChatMessage[] = [
-  { id: 1, sender: "ai", text: "Hi! I'm NeilAI 👋 — I know Neil's work inside out, and I can run his project tools right here." },
-  { id: 2, sender: "ai", text: "Ask about PathoScan, his photos or a shoot quote — or tap 🧰 to plan a subnet, check a sketchy link and more." },
-];
-
-// Suggestions rotate after every answer, so there's always something to tap.
-const SUGGESTIONS = [
-  ["Who is Neil?", "Quote a grad shoot for 4", "Show his GitHub activity"],
-  ["Is gcash-verify-account.xyz safe?", "What's PathoScan?", "Show the concert shots"],
-  ["Plan VLANs for 50, 20, 10 hosts from 192.168.10.0/24", "Which concerts has he shot?", "What camera gear?"],
-  ["Best fit vs worst fit memory", "Show me his web projects", "Can he cover my event?"],
-];
-
-/** The first suggestions match the page the visitor is on. */
-function suggestionsFor(path: string, round: number) {
-  if (round === 0) {
-    if (path.startsWith("/work/pathoscan")) return ["How does PathoScan decide?", "Is 87% A. niger cleared?", "Who was on the team?"];
-    if (path.startsWith("/work/")) return ["Explain this project simply", "What was Neil's role here?", "Show similar projects"];
-    if (path.startsWith("/lab")) return ["Subnet 192.168.1.0/26", "Is bit.ly/3promo safe?", "Best fit vs worst fit memory"];
-    if (path.startsWith("/photography")) return ["Show the concert shots", "How much is a grad shoot?", "What camera gear?"];
-    if (path.startsWith("/about")) return ["Where does he study?", "What's the ITSC Media Group?", "What does he do for fun?"];
-    if (path.startsWith("/contact")) return ["How much is a studio shoot?", "How fast does he reply?", "Is he open for projects?"];
-  }
-  return SUGGESTIONS[round % SUGGESTIONS.length];
+/** The opening messages: they know the hour and the page, and are worded differently each time. */
+function welcome(path: string): ChatMessage[] {
+  const [hello, offer] = greeting(path, new Date().getHours());
+  return [
+    { id: 1, sender: "ai", text: hello },
+    { id: 2, sender: "ai", text: offer },
+  ];
 }
 
 const TOOL_ICONS: Record<string, string> = { pathoscan: "🔬", subnet: "🌐", memory: "🧠", link: "🛡️", quote: "📸" };
-const STORE = "neilai-chat-v3";
+const STORE = "neilai-chat-v4";
+const SURPRISE = "🎲 Surprise me";
+/** How many recently shown chips are held back from coming straight back. */
+const SEEN_MAX = 60;
+const VISITED_MAX = 8;
+
+/** Adds to a most-recent-last list without duplicates, keeping the newest `max`. */
+const remember = (prev: string[], add: (string | null | undefined)[], max = SEEN_MAX) => {
+  const fresh = add.filter((x): x is string => !!x);
+  return [...prev.filter((x) => !fresh.includes(x)), ...fresh].slice(-max);
+};
 
 /** Only well-formed outside links from the server make it into a message. */
 const cleanSources = (raw: unknown): Source[] =>
@@ -62,9 +58,18 @@ const cleanSources = (raw: unknown): Source[] =>
     .map((x) => ({ label: x.label.slice(0, 80), href: x.href, host: hostOf(x.href) }));
 const TYPE_MS = 14;
 
-function restore(): { messages: ChatMessage[]; round: number } | null {
+interface Saved {
+  messages: ChatMessage[];
+  round: number;
+  /** Chips shown or asked lately, held back so they don't come straight back. */
+  seen?: string[];
+  /** Topics of recent answers, newest last: follow-ups, and what "Surprise me" skips. */
+  visited?: string[];
+}
+
+function restore(): Saved | null {
   try {
-    const saved = JSON.parse(sessionStorage.getItem(STORE) ?? "null") as { messages: ChatMessage[]; round: number } | null;
+    const saved = JSON.parse(sessionStorage.getItem(STORE) ?? "null") as Saved | null;
     return saved?.messages?.length ? saved : null;
   } catch {
     return null;
@@ -72,23 +77,30 @@ function restore(): { messages: ChatMessage[]; round: number } | null {
 }
 
 /** The offline brain's answer, with outside links for anything it names. */
-function offline(question: string) {
-  const answer = localAnswer(question);
-  const sources = sourcesIn(answer.text);
+function offline(question: string, page: string) {
+  const answer = localAnswer(question, { page });
+  const sources = [...(answer.sources ?? []), ...sourcesIn(answer.text)].filter((x, i, all) => all.findIndex((y) => y.href === x.href) === i).slice(0, 4);
   return sources.length ? { ...answer, sources } : answer;
 }
 
-export default function NeilAI({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** `opens` counts how many times the panel has been opened, so each opening deals new chips. */
+export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; opens?: number; onClose: () => void }) {
   const pathname = usePathname();
   const [saved] = useState(restore);
-  const [messages, setMessages] = useState<ChatMessage[]>(saved?.messages ?? WELCOME);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => saved?.messages ?? welcome(pathname));
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [round, setRound] = useState(saved?.round ?? 0);
   const [drawer, setDrawer] = useState(false);
   const [leaving, setLeaving] = useState<Source | null>(null);
+  // This panel only ever renders in the browser (it's loaded with ssr: false), so a
+  // random seed here can't cause a hydration mismatch. One per mount and per new chat.
+  const [seed, setSeed] = useState(freshSeed);
+  const [seen, setSeen] = useState<string[]>(saved?.seen ?? []);
+  const [visited, setVisited] = useState<string[]>(saved?.visited ?? []);
+  const [dealtFor, setDealtFor] = useState(opens);
   const stayRef = useRef<HTMLButtonElement>(null);
-  const nextId = useRef(Math.max(0, ...(saved?.messages ?? WELCOME).map((m) => m.id)) + 1);
+  const nextId = useRef(Math.max(0, ...messages.map((m) => m.id)) + 1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -108,9 +120,10 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
   // Keep the conversation for this browser tab, so a refresh doesn't wipe it.
   useEffect(() => {
     try {
-      sessionStorage.setItem(STORE, JSON.stringify({ messages: messages.slice(-30).map((m) => ({ ...m, shown: undefined })), round }));
+      const keep: Saved = { messages: messages.slice(-30).map((m) => ({ ...m, shown: undefined })), round, seen, visited };
+      sessionStorage.setItem(STORE, JSON.stringify(keep));
     } catch {}
-  }, [messages, round]);
+  }, [messages, round, seen, visited]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -134,7 +147,28 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
     if (leaving) stayRef.current?.focus({ preventScroll: true });
   }, [leaving]);
 
+  // The chips: a seeded deal from the whole pool. The page leads, the last
+  // answer gets follow-ups, one chip wanders off-theme, and nothing asked or
+  // shown lately comes back. Deterministic for these inputs, so it's render-safe.
+  const topic = visited.at(-1) ?? null;
+  const asked = messages.filter((m) => m.sender === "user").map((m) => m.text);
+  const suggestions = pickSuggestions({ seed: mix(seed, dealtFor), round, path: pathname, exclude: [...seen, ...asked], topic });
+
+  // Opened again: the chips that were on screen count as seen, and a new hand is dealt.
+  // (Before the first opening the panel is mounted but hidden, so nothing was seen yet.)
+  if (opens !== dealtFor) {
+    setDealtFor(opens);
+    if (dealtFor > 0) setSeen((prev) => remember(prev, suggestions.map((s) => s.text)));
+  }
+
   const push = (msg: Omit<ChatMessage, "id">) => setMessages((prev) => [...prev, { ...msg, id: nextId.current++ }]);
+
+  /** Marks what's on screen as seen and moves to the next topic and round. */
+  const advance = (next: string | null, question?: string) => {
+    setSeen((prev) => remember(prev, [...suggestions.map((s) => s.text), question]));
+    if (next) setVisited((prev) => remember(prev, [next], VISITED_MAX));
+    setRound((r) => r + 1);
+  };
 
   const finishTyping = () => setMessages((prev) => prev.map((m) => (m.shown !== undefined ? { ...m, shown: m.text.length } : m)));
 
@@ -162,18 +196,35 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, history, page: pathname }),
+        // The seed lets the server spotlight different work in different conversations.
+        body: JSON.stringify({ message, history, page: pathname, seed }),
       });
       const data = (await res.json()) as { reply?: string; cards?: ChatCard[]; sources?: unknown };
       // AI unavailable (no key, rate limit, outage) → the offline brain, which can still run every tool.
-      reply = res.ok && data.reply ? { text: data.reply, links: linksIn(data.reply), cards: data.cards, sources: cleanSources(data.sources) } : offline(message);
+      reply = res.ok && data.reply ? { text: data.reply, links: linksIn(data.reply), cards: data.cards, sources: cleanSources(data.sources) } : offline(message, pathname);
     } catch {
-      reply = offline(message);
+      reply = offline(message, pathname);
     }
 
     setIsTyping(false);
     push({ sender: "ai", text: reply.text, links: reply.links, cards: reply.cards?.length ? reply.cards : undefined, sources: reply.sources?.length ? reply.sources : undefined, shown: 0 });
-    setRound((r) => r + 1);
+    advance(topicOf(message, reply.cards) ?? topicOf(reply.text), message);
+  };
+
+  /** 🎲 Something interesting, picked at random and answered on the spot (works offline too). */
+  const surpriseMe = () => {
+    if (isTyping) return;
+    haptic(5);
+    finishTyping();
+    setDrawer(false);
+    const pickd = surprise(Math.random, visited);
+    push({ sender: "user", text: SURPRISE });
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      push({ sender: "ai", text: pickd.text, links: pickd.links, cards: pickd.cards, sources: pickd.sources, shown: 0 });
+      advance(pickd.topic);
+    }, 350 + Math.random() * 350);
   };
 
   // Requests from elsewhere on the site ("Ask NeilAI" buttons, the command palette).
@@ -201,11 +252,13 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
     setDrawer(false);
     setLeaving(null);
     setRound(0);
-    setMessages(WELCOME.map((m) => ({ ...m })));
-    nextId.current = WELCOME.length + 1;
+    setVisited([]);
+    setSeen((prev) => remember(prev, suggestions.map((s) => s.text)));
+    setSeed(freshSeed());
+    const fresh = welcome(pathname);
+    setMessages(fresh);
+    nextId.current = fresh.length + 1;
   };
-
-  const suggestions = suggestionsFor(pathname, round);
 
   return (
     <div
@@ -225,7 +278,11 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
         haptic(5);
         setLeaving({ label: a.getAttribute("data-label") ?? a.textContent?.trim() ?? hostOf(href), href, host: hostOf(href) });
       }}
-      className="relative mb-3 flex h-[min(640px,calc(100dvh-7rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[22px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,translate,scale,filter,visibility] duration-300 ease-[var(--ease-apple)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-x-[0.7] data-[open=false]:scale-y-[0.35] data-[open=false]:opacity-0 data-[open=false]:blur-sm data-[open=true]:animate-blob-in sm:max-w-md"
+      // Height: whatever's left of the visible viewport (--vv-h, which shrinks with the on-screen
+      // keyboard; 100dvh until the launcher measures it) once the NavBar (4rem / 5rem + the top safe
+      // area), a gap, and the launcher button below (3.5rem + mb-3 + its bottom offset) are taken out.
+      // So the panel's header always sits below the nav, never half under it.
+      className="relative mb-3 flex h-[min(640px,calc(var(--vv-h,100dvh)-4rem-env(safe-area-inset-top)-0.75rem-4.25rem-max(1rem,env(safe-area-inset-bottom))))] w-[calc(100vw-2rem)] md:h-[min(640px,calc(var(--vv-h,100dvh)-5rem-env(safe-area-inset-top)-1.25rem-4.25rem-max(1rem,env(safe-area-inset-bottom))))] max-w-sm origin-bottom-right flex-col overflow-hidden rounded-[22px] bg-paper shadow-[0_30px_80px_-20px_rgb(0_48_73/0.55)] ring-1 ring-ink/15 transition-[opacity,translate,scale,filter,visibility] duration-300 ease-[var(--ease-apple)] data-[open=false]:invisible data-[open=false]:translate-y-3 data-[open=false]:scale-x-[0.7] data-[open=false]:scale-y-[0.35] data-[open=false]:opacity-0 data-[open=false]:blur-sm data-[open=true]:animate-blob-in sm:max-w-md"
     >
       <div className="flex shrink-0 items-center justify-between gap-3 bg-ink px-4 py-3 text-paper">
         <div className="flex min-w-0 items-center gap-3">
@@ -269,7 +326,7 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
                 key={t.id}
                 type="button"
                 tabIndex={drawer ? 0 : -1}
-                onClick={() => showCard(starterCard[t.id])}
+                onClick={() => showCard(starterFor(t.id))}
                 className="press flex items-center gap-2 rounded-xl bg-paper/[0.07] px-3 py-2.5 text-left text-paper transition-colors hover:bg-paper hover:text-ink"
                 style={{ transitionDelay: drawer ? `${i * 30}ms` : "0ms" }}
               >
@@ -352,16 +409,27 @@ export default function NeilAI({ open, onClose }: { open: boolean; onClose: () =
       </div>
 
       {!isTyping && !typing && (
-        <div key={`${round}-${pathname}`} className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-3">
-          {suggestions.map((q, i) => (
+        <div key={`${round}-${pathname}-${dealtFor}-${seed}`} className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-3" data-neilai-chips>
+          {/* Always first, so it's never scrolled out of sight. */}
+          <button
+            type="button"
+            onClick={surpriseMe}
+            aria-label="Surprise me: pick something at random"
+            title="Pick something at random"
+            className="animate-pop-in label press shrink-0 rounded-full border border-dashed border-ember/60 px-3 py-2 text-[0.6rem] text-ember hover:border-ember hover:bg-ember hover:text-paper"
+          >
+            {SURPRISE}
+          </button>
+          {suggestions.map((s, i) => (
             <button
               type="button"
-              key={q}
-              onClick={() => send(q)}
+              key={s.text}
+              onClick={() => send(s.text)}
+              data-topic={s.topic}
               className="animate-pop-in label press shrink-0 rounded-full border border-ink/20 px-3 py-2 text-[0.6rem] hover:border-ink hover:bg-ink hover:text-paper"
-              style={{ animationDelay: `${i * 70}ms` }}
+              style={{ animationDelay: `${(i + 1) * 70}ms` }}
             >
-              {q}
+              {s.text}
             </button>
           ))}
         </div>

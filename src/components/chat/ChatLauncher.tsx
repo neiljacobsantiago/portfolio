@@ -6,15 +6,21 @@ import { useDeviceProfile } from "@/lib/device";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { ASK_EVENT, stashAsk, type AskDetail } from "@/lib/neilai-events";
+import { teaserFor } from "@/lib/neilai/teasers";
 import BlobAvatar from "./BlobAvatar";
 
 // The chat panel is only downloaded the first time someone opens it.
 const NeilAI = dynamic(() => import("./NeilAI"), { ssr: false });
 
-const TEASERS = ["Psst — want to see the concert shots? 🎸", "Ask me what PathoScan does 🔬", "Need a photoshoot? I know the rates 📸", "Curious who Neil is? Ask me! 👋"];
-
 export default function ChatLauncher() {
   const [open, setOpen] = useState(false);
+  // Each opening gets its own deal of suggestion chips.
+  const [opens, setOpens] = useState(0);
+  const [wasOpen, setWasOpen] = useState(false);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setOpens((n) => n + 1);
+  }
   const [loaded, setLoaded] = useState(false);
   const [teaser, setTeaser] = useState<string | null>(null);
   const [wiggle, setWiggle] = useState(false);
@@ -34,6 +40,33 @@ export default function ChatLauncher() {
     addEventListener("scroll", onScroll, { passive: true });
     return () => removeEventListener("scroll", onScroll);
   }, []);
+
+  // While the chat is open, track the visible viewport: when the on-screen keyboard
+  // opens it shrinks, so the panel is sized to what's left (--vv-h) and lifted above
+  // the keyboard (--kb). Its header then stays below the NavBar and the input stays
+  // above the keys. Pinch-zoom is left alone.
+  useEffect(() => {
+    const el = rootRef.current;
+    const vv = window.visualViewport;
+    if (!open || !el || !vv) return;
+    const clear = () => {
+      el.style.removeProperty("--vv-h");
+      el.style.removeProperty("--kb");
+    };
+    const sync = () => {
+      if (vv.scale > 1.01) return clear();
+      el.style.setProperty("--vv-h", `${Math.round(vv.height)}px`);
+      el.style.setProperty("--kb", `${Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop))}px`);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      clear();
+    };
+  }, [open]);
 
   // Eyes follow the cursor around the page.
   useEffect(() => {
@@ -68,7 +101,8 @@ export default function ChatLauncher() {
     } catch {}
     if (seen) return;
     const id = setTimeout(() => {
-      setTeaser(TEASERS[Math.floor(Math.random() * TEASERS.length)]);
+      // Chosen in the browser after arriving (no SSR mismatch), to fit the page and the visitor's hour.
+      setTeaser(teaserFor(location.pathname, new Date().getHours()));
       setWiggle(true);
       try {
         sessionStorage.setItem("neilai-teased", "1");
@@ -110,9 +144,10 @@ export default function ChatLauncher() {
         "fixed right-[max(1rem,env(safe-area-inset-right))] z-40 flex flex-col items-end transition-[transform,opacity] duration-500 ease-[var(--ease-apple)] sm:right-[max(1.5rem,env(safe-area-inset-right))] [html[data-immersive]_&]:hidden",
         tucked && !open && "pointer-events-none translate-y-24 opacity-0",
       )}
-      style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      // --kb lifts the launcher (and the open panel) above the on-screen keyboard.
+      style={{ bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + var(--kb, 0px))" }}
     >
-      {loaded && <NeilAI open={open} onClose={() => setOpen(false)} />}
+      {loaded && <NeilAI open={open} opens={opens} onClose={() => setOpen(false)} />}
 
       {teaser && !open && (
         <div className="animate-blob-in mb-3 hidden max-w-[16rem] origin-bottom-right md:flex items-start gap-2 rounded-2xl rounded-br-sm bg-paper px-4 py-3 shadow-[0_18px_40px_-14px_rgb(0_48_73/0.5)] ring-1 ring-ink/10">

@@ -58,9 +58,20 @@ export const legalRoutes: NavItem[] = [
 /** Shown at the top of each legal page. */
 export const LEGAL_UPDATED = "October 15, 2026";
 
+/**
+ * Pages kept out of the top nav so it stays short: linked from the footer,
+ * the command palette, the shortcuts overlay and the site map.
+ */
+export const moreRoutes: NavItem[] = [
+  { label: "Services", href: "/services", description: "Work with me: websites, networks, shoots & video" },
+  { label: "Now", href: "/now", description: "What I'm focused on this season" },
+  { label: "Uses", href: "/uses", description: "Gear, software & how this site is built" },
+];
+
 export const allRoutes: NavItem[] = [
   { label: "Home", href: "/", description: "Start here" },
   ...mainNav,
+  ...moreRoutes,
   { label: "Résumé", href: "/resume", description: "Ready to print or save as PDF" },
   { label: "Terminal", href: "/terminal", description: "For the curious" },
 ];

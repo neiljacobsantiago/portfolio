@@ -68,10 +68,14 @@ function StructuredData() {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
 }
 
+const LOW_POWER_PROBE = `try{var n=navigator,c=n.connection||{};if(matchMedia("(prefers-reduced-motion: reduce)").matches||(n.deviceMemory||8)<=2||(n.hardwareConcurrency||8)<=2||c.saveData||/(^|-)2g$/.test(c.effectiveType||""))document.documentElement.classList.add("low-power")}catch(e){}`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${display.variable} ${serif.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="overflow-x-hidden antialiased" suppressHydrationWarning>
+        {/* Budget phones get the static layouts from the first paint, not after hydration (same test as lib/device.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: LOW_POWER_PROBE }} />
         <StructuredData />
         <a href="#main" className="label sr-only z-[100] bg-ember px-4 py-3 text-paper focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
           Skip to content
