@@ -8,7 +8,7 @@ import { seriesList } from "@/content/series";
 import { haptic } from "@/lib/haptics";
 import { askNeilAI } from "@/lib/neilai-events";
 import { allRoutes } from "@/lib/site";
-import { starterCard, tools } from "@/lib/tools";
+import { chatTools, starterCard, tools } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -34,7 +34,7 @@ const BASE: Item[] = [
     keywords: t.keywords,
     href: `/lab#${t.id}`,
   })),
-  ...tools.map((t) => ({
+  ...chatTools.map((t) => ({
     id: `chat-tool:${t.id}`,
     group: "Actions" as const,
     title: `Run ${t.title.toLowerCase()} in NeilAI`,

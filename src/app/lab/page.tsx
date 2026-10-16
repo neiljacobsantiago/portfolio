@@ -9,7 +9,7 @@ import { reveal } from "@/lib/reveal";
 export const metadata: Metadata = {
   title: "The Lab",
   description:
-    "Small working tools grown from Neil Jacob Santiago's projects: a PathoScan confidence check, a subnet & VLAN planner, a memory allocation visualizer, a phishing link checker and a photoshoot quote.",
+    "Small working tools grown from Neil Jacob Santiago's projects: a PathoScan confidence check, a subnet & VLAN planner, a memory allocation visualizer, a phishing link checker, in-browser Whisper speech-to-text transcription and a photoshoot quote.",
 };
 
 const ASK: Record<string, string> = {
@@ -58,9 +58,11 @@ export default function LabPage() {
                     {t.project.title} →
                   </Link>
                 </p>
-                <AskNeilButton className="mt-6" prompt={ASK[t.id]}>
-                  Ask NeilAI to try it
-                </AskNeilButton>
+                {ASK[t.id] && (
+                  <AskNeilButton className="mt-6" prompt={ASK[t.id]}>
+                    Ask NeilAI to try it
+                  </AskNeilButton>
+                )}
               </div>
             </div>
             <div {...reveal("up")} className="min-w-0 rounded-[2px] bg-paper/70 p-5 shadow-[0_30px_80px_-40px_rgb(0_48_73/0.45)] ring-1 ring-ink/10 md:col-span-8 md:p-8">
