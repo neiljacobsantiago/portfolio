@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { services } from "@/content/sessions";
-import { mailConfig, ownerEmail, senderEmail, sendMail, type Inquiry } from "@/lib/mail";
+import { ownerEmail, senderEmail, type Inquiry } from "@/lib/mail";
+import { mailConfig, sendMail } from "@/lib/send-mail";
 import { signBooking } from "@/lib/booking-token";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { siteUrl } from "@/lib/site";
@@ -22,8 +23,8 @@ function text(value: unknown, max: number) {
 
 /** Quick self-check for deployments: open /api/contact to see whether email is wired up. */
 export function GET() {
-  const { apiKey, to, confirmations } = mailConfig();
-  return NextResponse.json({ email: Boolean(apiKey && to), confirmations: Boolean(apiKey && to && confirmations) });
+  const { ready, to, confirmations, gmail } = mailConfig();
+  return NextResponse.json({ email: Boolean(ready && to), confirmations: Boolean(ready && to && confirmations), via: gmail ? "gmail" : ready ? "resend" : null });
 }
 
 export async function POST(req: Request) {
@@ -69,8 +70,8 @@ export async function POST(req: Request) {
     inquiry.booking = { service, pkg, date, phone, extras: cleanExtras(b.extras, Boolean(service.custom)) };
   }
 
-  const { apiKey, to, confirmations } = mailConfig();
-  if (!apiKey || !to) {
+  const { ready, to, confirmations } = mailConfig();
+  if (!ready || !to) {
     // Local dev: print the email instead of sending it. A live site must never
     // pretend a message was delivered when nothing is connected.
     if (process.env.NODE_ENV !== "production") {
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
       console.info(`[contact] email not configured — would send:\n${mail.subject}\n\n${mail.text}`);
       return NextResponse.json({ success: true });
     }
-    console.error("[contact] RESEND_API_KEY / CONTACT_TO_EMAIL are not set");
+    console.error("[contact] no mail sender configured (GMAIL_USER + GMAIL_APP_PASSWORD, or RESEND_API_KEY + CONTACT_TO_EMAIL)");
     return NextResponse.json({ error: "The inbox isn't connected yet. Please reach Neil on Instagram or Facebook for now." }, { status: 503 });
   }
 

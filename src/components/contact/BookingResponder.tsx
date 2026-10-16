@@ -29,6 +29,7 @@ export default function BookingResponder({ token, booking, initialAction, canSen
     return start;
   });
   const [status, setStatus] = useState<{ state: "idle" | "sending" | "sent" } | { state: "error"; message: string }>({ state: "idle" });
+  const [copied, setCopied] = useState(false);
 
   // Payment instructions and usual location are remembered on this device.
   useEffect(() => {
@@ -62,7 +63,19 @@ export default function BookingResponder({ token, booking, initialAction, canSen
     }
   };
 
-  const gmail = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(booking.email)}&su=${encodeURIComponent(mail.subject)}&body=${encodeURIComponent(mail.text)}`;
+  // A compose link can only carry plain text, so the designed email travels by clipboard: copy it, open Gmail, paste.
+  const copyStyled = async () => {
+    haptic(10);
+    remember();
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([mail.html], { type: "text/html" }), "text/plain": new Blob([mail.text], { type: "text/plain" }) })]);
+      setCopied(true);
+    } catch {
+      setStatus({ state: "error", message: "This browser blocked copying. Try Chrome or Edge, or use the plain-text version." });
+    }
+  };
+  const compose = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(booking.email)}&su=${encodeURIComponent(mail.subject)}`;
+  const gmail = `${compose}&body=${encodeURIComponent(mail.text)}`;
   const mailto = `mailto:${booking.email}?subject=${encodeURIComponent(mail.subject)}&body=${encodeURIComponent(mail.text)}`;
 
   if (status.state === "sent") {
@@ -175,23 +188,41 @@ export default function BookingResponder({ token, booking, initialAction, canSen
           <iframe title="Email preview" srcDoc={mail.html} sandbox="" className="h-[30rem] w-full rounded-[2px] bg-paper ring-1 ring-ink/10" />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {canSend && (
+        {canSend ? (
+          <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={send} disabled={status.state === "sending"} className="btn bg-ember text-paper hover:bg-ink disabled:opacity-60">
               {status.state === "sending" ? "Sending…" : `Send to ${first}`} <span className="arrow">→</span>
             </button>
-          )}
-          <a href={gmail} target="_blank" rel="noopener noreferrer" onClick={remember} className={cn("btn", canSend ? "border border-ink/25 hover:border-ink" : "bg-ember text-paper hover:bg-ink")}>
-            Send from Gmail <span className="arrow">↗</span>
-          </a>
-          <a href={mailto} onClick={remember} className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
-            Other mail app
-          </a>
-        </div>
+            <button type="button" onClick={copyStyled} className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
+              {copied ? "Copied ✓" : "Copy styled email"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="button" onClick={copyStyled} className="btn bg-ember text-paper hover:bg-ink">
+                {copied ? "Copied ✓" : "1 · Copy styled email"}
+              </button>
+              <a href={compose} target="_blank" rel="noopener noreferrer" onClick={remember} className={cn("btn border border-ink/25 hover:border-ink", copied && "bg-ink text-paper")}>
+                2 · Open Gmail &amp; paste <span className="arrow">↗</span>
+              </a>
+            </div>
+            <p className="font-serif text-ink/65 italic">
+              In Gmail, click into the message body and paste (Ctrl+V, or ⌘V on a Mac): the designed email drops in, ready to send.{" "}
+              <a href={gmail} target="_blank" rel="noopener noreferrer" onClick={remember} className="ulink not-italic">
+                Plain-text version
+              </a>{" "}
+              ·{" "}
+              <a href={mailto} onClick={remember} className="ulink not-italic">
+                Other mail app
+              </a>
+            </p>
+          </div>
+        )}
         {status.state === "error" && <p className="font-serif text-ember italic">{status.message}</p>}
         {!canSend && (
           <p className="rounded-[2px] border-l-2 border-sky bg-sky/10 px-4 py-3 font-serif text-base text-ink/75">
-            “Send from Gmail” opens this exact email, ready to send from your own inbox. To send it straight from the site instead, verify a domain in Resend and set <code className="font-mono text-sm">CONTACT_FROM_EMAIL</code>.
+            Want one click instead? Add <code className="font-mono text-sm">GMAIL_USER</code> and a Google App Password as <code className="font-mono text-sm">GMAIL_APP_PASSWORD</code> in Vercel, and the site sends this exact designed email from your Gmail.
           </p>
         )}
       </div>
