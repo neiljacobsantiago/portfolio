@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { briefFor, cleanBrief } from "@/content/briefs";
 import { services } from "@/content/sessions";
 import { ownerEmail, senderEmail, type Inquiry } from "@/lib/mail";
 import { mailConfig, sendMail } from "@/lib/send-mail";
@@ -68,6 +69,19 @@ export async function POST(req: Request) {
     const phone = field(b.phone, LIMITS.phone);
     if (phone.replace(/\D/g, "").length < 7) return NextResponse.json({ error: "Please add a phone number for coordinating on the day." }, { status: 400 });
     inquiry.booking = { service, pkg, date, phone, extras: cleanExtras(b.extras, Boolean(service.custom)) };
+  }
+
+  // Project briefs: answers are checked against the brief's own question list.
+  if (!inquiry.booking && body.brief && typeof body.brief === "object") {
+    const raw = body.brief as Record<string, unknown>;
+    const brief = briefFor(typeof raw.id === "string" ? raw.id : "");
+    if (brief) {
+      const { answers, missing } = cleanBrief(brief, raw.answers);
+      if (missing.length) return NextResponse.json({ error: `Please answer “${missing[0]}”.` }, { status: 400 });
+      if (brief.id !== "other" && !inquiry.name) return NextResponse.json({ error: "Please add your name so I know who's asking." }, { status: 400 });
+      inquiry.topic = brief.topic;
+      inquiry.brief = { brief, answers };
+    }
   }
 
   const { ready, to, confirmations } = mailConfig();

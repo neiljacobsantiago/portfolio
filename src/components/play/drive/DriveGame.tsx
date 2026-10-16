@@ -346,8 +346,10 @@ export default function DriveGame() {
   return (
     <div
       ref={rootRef}
-      className={cn("touch-none overflow-hidden bg-paper select-none", driving ? "fixed inset-0 z-[70]" : "relative h-[100svh] w-full")}
-      data-lenis-prevent
+      // Before the drive starts the island is just a backdrop: phones must be
+      // able to swipe past it to the rest of the page.
+      className={cn("overflow-hidden bg-paper select-none", driving ? "fixed inset-0 z-[70] touch-none" : "relative h-[86svh] w-full touch-pan-y md:h-[100svh]")}
+      data-lenis-prevent={driving || undefined}
     >
       <canvas
         ref={canvasRef}
@@ -505,6 +507,15 @@ export default function DriveGame() {
           </p>
         </div>
       </div>
+
+      {!driving && (
+        <a
+          href="#arcade"
+          className="label press absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 text-[0.52rem] text-ink/55 hover:text-ink md:bottom-5"
+        >
+          More games below <span aria-hidden className="animate-bounce-dot inline-block">↓</span>
+        </a>
+      )}
     </div>
   );
 }

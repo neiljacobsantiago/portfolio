@@ -8,10 +8,10 @@ import { site, socials } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Start a project with ${site.name} — networks, security audits, websites, event coverage and photography.`,
+  description: `Start a project with ${site.name} — websites, photography, video, networks and security check-ups.`,
 };
 
-const services = ["Network design & setup", "Security audits", "Web systems & websites", "Event & concert coverage", "Portrait sessions"];
+const services = ["Websites & web systems", "Photoshoots & event coverage", "Video & media production", "Network design & setup", "Security check-ups & talks"];
 
 export default function ContactPage() {
   return (
@@ -19,7 +19,7 @@ export default function ContactPage() {
       <PageHeader
         eyebrow="Contact"
         title={<>Say <em className="font-serif text-ember">hello.</em></>}
-        lead="A network to plan, a system to test, a website to build or an event to photograph — tell me about it and I'll reply personally."
+        lead="A website to build, a shoot to book, a video to make or a network to fix — pick one, answer a few questions, and I'll reply personally within a day."
       />
       <Container className="grid gap-14 pb-24 md:grid-cols-12 md:pb-32">
         <aside className="space-y-10 md:col-span-4">
