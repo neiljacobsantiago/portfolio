@@ -4,7 +4,7 @@ import { Container } from "@/components/layout/PageHeader";
 import BookingResponder from "@/components/contact/BookingResponder";
 import { resolveBooking } from "@/lib/booking-claim";
 import { verifyBooking } from "@/lib/booking-token";
-import { mailConfig } from "@/lib/mail";
+import { mailConfig } from "@/lib/send-mail";
 
 export const metadata: Metadata = {
   title: "Answer a booking",
@@ -32,12 +32,12 @@ export default async function RespondPage({ searchParams }: { searchParams: Sear
     );
   }
 
-  const { apiKey, to, confirmations } = mailConfig();
+  const { ready, to, confirmations } = mailConfig();
   const action = a === "reschedule" || a === "decline" ? a : "confirm";
 
   return (
     <Container className="pt-28 pb-24 md:pt-36">
-      <BookingResponder token={t} booking={booking} initialAction={action} canSend={Boolean(apiKey && to && confirmations)} />
+      <BookingResponder token={t} booking={booking} initialAction={action} canSend={Boolean(ready && to && confirmations)} />
     </Container>
   );
 }

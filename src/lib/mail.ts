@@ -2,14 +2,9 @@ import { bookingSteps, bookingTerms, privateTerms, type Package, type Service } 
 import { site } from "@/lib/site";
 import { bookingSections, time12, type Section, type ShootExtras } from "@/lib/tools/quote";
 
-// Contact-form email: what Neil receives, and the optional confirmation the
-// sender gets. Sent through Resend's HTTP API (https://resend.com).
-//
-//   RESEND_API_KEY      required to send anything
-//   CONTACT_TO_EMAIL    Neil's inbox (with Resend's test sender this must be
-//                       the email the Resend account was created with)
-//   CONTACT_FROM_EMAIL  optional sender on a domain verified in Resend; when
-//                       set, senders also get a confirmation email
+// The emails themselves: what Neil receives, the copy the client gets, and
+// Neil's answers. Pure templates, safe to render in the browser (the booking
+// page previews them); sending lives in lib/send-mail.ts.
 
 export interface Inquiry {
   name: string;
@@ -22,13 +17,6 @@ export interface Inquiry {
 /** Booking terms, plus the private-shoot rules for custom shoots. */
 const termsFor = (service: Service) => (service.custom ? [...bookingTerms, ...privateTerms] : bookingTerms);
 
-export const mailConfig = () => ({
-  apiKey: process.env.RESEND_API_KEY,
-  to: process.env.CONTACT_TO_EMAIL,
-  from: process.env.CONTACT_FROM_EMAIL || "Portfolio <onboarding@resend.dev>",
-  /** Confirmations need a verified domain; Resend's test sender can only mail the account owner. */
-  confirmations: Boolean(process.env.CONTACT_FROM_EMAIL),
-});
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -226,17 +214,6 @@ export function senderEmail(inq: Inquiry) {
   });
 }
 
-export async function sendMail(msg: { to: string; replyTo?: string; subject: string; html: string; text: string }) {
-  const { apiKey, from } = mailConfig();
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to: [msg.to], reply_to: msg.replyTo, subject: msg.subject, html: msg.html, text: msg.text }),
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!res.ok) console.error("[contact] Resend rejected the message", res.status, await res.text().catch(() => ""));
-  return res.ok;
-}
 
 /* ── Neil's answer to a booking request, sent to the client ── */
 
@@ -292,7 +269,7 @@ export function bookingAnswerEmail(
       card: { kicker: "Save the date", title: b.service.name, lines: [`${when}${time ? ` · ${time}` : ""}`, place, `${b.pkg.name} · ${b.pkg.price}`].filter(Boolean) },
       sections,
       note: clean(d.note) ? { title: "A note from Neil", body: clean(d.note) } : undefined,
-      steps: { title: "From here", items: bookingSteps.slice(1) },
+      steps: { title: "From here", items: ["Pay the 30% downpayment using the details above; that locks your date.", ...bookingSteps.slice(2)] },
       smallPrint: termsFor(b.service),
       footer: `${sign} · Reply to this email if anything needs to change.`,
     });
