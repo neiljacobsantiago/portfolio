@@ -2,6 +2,7 @@
 //
 //   npm run photos:migrate -- --dry-run   (shows what would happen)
 //   npm run photos:migrate                (uploads)
+//   npm run photos:migrate -- --skip astro,portraits   (leaves those collections out)
 //
 // Needs CLOUDINARY_URL (or CLOUDINARY_CLOUD_NAME / _API_KEY / _API_SECRET) in
 // .env.local. Safe to run twice: photos already on Cloudinary are skipped.
@@ -17,6 +18,8 @@ try {
 } catch {}
 
 const DRY = process.argv.includes("--dry-run");
+const skipArg = process.argv.find((a, i, all) => all[i - 1] === "--skip") ?? "";
+const SKIP = new Set(skipArg.split(",").map((s) => s.trim()).filter(Boolean));
 const ROOT = path.join(process.cwd(), "public", "photography");
 const IMAGE = /\.(jpe?g|png|webp|avif)$/i;
 const key = (f) => f.replace(IMAGE, "").toLowerCase();
@@ -34,7 +37,7 @@ cloudinary.config({ ...config, secure: true });
 
 let uploaded = 0;
 let skipped = 0;
-for (const slug of (await readdir(ROOT, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name).sort()) {
+for (const slug of (await readdir(ROOT, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name).filter((n) => !SKIP.has(n)).sort()) {
   const dir = path.join(ROOT, slug);
   const files = (await readdir(dir)).filter((f) => IMAGE.test(f));
   let captions = {};
