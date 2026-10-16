@@ -1,9 +1,12 @@
 import { FunctionCallingConfigMode, GoogleGenAI, type Content } from "@google/genai";
 import { NextResponse } from "next/server";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { seriesList } from "@/content/series";
 import { projects } from "@/content/work";
+import { freshSeed } from "@/lib/neilai/random";
 import { declarations, runTool } from "@/lib/neilai/server-tools";
 import { sourcesIn, type Source } from "@/lib/neilai/sources";
+import { spotlight } from "@/lib/neilai/variety";
 import { site } from "@/lib/site";
 import type { ChatCard } from "@/lib/tools";
 
@@ -31,6 +34,13 @@ TOOLS
 - learn_more attaches outside links for real places, people, bands, organisations, events and things outside this site (where CLSU is, who Kamikazee are, what TensorFlow.js is). Use it whenever someone wants to know more about something or asks where a place is; give a one-line explanation yourself, then let the chips carry the links. The visitor confirms before any outside link opens.
 - Never invent project facts, prices or numbers that a tool didn't give you.
 
+VARIETY
+- Neil has many projects, collections, tools and games; show the range. Don't lead with PathoScan (or any one project) by default: mention it when the visitor asks about it, AI, PhilMech or fungi, or when it truly fits best.
+- When recommending something to explore ("what should I see?", "anything else?", or a closing nudge), favour this conversation's SPOTLIGHT below, and don't recommend anything you already recommended earlier in the conversation.
+- get_project returns alsoLike, a rotating pair of related projects; use it for "you might also like" instead of always naming the same one.
+- Vary your wording and your closing follow-up questions from reply to reply; avoid repeating the same offer twice. Suggest a different direction now and then (a photo collection, a Lab tool, a game, his background).
+- Variety never means making things up: every fact still comes from the data below or a tool.
+
 OPERATOR DATA
 - Neil Jacob Santiago, from ${site.location}, Philippines. Third-year BS Information Technology student at ${site.school}, majoring in Network Systems & Infrastructure Engineering.
 - Production Director of the ITSC Media Group (IMG, formerly the ITSC Multimedia Group/MMT), the media arm of the CLSU IT Student Council. Member of BITS (Builders of Information Technology Society).
@@ -41,7 +51,7 @@ OPERATOR DATA
 - Course context: PathoScan was the COMSCI 3100 project, built with Agile-Scrum. BuildIT evolved across three courses: COMSCI 1200 (C command line), INTECH 2100 (Figma prototype), INTECH 2201 (cloud site on WordPress). ParkMate: COMSCI 1201 (CRUD). WorkTayo: COMSCI 2110. BankoSantiago: ACCT 1001. Memory Allocation Simulator: COMSCI 2101. Eco-Fashion: commissioned.
 - Games: /play has Island Drive (drive a jeepney around a 3D island of Neil's projects), Shutter (a concert-photo timing game) and Subnet Sprint (a networking quiz).
 - Photography services (book via /photography#sessions or /contact): custom private photoshoots built around the client's concept and location — 1 hour ₱1,999, 2 hours ₱3,499, 3 hours ₱4,799, half day ₱7,499, full day ₱11,999, up to 2 people included, with add-ons like an extra hour, hair & makeup, a vertical reel, rush delivery and prints, and photos kept private unless the client agrees; ID & corporate headshots from ₱299, graduation shoots from ₱1,799, studio portraits from ₱1,999, outdoor funshoots from ₱499, pre-debut/pre-birthday from ₱2,499, full event coverage from ₱4,999. 30% non-refundable downpayment secures the date; no RAW files are given.
-- Photography collections: school events, fashion portraits, natural landscapes, live concerts & OPM (Kamikazee, Kitchie Nadal, Parokya ni Edgar, IV of Spades, Ben&Ben, Rico Blanco and more), astrophotography.
+- Photography collections (/photography#<id>): ${seriesList.map((s) => `${s.title} (${s.slug})`).join(", ")}. Live concerts & OPM includes Kamikazee, Kitchie Nadal, Parokya ni Edgar, IV of Spades, Ben&Ben, Rico Blanco and more.
 - Web development: enjoys it; plans the architecture first, then iterates fast (React, Next.js, Tailwind, PHP, MySQL, Java, Python, C).
 - Photography & video gear: Canon (EOS 1500D, EOS 80D), Nikon D780, Apple iPhone 14 Pro Max (ProRAW), DJI Osmo Mobile 7 and a DJI Ronin mini gimbal. Covers concerts (Aurora Fest 2026 Day 2 at Clark Global City — full story at /work/aurora-fest-2026), events, portraits and astrophotography.
 - Interests: F1 and sim racing, baseball, cooking (chicken alfredo), PC hardware, Linux, die-cast collecting.
@@ -72,7 +82,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ reply: "Rate limit reached. Give the core a minute to cool down." }, { status: 429 });
   }
 
-  let body: { message?: unknown; history?: unknown; page?: unknown };
+  let body: { message?: unknown; history?: unknown; page?: unknown; seed?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -95,7 +105,12 @@ export async function POST(req: Request) {
     { role: "user", parts: [{ text: message }] },
   ];
   const page = typeof body.page === "string" && /^\/[a-z0-9/#-]{0,80}$/i.test(body.page) ? body.page : null;
-  const systemInstruction = page ? `${SYSTEM_INSTRUCTION}\n\nThe visitor is currently viewing ${page}.` : SYSTEM_INSTRUCTION;
+  // A few items to favour, seeded per conversation: steady within a chat, different across chats.
+  const seed = typeof body.seed === "number" && Number.isSafeInteger(body.seed) && body.seed >= 0 ? body.seed : freshSeed();
+  const spot = `SPOTLIGHT for this conversation (favour these when recommending; all facts are in the data above):\n${spotlight(seed)
+    .map((s) => `- ${s}`)
+    .join("\n")}`;
+  const systemInstruction = [SYSTEM_INSTRUCTION, spot, page && `The visitor is currently viewing ${page}.`].filter(Boolean).join("\n\n");
 
   const cards: ChatCard[] = [];
   const sources: Source[] = [];
@@ -107,7 +122,8 @@ export async function POST(req: Request) {
         contents,
         config: {
           systemInstruction,
-          temperature: 0.4,
+          // A little warmer than before, for varied wording; facts stay pinned to the data and tools.
+          temperature: 0.6,
           maxOutputTokens: 500,
           tools: [{ functionDeclarations: declarations }],
           // Last round: no more tools, just answer.
