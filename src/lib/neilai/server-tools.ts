@@ -1,7 +1,7 @@
 import type { FunctionDeclaration } from "@google/genai";
 import { certificates, education, gear, inProgress, interests, organizations, profiles, toolkit } from "@/content/about";
 import { seriesList } from "@/content/series";
-import { categories, projectBySlug, projects, type Category } from "@/content/work";
+import { categories, projectBySlug, projects, type Category, type Project } from "@/content/work";
 import { addOns, EXTRA_PERSON, PRIVATE_PEOPLE_INCLUDED, privateTerms, services } from "@/content/sessions";
 import { getGitHubActivity } from "@/lib/github";
 import { getSeries } from "@/lib/photos";
@@ -11,6 +11,7 @@ import { ALGORITHMS, allocate, type Algorithm } from "@/lib/tools/memory";
 import { screen } from "@/lib/tools/pathoscan";
 import { quote } from "@/lib/tools/quote";
 import { subnet, vlsm } from "@/lib/tools/subnet";
+import { pick, sample } from "./random";
 import { resolveTopic, type Source, type SourceKind } from "./sources";
 
 // NeilAI's tools: the model decides when to call them, the server runs them
@@ -94,8 +95,8 @@ export const declarations: FunctionDeclaration[] = [
   },
   {
     name: "show_photo_collection",
-    description: "Show one of Neil's photography collections with its cover. Collections: events, portraits, landscapes, concerts, astro.",
-    parametersJsonSchema: { type: "object", properties: { slug: { type: "string", enum: ["events", "portraits", "landscapes", "concerts", "astro"] } }, required: ["slug"] },
+    description: `Show one of Neil's photography collections with its cover. Collections: ${seriesList.map((s) => `${s.slug} (${s.title})`).join(", ")}.`,
+    parametersJsonSchema: { type: "object", properties: { slug: { type: "string", enum: seriesList.map((s) => s.slug) } }, required: ["slug"] },
   },
   {
     name: "github_activity",
@@ -150,6 +151,13 @@ export const declarations: FunctionDeclaration[] = [
   },
 ];
 
+function alsoLike(p: Project): Project[] {
+  const same = projects.filter((x) => x !== p && x.category === p.category);
+  const first = same.length ? pick(same) : undefined;
+  const other = projects.filter((x) => x !== p && x !== first);
+  return [first, other.length ? pick(other) : undefined].filter((x): x is Project => !!x);
+}
+
 const summary = (p: (typeof projects)[number]) => ({ slug: p.slug, title: p.title, category: p.category, oneLine: p.plain, role: p.role, status: p.status, page: `/work/${p.slug}` });
 
 function profile(topic: string) {
@@ -191,7 +199,9 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
         .filter((p) => !categories[category] || p.category === category)
         .map((p) => ({ p, score: words.reduce((s, w) => s + (`${p.title} ${p.plain} ${p.context} ${p.role} ${p.stack.join(" ")} ${p.body.join(" ")}`.toLowerCase().includes(w) ? 1 : 0), 0) }))
         .filter((h) => !words.length || h.score > 0)
-        .sort((a, b) => b.score - a.score)
+        // Ties in random order, so the same handful doesn't always come first.
+        .map((h) => ({ ...h, tie: Math.random() }))
+        .sort((a, b) => b.score - a.score || a.tie - b.tie)
         .slice(0, 8)
         .map((h) => summary(h.p));
       return { result: { projects: hits } };
@@ -200,7 +210,18 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
       const p = projectBySlug(str(args.slug));
       if (!p) return { result: { error: "No project with that slug." } };
       return {
-        result: { ...summary(p), context: p.context, story: p.body.join(" "), stack: p.stack, team: p.team, links: p.links, privateRepo: p.privateRepo, tryItInLab: p.tool ? `/lab#${p.tool}` : undefined },
+        result: {
+          ...summary(p),
+          context: p.context,
+          story: p.body.join(" "),
+          stack: p.stack,
+          team: p.team,
+          links: p.links,
+          privateRepo: p.privateRepo,
+          tryItInLab: p.tool ? `/lab#${p.tool}` : undefined,
+          // Rotating "you might also like" picks: one of the same kind, one of anything.
+          alsoLike: alsoLike(p).map((x) => ({ title: x.title, page: `/work/${x.slug}`, oneLine: x.plain })),
+        },
         card: { kind: "project", slug: p.slug },
       };
     }
@@ -237,9 +258,12 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
     case "show_photo_collection": {
       const s = (await getSeries()).find((x) => x.slug === str(args.slug));
       if (!s) return { result: { error: "No such collection." } };
+      // A different cover each time: any landscape-shaped frame from the curated top of the collection.
+      const wide = s.photos.slice(0, 8).filter((p) => p.width >= p.height);
+      const cover = wide.length ? pick(wide) : s.photos[0];
       return {
-        result: { title: s.title, story: s.story, frames: s.photos.length, highlights: s.photos.slice(0, 6).map((p) => p.alt), page: `/photography#${s.slug}` },
-        card: { kind: "collection", slug: s.slug, title: s.title, count: s.photos.length, cover: s.photos[0] ? (s.photos[0].variants?.[768] ?? s.photos[0].src) : null },
+        result: { title: s.title, story: s.story, frames: s.photos.length, highlights: sample(s.photos, 6).map((p) => p.alt), page: `/photography#${s.slug}` },
+        card: { kind: "collection", slug: s.slug, title: s.title, count: s.photos.length, cover: cover ? (cover.variants?.[768] ?? cover.src) : null },
       };
     }
     case "github_activity": {
