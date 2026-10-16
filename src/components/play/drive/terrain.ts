@@ -20,7 +20,7 @@ import {
   Vector3,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { flatSpots, ISLAND_RADIUS, RAMP, ramps, ROAD_RADIUS } from "./world";
+import { flatSpots, HILL, ISLAND_RADIUS, pierHeight, RAMP, ramps, ROAD_RADIUS, segDist, spokes, TRAIL_HALF, trailDist } from "./world";
 
 // The island's shape, shared by the renderer and the physics: rolling hills
 // that flatten out under the road, the plaza and every landmark, sloping
@@ -33,15 +33,24 @@ const smooth = (e0: number, e1: number, x: number) => {
 
 export const SEA_LEVEL = -0.55;
 
-/** Ground height of the island at (x, z), without ramps. */
+/** Ground height of the island at (x, z), without ramps or the pier. */
 export function heightAt(x: number, z: number) {
   const r = Math.hypot(x, z);
   const n = 1.6 * Math.sin(x * 0.09 + 1.3) * Math.cos(z * 0.08 - 0.7) + 0.9 * Math.sin(x * 0.17 - z * 0.13 + 2) + 0.5 * Math.cos(x * 0.23 + z * 0.21);
   let hills = Math.max(0, n + 0.5) * 1.55;
-  hills *= smooth(4.6, 10, Math.abs(r - ROAD_RADIUS)); // road
+  const ring = smooth(4.6, 10, Math.abs(r - ROAD_RADIUS));
+  hills *= ring; // road
   hills *= smooth(10.5, 17, r); // plaza
-  for (const [fx, fz, fr] of flatSpots) hills *= smooth(fr, fr + 6, Math.hypot(x - fx, z - fz));
-  hills *= 1 - smooth(ISLAND_RADIUS - 15, ISLAND_RADIUS - 6, r); // fades to the beach
+  if (hills > 0) {
+    // the coast trail and the spokes: flat across, but they climb the big hill
+    hills *= smooth(TRAIL_HALF + 1.2, TRAIL_HALF + 6, trailDist(x, z));
+    for (const s of spokes) if (hills > 0) hills *= smooth(TRAIL_HALF + 1.2, TRAIL_HALF + 6, segDist(s, x, z));
+    for (const [fx, fz, fr] of flatSpots) if (hills > 0) hills *= smooth(fr, fr + 6, Math.hypot(x - fx, z - fz));
+  }
+  // The big hill in the north-west, with the lookout on top
+  const hd = Math.hypot(x - HILL.x, z - HILL.z);
+  if (hd < HILL.r) hills += HILL.h * 0.5 * (1 + Math.cos((Math.PI * hd) / HILL.r)) * ring;
+  hills *= 1 - smooth(ISLAND_RADIUS - 15, ISLAND_RADIUS - 2, r) * (hd < HILL.r ? 0.4 : 1); // fades to the beach (the hill ends in a bluff)
   const beach = -smooth(ISLAND_RADIUS - 5, ISLAND_RADIUS + 7, r) * 2.6;
   return hills + beach;
 }
@@ -62,8 +71,8 @@ export function rampHeight(x: number, z: number) {
   return 0;
 }
 
-/** What the jeepney's wheels stand on. */
-export const groundAt = (x: number, z: number) => Math.max(heightAt(x, z), rampHeight(x, z));
+/** What the jeepney's wheels stand on: ground, ramps and the pier deck. */
+export const groundAt = (x: number, z: number) => Math.max(heightAt(x, z), rampHeight(x, z), pierHeight(x, z));
 
 const tint = (geo: BufferGeometry, color: string) => {
   const c = new Color(color);
@@ -76,7 +85,7 @@ const tint = (geo: BufferGeometry, color: string) => {
 
 /** The island itself: a faceted, vertex-coloured disc that follows heightAt. */
 export function buildTerrain(detail: number) {
-  const geo = new RingGeometry(0.01, ISLAND_RADIUS + 14, Math.round(140 * detail), Math.round(56 * detail)).toNonIndexed();
+  const geo = new RingGeometry(0.01, ISLAND_RADIUS + 14, Math.round(210 * detail), Math.round(84 * detail)).toNonIndexed();
   geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   const colors = new Float32Array(pos.count * 3);
@@ -152,7 +161,7 @@ export function buildRamps() {
 
 export function buildSea(detail: number) {
   const inner = ISLAND_RADIUS - 10;
-  const outer = 460;
+  const outer = 760;
   const geo = new RingGeometry(inner, outer, Math.round(150 * detail), Math.round(46 * detail));
   // Pack rings close to the shore, where the waves are seen up close.
   const p = geo.attributes.position;
@@ -182,13 +191,13 @@ export function buildSea(detail: number) {
     uniforms,
     fog: true,
     vertexShader: /* glsl */ `
-      uniform float uTime;
+      uniform float uTime, uIslandR;
       varying vec3 vWorld;
       #include <fog_pars_vertex>
       void main() {
         vec4 wp = modelMatrix * vec4(position, 1.0);
         float r = length(wp.xz);
-        float amp = 0.07 + 0.2 * smoothstep(70.0, 120.0, r) * (1.0 - smoothstep(220.0, 380.0, r));
+        float amp = 0.07 + 0.2 * smoothstep(uIslandR, uIslandR + 50.0, r) * (1.0 - smoothstep(uIslandR + 150.0, uIslandR + 330.0, r));
         wp.y += (sin(wp.x * 0.13 + uTime * 1.1) + sin(wp.z * 0.16 + wp.x * 0.05 + uTime * 0.85) + 0.5 * sin((wp.x + wp.z) * 0.31 + uTime * 1.7)) * amp;
         vWorld = wp.xyz;
         vec4 mvPosition = viewMatrix * wp;
@@ -304,8 +313,8 @@ export function buildClouds(count: number) {
     }
     const cloud = new Mesh(mergeGeometries(parts), mat);
     const a = rand() * Math.PI * 2;
-    const d = 70 + rand() * 120;
-    cloud.position.set(Math.cos(a) * d, 46 + rand() * 26, Math.sin(a) * d);
+    const d = 100 + rand() * 170;
+    cloud.position.set(Math.cos(a) * d, 58 + rand() * 30, Math.sin(a) * d);
     cloud.rotation.y = rand() * Math.PI;
     g.add(cloud);
   }

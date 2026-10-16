@@ -8,10 +8,11 @@ import { cn } from "@/lib/utils";
 import type { CameraMode, DriveEngine, Quality, TimeOfDay } from "./engine";
 import { PAINTS, type PaintId } from "./jeepney";
 import type { PasadaEvent, PasadaStatus } from "./pasada";
-import { landmarks, packets, type Landmark } from "./world";
+import { landmarks, packets, secrets, type Landmark } from "./world";
 
 const BEST_KEY = "island-drive-best";
 const SETTINGS_KEY = "island-drive-settings";
+const SECRETS_KEY = "island-drive-secrets";
 const fmt = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms / 1000) % 60)).padStart(2, "0")}.${String(Math.floor((ms % 1000) / 10)).padStart(2, "0")}`;
 const peso = (n: number) => `₱${n.toLocaleString("en-PH")}`;
 
@@ -21,7 +22,7 @@ const TIME_LABEL: Record<TimeOfDay, string> = { day: "Daytime", golden: "Golden 
 type GameMode = "pasada" | "free" | "trial";
 const MODES: { id: GameMode; label: string; line: string }[] = [
   { id: "pasada", label: "Pasada", line: "Pick up passengers and drop them at Neil's projects" },
-  { id: "free", label: "Free roam", line: "No goals — explore, drift and jump" },
+  { id: "free", label: "Free roam", line: `No goals — explore the town, the pier and the lookout, and find ${secrets.length} hidden stars` },
   { id: "trial", label: "Time trial", line: `Collect all ${packets.length} packets against the clock` },
 ];
 
@@ -69,6 +70,7 @@ export default function DriveGame() {
   const [phase, setPhase] = useState<"loading" | "ready" | "driving" | "unsupported">("loading");
   const [zone, setZone] = useState<Landmark | null>(null);
   const [found, setFound] = useState(0);
+  const [stars, setStars] = useState(0);
   const [trial, setTrial] = useState<{ running: boolean; ms: number; finished?: number } | null>(null);
   const [best, setBest] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -111,10 +113,16 @@ export default function DriveGame() {
     try {
       stored = { ...DEFAULTS, ...(JSON.parse(read(SETTINGS_KEY) ?? "{}") as Partial<Settings>) };
     } catch {}
+    let starsFound: number[] = [];
+    try {
+      const list: unknown = JSON.parse(read(SECRETS_KEY) ?? "[]");
+      if (Array.isArray(list)) starsFound = list.filter((i): i is number => Number.isInteger(i) && i >= 0 && i < secrets.length);
+    } catch {}
     queueMicrotask(() => {
       setTouch(coarse);
       setBest(Number(read(BEST_KEY)) || null);
       setSettings(stored);
+      setStars(starsFound.length);
     });
 
     import("./engine").then(({ createDriveEngine }) => {
@@ -134,7 +142,20 @@ export default function DriveGame() {
               if (n > 0) setToast(n === total ? "All packets delivered! 📦" : `Packet ${n}/${total}`);
             },
             onPins: (down, total) => {
-              if (down === total) setToast("STRIKE! 🎳");
+              if (down === total) {
+                haptic(30);
+                setToast("STRIKE! 🎳");
+              } else setToast(`${down} of ${total} pins 🎳`);
+            },
+            onSecret: (index, _n, total) => {
+              if (!starsFound.includes(index)) starsFound = [...starsFound, index];
+              write(SECRETS_KEY, JSON.stringify(starsFound));
+              setStars(starsFound.length);
+              haptic(20);
+              setToast(starsFound.length === total ? `Every hidden star found! ★ ${total}/${total}` : `Hidden star ★ ${starsFound.length}/${total}`);
+            },
+            onPlace: (place) => {
+              if (place) setToast(`${place.name} · ${place.line}`);
             },
             onAir: (s) => setToast(`Airborne ${s.toFixed(1)}s ✈️`),
             onCamera: (m) => setCamera(m),
@@ -166,6 +187,7 @@ export default function DriveGame() {
         );
         engine.current.setMuted(stored.muted);
         engine.current.setPaint(stored.paint);
+        engine.current.setSecrets(starsFound);
       } catch {
         setPhase("unsupported");
       }
@@ -355,7 +377,7 @@ export default function DriveGame() {
         className={cn("pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 transition-opacity duration-500", showHud ? "opacity-100" : "opacity-0")}
         style={{ padding: "max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left))" }}
       >
-        <StatusCard settings={settings} found={found} trial={trial} best={best} mission={mission} speedRef={speedRef} />
+        <StatusCard settings={settings} found={found} stars={stars} trial={trial} best={best} mission={mission} speedRef={speedRef} />
 
         <div className="pointer-events-auto flex flex-col items-end gap-2">
           <div className="flex gap-1.5">
@@ -420,6 +442,12 @@ export default function DriveGame() {
           onAutoGas={() => save({ autoGas: !settings.autoGas })}
           onPaint={choosePaint}
           onMute={toggleMute}
+          onTidy={() => {
+            haptic();
+            engine.current?.resetProps();
+            setSheet(false);
+            setToast("Pins set, crates stacked 🧹");
+          }}
         />
       )}
 
@@ -450,7 +478,7 @@ export default function DriveGame() {
             Skip the reading. <em className="font-serif text-ember">Drive it.</em>
           </h1>
           <p className="mx-auto mt-4 max-w-md font-serif text-xl leading-snug text-ink/75">
-            Take the jeepney around an island of Neil&apos;s projects — pick up passengers, drift the ring road, jump the ramps and drive it after dark.
+            Take the jeepney around an island of Neil&apos;s projects — pick up passengers, drift the ring road, bowl a strike in town and drive it after dark.
           </p>
           <div role="radiogroup" aria-label="Game mode" className="mx-auto mt-6 inline-flex rounded-full bg-paper/80 p-1 ring-1 ring-ink/10">
             {MODES.map((m) => (
@@ -484,6 +512,7 @@ export default function DriveGame() {
 function StatusCard({
   settings,
   found,
+  stars,
   trial,
   best,
   mission,
@@ -491,6 +520,7 @@ function StatusCard({
 }: {
   settings: Settings;
   found: number;
+  stars: number;
   trial: { running: boolean; ms: number; finished?: number } | null;
   best: number | null;
   mission: PasadaStatus | null;
@@ -516,7 +546,12 @@ function StatusCard({
               </span>
             </>
           ) : (
-            <span className="font-serif text-base text-ink/70 italic">Explore</span>
+            <>
+              <span className="font-serif text-base text-ink/70 italic">Explore</span>
+              <span className="ml-1.5 font-serif text-sm text-ink/55 italic" title="Hidden stars found">
+                ★ {stars}/{secrets.length}
+              </span>
+            </>
           )}
         </p>
         {settings.mode === "trial" && best && <p className="label mt-1 text-[0.48rem] text-ink/50">Best {fmt(best)}</p>}
@@ -752,6 +787,7 @@ function SettingsSheet({
   onAutoGas,
   onPaint,
   onMute,
+  onTidy,
 }: {
   settings: Settings;
   touch: boolean;
@@ -762,6 +798,7 @@ function SettingsSheet({
   onAutoGas: () => void;
   onPaint: (p: PaintId) => void;
   onMute: () => void;
+  onTidy: () => void;
 }) {
   return (
     <div className="absolute inset-0 z-30 flex justify-end bg-ink/40 backdrop-blur-[2px]" onClick={onClose}>
@@ -822,6 +859,12 @@ function SettingsSheet({
 
         <p className="label mt-7 mb-2 text-[0.55rem] text-ink/50">Sound</p>
         <Toggle on={!settings.muted} onClick={onMute} label="Engine, horn and effects" />
+
+        <p className="label mt-7 mb-2 text-[0.55rem] text-ink/50">The island</p>
+        <button type="button" onClick={onTidy} className="press block w-full rounded-xl px-4 py-3 text-left ring-1 ring-ink/15">
+          <span className="block font-serif text-lg leading-tight">Tidy up</span>
+          <span className="font-serif text-sm text-ink/60">Set the pins, restack the crates, stand the cones back up</span>
+        </button>
 
         {!touch && (
           <p className="mt-7 font-serif text-sm leading-relaxed text-ink/60">
