@@ -27,19 +27,22 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
+import { haptic } from "@/lib/haptics";
 import { createAudio, type DriveAudio } from "./audio";
 import { buildJeepney, C, type PaintId, part, std } from "./jeepney";
 import { type Animated, buildLandmark, rng } from "./landmarks";
 import { buildNature, type Static } from "./nature";
-import { createPasada, type PasadaEvent, type PasadaStatus } from "./pasada";
-import { createPhysics, FIXED } from "./physics";
+import { createPasada, type PasadaEvent, type PasadaStatus, stops } from "./pasada";
+import { createPhysics, FIXED, type Rack } from "./physics";
+import { buildPlaces } from "./places";
 import { buildClouds, buildRamps, buildSea, buildSky, buildStars, buildTerrain, groundAt, heightAt, rampHeight } from "./terrain";
-import { cones, crates, ISLAND_RADIUS, landmarks, packets, pins, ramps, ROAD_RADIUS, BALL, type Landmark } from "./world";
+import { COVE, HILL, ISLAND_RADIUS, LANE, landmarks, LOOKOUT, packets, PIER, places, props as propSpots, ramps, ROAD_HALF, ROAD_RADIUS, roadDist, secrets, spokes, TOWN, TRAIL_HALF, trailRadius, type Landmark } from "./world";
 
 // Island Drive: a small three.js world in the site's palette.
 //   · the jeepney runs on custom arcade vehicle physics (grip, drifting,
 //     jumps, suspension) at a fixed 60 Hz step, interpolated for rendering
-//   · crates, pins, cones and the ball are cannon-es rigid bodies
+//   · pins, cones, crates, drums and balls are cannon-es rigid bodies you
+//     can knock flying; they tidy themselves back up out of sight
 //   · three cameras: chase, first-person cockpit and a map view
 //   · day, golden hour and night, with street lamps and headlights
 //   · quality scales with the device and adapts to the frame rate
@@ -59,7 +62,12 @@ export interface DriveCallbacks {
   onZone: (landmark: Landmark | null) => void;
   onPackets: (collected: number, total: number) => void;
   onChallenge: (state: { running: boolean; ms: number; finished?: number }) => void;
-  onPins: (down: number, total: number) => void;
+  /** A bowling rack was hit: all down is a strike. */
+  onPins: (down: number, total: number, rack: string) => void;
+  /** A hidden star was found (its index), and how many of them have been. */
+  onSecret?: (index: number, found: number, total: number) => void;
+  /** Entered (or left) a named place that isn't a project. */
+  onPlace?: (place: { name: string; line: string } | null) => void;
   onAir: (seconds: number) => void;
   onCamera: (mode: CameraMode) => void;
   onTime: (time: TimeOfDay) => void;
@@ -75,6 +83,10 @@ export interface DriveEngine {
   setControls: (c: Partial<Controls>) => void;
   startChallenge: () => void;
   reset: () => void;
+  /** Puts every knocked-over prop back. */
+  resetProps: () => void;
+  /** Which hidden stars were already found (remembered by the page). */
+  setSecrets: (found: number[]) => void;
   cycleCamera: () => void;
   cycleTime: () => void;
   horn: () => void;
@@ -123,11 +135,11 @@ export function createDriveEngine(
   renderer.shadowMap.type = opts.quality === "high" ? PCFSoftShadowMap : PCFShadowMap;
 
   const scene = new Scene();
-  const fog = new Fog(TIMES.day.fog, 120, 300);
+  const fog = new Fog(TIMES.day.fog, 150, 390);
   scene.fog = fog;
   scene.background = new Color(TIMES.day.fog);
 
-  const camera = new PerspectiveCamera(60, 1, 0.5, 520);
+  const camera = new PerspectiveCamera(60, 1, 0.5, 760);
   const hemi = new HemisphereLight(TIMES.day.hemiSky, TIMES.day.hemiGround, TIMES.day.hemiI);
   scene.add(hemi);
   const sun = new DirectionalLight(TIMES.day.sun, TIMES.day.sunI);
@@ -156,10 +168,10 @@ export function createDriveEngine(
   scene.add(buildRamps());
 
   // Road, plaza and centre line sit just above the flattened ground.
-  const road = part(new RingGeometry(ROAD_RADIUS - 3.2, ROAD_RADIUS + 3.2, 160), std("#e8cf9f", { roughness: 0.9 }), 0, 0.03, 0, false);
+  const road = part(new RingGeometry(ROAD_RADIUS - ROAD_HALF, ROAD_RADIUS + ROAD_HALF, 200), std("#e8cf9f", { roughness: 0.9 }), 0, 0.03, 0, false);
   road.rotation.x = -Math.PI / 2;
-  const edges = [ROAD_RADIUS - 3.05, ROAD_RADIUS + 3.05].map((r) => {
-    const e = part(new RingGeometry(r - 0.1, r + 0.1, 160), std(C.paper), 0, 0.045, 0, false);
+  const edges = [ROAD_RADIUS - ROAD_HALF + 0.15, ROAD_RADIUS + ROAD_HALF - 0.15].map((r) => {
+    const e = part(new RingGeometry(r - 0.1, r + 0.1, 200), std(C.paper), 0, 0.045, 0, false);
     e.rotation.x = -Math.PI / 2;
     return e;
   });
@@ -169,9 +181,10 @@ export function createDriveEngine(
   plazaRing.rotation.x = -Math.PI / 2;
   scene.add(road, ...edges, plaza, plazaRing);
   const tmp = new Object3D();
-  const dashes = new InstancedMesh(new BoxGeometry(0.3, 0.04, 1.6), std(C.paper), 64);
-  for (let i = 0; i < 64; i++) {
-    const a = (i / 64) * Math.PI * 2;
+  const DASHES = 88;
+  const dashes = new InstancedMesh(new BoxGeometry(0.3, 0.04, 1.6), std(C.paper), DASHES);
+  for (let i = 0; i < DASHES; i++) {
+    const a = (i / DASHES) * Math.PI * 2;
     tmp.position.set(Math.cos(a) * ROAD_RADIUS, 0.05, Math.sin(a) * ROAD_RADIUS);
     tmp.rotation.set(0, -a, 0);
     tmp.updateMatrix();
@@ -188,31 +201,83 @@ export function createDriveEngine(
     statics.push({ x: l.x, z: l.z, r: l.radius });
   }
 
-  /* Trees, grass, rocks and lamps, kept clear of roads, props and landmarks */
+  /* The trail, Bayan, the bowling lane, the beach and pier, the lookout and the cove */
+  const placesBuilt = buildPlaces({ statics, animated, shadows, quality: Q });
+  scene.add(placesBuilt.group);
+
+  /* Pasada: stops, passengers and the guide arrow (their sheds are solid, so before the trees and the physics) */
+  const pasada = createPasada(scene, statics, rng(11));
+
+  /* Trees, grass, rocks and lamps, kept clear of roads, props, places and landmarks */
   const keepClear: [number, number, number][] = [
     ...landmarks.map((l): [number, number, number] => [l.x, l.z, l.zone + 1]),
     ...packets.map(([x, z]): [number, number, number] => [x, z, 3]),
-    ...[...cones, ...pins].map(([x, z]): [number, number, number] => [x, z, 3]),
-    ...crates.map(([x, , z]): [number, number, number] => [x, z, 3]),
+    ...secrets.map(([x, z]): [number, number, number] => [x, z, 3]),
+    ...propSpots.map(({ x, z }): [number, number, number] => [x, z, 3]),
     ...ramps.map((r): [number, number, number] => [r.x, r.z, 10]),
-    [BALL[0], BALL[1], 4],
+    [TOWN.x, TOWN.z, 20],
+    [LOOKOUT.x, LOOKOUT.z, 7],
+    [COVE.x, COVE.z, COVE.r + 2],
+    [0, 104, 8],
   ];
+  const nearLane = (x: number, z: number, r: number) => x > LANE.x0 - 3 - r && x < LANE.x1 + 4 + r && Math.abs(z - LANE.z) < LANE.half + 4 + r;
+  const nearPier = (x: number, z: number, r: number) => Math.abs(x - PIER.x) < PIER.half + 3 + r && z > PIER.z0 - 6;
   const wind = { value: 0 };
   const nature = buildNature({
     rand: rng(7),
     quality: Q,
     statics,
     wind,
-    blocked: (x, z, r) => Math.hypot(x, z) < 11 || keepClear.some(([cx, cz, cr]) => Math.hypot(cx - x, cz - z) < cr + r),
+    blocked: (x, z, r) => Math.hypot(x, z) < 11 || nearLane(x, z, r) || nearPier(x, z, r) || roadDist(x, z) < r - 1.2 || keepClear.some(([cx, cz, cr]) => Math.hypot(cx - x, cz - z) < cr + r),
   });
   scene.add(nature.group);
 
-  /* Pasada: stops, passengers and the guide arrow (their sheds are solid, so before physics) */
-  const pasada = createPasada(scene, statics, rng(11));
+  /* Physics props: fewer of them, and fewer awake at once, on low-end devices */
+  let lastBuzz = 0;
+  const physics = createPhysics(
+    scene,
+    statics,
+    placesBuilt.boxes,
+    { iterations: Math.round(6 + 4 * Q), shadows, tier: opts.quality === "low" ? 0 : opts.quality === "medium" ? 1 : 2, maxAwake: { low: 18, medium: 32, high: 48 }[opts.quality] },
+    (kind, strength, byCar, mass, px, py, pz) => {
+      if (!byCar) {
+        if (strength > 3) audio?.knock(kind, strength * 0.6);
+        return;
+      }
+      // The jeepney loses a little speed to whatever it hits; the hit is felt and heard
+      const k = 1 - Math.min(0.1, mass * 0.018 * Math.min(1, strength / 8));
+      st.vx *= k;
+      st.vz *= k;
+      audio?.knock(kind, strength);
+      if (strength > 4 && !opts.reducedMotion) st.shake = Math.max(st.shake, Math.min(0.35, mass * strength * 0.008));
+      const now = performance.now();
+      if (opts.touch && strength > 3 && now - lastBuzz > 120) {
+        lastBuzz = now;
+        haptic(Math.min(28, Math.round(6 + strength * mass * 0.6)));
+      }
+      if (strength > 6) puff(px, py - 0.3, pz, "#e9d3ad", 1.6);
+    },
+  );
+  const carNow = { x: 0, z: 0 };
+  const camNow = { x: 0, z: 0, fx: 0, fz: -1 };
+  const onRack = (r: Rack) => {
+    if (mode !== "drive") return;
+    if (r.down === r.total) audio?.strike();
+    if (r.down === r.total && opts.touch) haptic(40);
+    cb.onPins(r.down, r.total, r.name);
+  };
 
-  /* Physics props */
-  const physics = createPhysics(scene, statics, { iterations: Math.round(6 + 4 * Q), shadows });
-  let pinsDown = 0;
+  /* Hidden stars: found once, remembered by the page */
+  const starGeo = new OctahedronGeometry(0.62, 0);
+  const starMat = new MeshStandardMaterial({ color: "#ffd27a", emissive: "#ffb347", emissiveIntensity: 1.1, flatShading: true, metalness: 0.3, roughness: 0.3 });
+  const starPos = secrets.map(([x, z, h]) => new Vector3(x, groundAt(x, z) + h, z));
+  const starMeshes = starPos.map((p) => {
+    const m = part(starGeo, starMat, p.x, p.y, p.z, shadows);
+    m.scale.set(1, 1.5, 1);
+    scene.add(m);
+    return m;
+  });
+  const starsFound = new Set<number>();
 
   /* Packets */
   const packetGeo = new OctahedronGeometry(0.75, 0);
@@ -298,6 +363,7 @@ export function createDriveEngine(
   let camMode: CameraMode = "chase";
   let timeOfDay: TimeOfDay = "day";
   let zoneId: string | null = null;
+  let placeName: string | null = null;
   let challenge: { start: number; running: boolean } | null = null;
   let frame = 0;
   let last = performance.now();
@@ -406,7 +472,7 @@ export function createDriveEngine(
   const drawMinimap = () => {
     if (!mm || !opts.minimap) return;
     const size = opts.minimap.width;
-    const s = size / (ISLAND_RADIUS * 2.3);
+    const s = size / (ISLAND_RADIUS * 2.15);
     mm.clearRect(0, 0, size, size);
     mm.save();
     mm.translate(size / 2, size / 2);
@@ -419,8 +485,38 @@ export function createDriveEngine(
     mm.beginPath();
     mm.arc(0, 0, (ISLAND_RADIUS - 3) * s, 0, Math.PI * 2);
     mm.stroke();
+    // The hill, the town and the dirt roads, under the paved ring
+    mm.fillStyle = "rgba(214,210,154,0.9)";
+    mm.beginPath();
+    mm.arc(HILL.x * s, HILL.z * s, HILL.r * 0.6 * s, 0, Math.PI * 2);
+    mm.fill();
+    mm.strokeStyle = "rgba(160,120,70,0.55)";
+    mm.lineWidth = Math.max(1.5, TRAIL_HALF * 2 * s);
+    mm.beginPath();
+    for (let i = 0; i <= 96; i++) {
+      const a = (i / 96) * Math.PI * 2;
+      const tr = trailRadius(a) * s;
+      if (i === 0) mm.moveTo(Math.cos(a) * tr, Math.sin(a) * tr);
+      else mm.lineTo(Math.cos(a) * tr, Math.sin(a) * tr);
+    }
+    for (const sp of spokes) {
+      mm.moveTo(sp.x1 * s, sp.z1 * s);
+      mm.lineTo(sp.x2 * s, sp.z2 * s);
+    }
+    mm.stroke();
+    mm.strokeStyle = "rgba(122,79,42,0.85)";
+    mm.lineWidth = Math.max(2, PIER.half * 2 * s);
+    mm.beginPath();
+    mm.moveTo(PIER.x * s, PIER.z0 * s);
+    mm.lineTo(PIER.x * s, PIER.z1 * s);
+    mm.stroke();
+    mm.fillStyle = "rgba(236,211,162,1)";
+    mm.beginPath();
+    mm.arc(TOWN.x * s, TOWN.z * s, TOWN.r * s, 0, Math.PI * 2);
+    mm.fill();
+    mm.fillRect(LANE.x0 * s, (LANE.z - LANE.half) * s, (LANE.x1 - LANE.x0) * s, LANE.half * 2 * s);
     mm.strokeStyle = "rgba(0,48,73,0.3)";
-    mm.lineWidth = 6.4 * s;
+    mm.lineWidth = ROAD_HALF * 2 * s;
     mm.beginPath();
     mm.arc(0, 0, ROAD_RADIUS * s, 0, Math.PI * 2);
     mm.stroke();
@@ -436,11 +532,12 @@ export function createDriveEngine(
     packetPos.forEach((p, i) => {
       if (!taken.has(i)) mm.fillRect(p.x * s - 1.5, p.z * s - 1.5, 3, 3);
     });
-    const ball = physics.ballPosition();
     mm.fillStyle = "#fdf0d5";
-    mm.beginPath();
-    mm.arc(ball.x * s, ball.z * s, 2.2, 0, Math.PI * 2);
-    mm.fill();
+    for (const b of physics.balls) {
+      mm.beginPath();
+      mm.arc(b.position.x * s, b.position.z * s, 2.2, 0, Math.PI * 2);
+      mm.fill();
+    }
     mm.translate(st.x * s, st.z * s);
     mm.rotate(-st.heading);
     mm.fillStyle = "#003049";
@@ -534,6 +631,7 @@ export function createDriveEngine(
     (stars.material as PointsMaterial).opacity = cur.stars;
     stars.visible = cur.stars > 0.02;
     nature.setNight(cur.night);
+    placesBuilt.setNight(cur.night);
     clouds.userData.setNight?.(cur.night);
     renderer.toneMappingExposure = cur.exposure;
   };
@@ -557,9 +655,17 @@ export function createDriveEngine(
     const hR = groundAt(st.x + rx * 1.1, st.z + rz * 1.1);
 
     const r = Math.hypot(st.x, st.z);
-    const onRoad = Math.abs(r - ROAD_RADIUS) < 3.4 || r < 9.3 || rampHeight(st.x, st.z) > 0;
-    const onSand = r > ISLAND_RADIUS - 9;
-    const surface = onRoad ? 1 : onSand ? 0.72 : 0.88;
+    const onPier = st.z > PIER.z0 - 0.5 && Math.abs(st.x - PIER.x) < PIER.half + 0.5;
+    const paved =
+      Math.abs(r - ROAD_RADIUS) < ROAD_HALF + 0.2 ||
+      r < 9.3 ||
+      rampHeight(st.x, st.z) > 0 ||
+      onPier ||
+      Math.hypot(st.x - TOWN.x, st.z - TOWN.z) < TOWN.r ||
+      (st.x > LANE.x0 && st.x < LANE.x1 && Math.abs(st.z - LANE.z) < LANE.half);
+    const dirt = !paved && roadDist(st.x, st.z) < 0.2;
+    const onSand = !paved && !dirt && r > ISLAND_RADIUS - 11;
+    const surface = paved ? 1 : dirt ? 0.95 : onSand ? 0.72 : 0.88;
 
     if (!st.air) {
       const maxF = (input.boost ? 34 : 24) * surface;
@@ -620,9 +726,28 @@ export function createDriveEngine(
         }
       }
     }
-    // The sea is a soft wall
+    // The pier keeps the jeepney between its rails and stops it at the end
     const rr = Math.hypot(st.x, st.z);
-    if (rr > ISLAND_RADIUS - 3) {
+    const pierLane = st.z > PIER.z0 - 2 && Math.abs(st.x - PIER.x) < PIER.half + 0.6;
+    if (pierLane && rr > ISLAND_RADIUS - 4) {
+      const lim = PIER.half - 1.2;
+      const dx = st.x - PIER.x;
+      if (Math.abs(dx) > lim) {
+        st.x = PIER.x + Math.sign(dx) * lim;
+        if (st.vx * Math.sign(dx) > 0) {
+          impact = Math.max(impact, Math.abs(st.vx));
+          st.vx *= -0.3;
+        }
+      }
+      if (st.z > PIER.z1 - 2.7) {
+        st.z = PIER.z1 - 2.7;
+        if (st.vz > 0) {
+          impact = Math.max(impact, st.vz);
+          st.vz *= -0.3;
+        }
+      }
+    } else if (rr > ISLAND_RADIUS - 3) {
+      // The sea is a soft wall
       const nx = st.x / rr;
       const nz = st.z / rr;
       st.x = nx * (ISLAND_RADIUS - 3);
@@ -758,6 +883,31 @@ export function createDriveEngine(
       }
     });
 
+    // Hidden stars: anyone driving through one finds it, in any mode
+    starMeshes.forEach((m, i) => {
+      if (starsFound.has(i)) return;
+      m.rotation.y = -t * 2.2 + i;
+      m.position.y = starPos[i].y + Math.sin(t * 2.6 + i) * 0.25;
+      if (mode !== "drive") return;
+      const p = starPos[i];
+      if (Math.hypot(p.x - x, p.z - z) < 2.8 && Math.abs(p.y - (y + 1.2)) < 2.6) {
+        starsFound.add(i);
+        m.visible = false;
+        audio?.chime(true);
+        cb.onSecret?.(i, starsFound.size, secrets.length);
+      }
+    });
+
+    // Named places
+    if (mode === "drive" && frame % 10 === 0) {
+      let inPlace: (typeof places)[number] | null = null;
+      for (const pl of places) if (Math.hypot(pl.x - x, pl.z - z) < pl.r) inPlace = pl;
+      if ((inPlace?.name ?? null) !== placeName) {
+        placeName = inPlace?.name ?? null;
+        cb.onPlace?.(inPlace);
+      }
+    }
+
     // Landmark zones
     let near: Landmark | null = null;
     if (mode === "drive") for (const l of landmarks) if (Math.hypot(l.x - x, l.z - z) < l.zone) near = l;
@@ -795,7 +945,7 @@ export function createDriveEngine(
     if (mode !== "drive") {
       const ang = t * 0.07;
       camTarget.set(0, 0, 0);
-      camPos.lerp(want.set(Math.cos(ang) * 92, 58, Math.sin(ang) * 92), damp(1.5, dt));
+      camPos.lerp(want.set(Math.cos(ang) * 150, 92, Math.sin(ang) * 150), damp(1.5, dt));
       camera.position.copy(camPos);
       camera.lookAt(camTarget);
       fovTarget = portrait ? 60 : 42;
@@ -885,6 +1035,7 @@ export function createDriveEngine(
     resize();
   };
 
+  const camDir = new Vector3();
   const loop = (now: number) => {
     if (disposed) return;
     raf = requestAnimationFrame(loop);
@@ -905,23 +1056,22 @@ export function createDriveEngine(
       carStep(FIXED);
       physics.setCar(st.x, st.y, st.z, st.heading, st.pitch, st.roll, st.vx, st.vy, st.vz);
       physics.step();
-      for (const h of physics.hits) {
-        const k = 1 - Math.min(0.12, h.mass * 0.025);
-        st.vx *= k;
-        st.vz *= k;
-        audio?.impact(h.strength * 0.8);
-      }
-      physics.hits.length = 0;
       acc -= FIXED;
       steps++;
     }
     if (steps === 5) acc = 0;
-    const down = physics.sync(acc / FIXED);
-    if (down !== pinsDown) {
-      pinsDown = down;
-      cb.onPins(down, physics.pinTotal);
-    }
+    physics.sync(acc / FIXED);
     frameUpdate(dt, now / 1000, acc / FIXED);
+    // Props tidy themselves up based on where the jeepney and the camera are
+    carNow.x = st.x;
+    carNow.z = st.z;
+    camera.getWorldDirection(camDir);
+    const cl = Math.hypot(camDir.x, camDir.z) || 1;
+    camNow.x = camera.position.x;
+    camNow.z = camera.position.z;
+    camNow.fx = camDir.x / cl;
+    camNow.fz = camDir.z / cl;
+    physics.update(dt, now / 1000, carNow, camNow, onRack);
     renderer.render(scene, camera);
     placeLabels();
     if (frame % 3 === 0) drawMinimap();
@@ -933,6 +1083,10 @@ export function createDriveEngine(
   if (process.env.NODE_ENV === "development") (window as unknown as { __islandDrive?: unknown }).__islandDrive = {
       st,
       prev,
+      groundAt,
+      pasada,
+      stops,
+      physics,
       get state() {
         return { mode, frame, disposed, hidden: document.hidden, acc };
       },
@@ -962,6 +1116,12 @@ export function createDriveEngine(
       cb.onChallenge({ running: true, ms: 0 });
     },
     reset,
+    resetProps: () => physics.reset(),
+    setSecrets: (found) => {
+      starsFound.clear();
+      for (const i of found) if (i >= 0 && i < starMeshes.length) starsFound.add(i);
+      starMeshes.forEach((m, i) => (m.visible = !starsFound.has(i)));
+    },
     cycleCamera,
     cycleTime,
     horn,
@@ -971,6 +1131,7 @@ export function createDriveEngine(
       Object.assign(controls, { throttle: 0, steer: 0, boost: false, brake: false });
       pasada.setActive(false);
       audio?.suspend();
+      placeName = null;
       if (zoneId) {
         zoneId = null;
         cb.onZone(null);

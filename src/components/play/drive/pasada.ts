@@ -2,7 +2,7 @@ import { AdditiveBlending, BoxGeometry, CanvasTexture, ConeGeometry, CylinderGeo
 import { part, signTexture, std } from "./jeepney";
 import type { Static } from "./nature";
 import { heightAt } from "./terrain";
-import { landmarks, lamps, ramps, ROAD_RADIUS, type Landmark } from "./world";
+import { landmarks, lamps, LOOKOUT, PIER, ramps, ROAD_RADIUS, segDist, spokes, TOWN, trailAt, trailRadius, type Landmark } from "./world";
 
 // Pasada: the jeepney's real job. A passenger waits at a roadside stop; pull
 // up beside them (slowly) and they hop on, then name a landmark. A beacon and
@@ -14,22 +14,34 @@ export interface Stop {
   name: string;
   x: number;
   z: number;
+  /** Unit vector from the shed towards its road. */
+  fx: number;
+  fz: number;
 }
 
-const STOP_R = ROAD_RADIUS + 5.6;
+const STOP_OFF = 5.6;
 
-/** Roadside stops, kept clear of landmarks, ramps and lamps. */
+/** Roadside stops round the ring road, plus a few out on the trail (Bayan, the pier, the lookout), kept clear of landmarks, ramps, spokes and lamps. */
 export const stops: Stop[] = (() => {
   const out: Stop[] = [];
-  for (let i = 0; i < 12; i++) {
-    const a = ((i * 30 + 15) * Math.PI) / 180;
-    const x = Math.cos(a) * STOP_R;
-    const z = Math.sin(a) * STOP_R;
-    if (landmarks.some((l) => Math.hypot(l.x - x, l.z - z) < l.radius + 5)) continue;
-    if (ramps.some((r) => Math.hypot(r.x - x, r.z - z) < 11)) continue;
-    if (lamps.some(([lx, lz]) => Math.hypot(lx - x, lz - z) < 3.5)) continue;
-    out.push({ name: `Stop ${String.fromCharCode(65 + out.length)}`, x, z });
+  const clear = (x: number, z: number) =>
+    !landmarks.some((l) => Math.hypot(l.x - x, l.z - z) < l.radius + 5) &&
+    !ramps.some((r) => Math.hypot(r.x - x, r.z - z) < 11) &&
+    !spokes.some((s) => segDist(s, x, z) < 6) &&
+    !lamps.some((l) => Math.hypot(l.x - x, l.z - z) < 3.5);
+  for (let i = 0; i < 16; i++) {
+    const a = ((i * 22.5 + 11.25) * Math.PI) / 180;
+    const x = Math.cos(a) * (ROAD_RADIUS + STOP_OFF);
+    const z = Math.sin(a) * (ROAD_RADIUS + STOP_OFF);
+    if (clear(x, z)) out.push({ name: `Stop ${String.fromCharCode(65 + out.length)}`, x, z, fx: -Math.cos(a), fz: -Math.sin(a) });
   }
+  // Named stops: on Bayan's main street, at the foot of the pier, and on the trail under the lookout
+  out.push({ name: "Bayan", x: TOWN.x - 6, z: -STOP_OFF, fx: 0, fz: 1 });
+  out.push({ name: "Pier", x: PIER.x + STOP_OFF, z: PIER.z0 - 8, fx: -1, fz: 0 });
+  const la = Math.atan2(LOOKOUT.z, LOOKOUT.x) + 0.12;
+  const lp = trailAt(la);
+  const r = trailRadius(la) - STOP_OFF;
+  out.push({ name: "Lookout", x: Math.cos(la) * r, z: Math.sin(la) * r, fx: lp.x / Math.hypot(lp.x, lp.z), fz: lp.z / Math.hypot(lp.x, lp.z) });
   return out;
 })();
 
@@ -89,7 +101,7 @@ export function createPasada(scene: Scene, statics: Static[], rand: () => number
     g.add(part(new CylinderGeometry(0.04, 0.04, 2.2, 6), postMat, 1.6, 1.1, -0.62));
     g.add(plate);
     g.position.set(s.x, heightAt(s.x, s.z), s.z);
-    g.lookAt(0, g.position.y, 0); // open side faces the road
+    g.lookAt(s.x + s.fx, g.position.y, s.z + s.fz); // open side faces the road
     scene.add(g);
     statics.push({ x: s.x, z: s.z, r: 1.4 });
   }
@@ -134,9 +146,10 @@ export function createPasada(scene: Scene, statics: Static[], rand: () => number
     st.stop = options[Math.floor(rand() * options.length)] ?? stops[0];
     shirt.color.set(SHIRTS[Math.floor(rand() * SHIRTS.length)]);
     // Stand at the kerb side of the shed, facing the road
-    const k = (STOP_R - 2.4) / STOP_R;
-    passenger.position.set(st.stop.x * k, heightAt(st.stop.x * k, st.stop.z * k), st.stop.z * k);
-    passenger.lookAt(0, passenger.position.y, 0);
+    const px = st.stop.x + st.stop.fx * 2.4;
+    const pz = st.stop.z + st.stop.fz * 2.4;
+    passenger.position.set(px, heightAt(px, pz), pz);
+    passenger.lookAt(px + st.stop.fx, passenger.position.y, pz + st.stop.fz);
     passenger.visible = true;
     st.phase = "pickup";
   };
@@ -167,7 +180,7 @@ export function createPasada(scene: Scene, statics: Static[], rand: () => number
         arm.rotation.z = -2.6 + Math.sin(t * (near < 25 ? 10 : 3)) * (near < 25 ? 0.45 : 0.15);
         if (near < 5.5 && slow) {
           passenger.visible = false;
-          const options = landmarks.filter((l) => Math.hypot(l.x - car.x, l.z - car.z) > 30);
+          const options = landmarks.filter((l) => Math.hypot(l.x - car.x, l.z - car.z) > 40);
           st.dest = options[Math.floor(rand() * options.length)] ?? landmarks[0];
           st.phase = "ride";
           st.ride = 0;
