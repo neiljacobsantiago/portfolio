@@ -104,7 +104,8 @@ function fromCloudinary(assets: CloudAsset[]): SeriesWithPhotos[] {
     const order = Number(contextOf(a).order);
     return a.tags?.includes("cover") ? [0, 0] : Number.isFinite(order) && contextOf(a).order ? [2, order] : [1, -Date.parse(a.created_at)];
   };
-  return [...seriesList, ...extra].map((s) => ({
+  // A collection with no photos on Cloudinary (or whose folder was deleted) is left off the site.
+  return [...seriesList, ...extra].filter((s) => bySlug.has(s.slug)).map((s) => ({
     ...s,
     photos: (bySlug.get(s.slug) ?? [])
       .map((a) => ({ a, r: rank(a) }))

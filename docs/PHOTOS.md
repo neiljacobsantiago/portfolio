@@ -22,7 +22,8 @@ the photos in `public/photography` instead, so nothing ever goes blank.
    npm run photos:migrate -- --dry-run   # shows what would happen
    npm run photos:migrate                # uploads, keeping captions and order
    ```
-   It's safe to run twice: photos that are already there are skipped.
+   It's safe to run twice: photos that are already there are skipped. To leave
+   a collection out, add `--skip`, e.g. `npm run photos:migrate -- --skip astro,portraits`.
 5. **Instant updates (recommended).** In *Settings → Webhook Notifications*, add
    `https://<your-site>/api/photos/webhook`. The site checks Cloudinary's
    signature, so nobody else can trigger it.
@@ -49,7 +50,8 @@ the photos in `public/photography` instead, so nothing ever goes blank.
 - **New collection:** make a new folder under `portfolio` (e.g.
   `portfolio/weddings`). It appears on the site as "Weddings". Its story and gear
   line can be added in `src/content/series.ts`.
-- **Removing** a photo from Cloudinary removes it from the site.
+- **Removing** a photo from Cloudinary removes it from the site. A collection whose
+  folder is empty or deleted disappears from the site too.
 
 The site only ever shows signed, web-sized copies. Large copies carry a small
 "© Neil Jacob Santiago" in the corner.
