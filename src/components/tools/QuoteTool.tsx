@@ -7,6 +7,7 @@ import { haptic } from "@/lib/haptics";
 import { findService, peso, quote } from "@/lib/tools/quote";
 import { cn } from "@/lib/utils";
 import { Note } from "./ui";
+import Icon from "@/components/ui/Icon";
 
 /** Price, downpayment and a pre-filled booking link for any photoshoot package. */
 export default function QuoteTool({
@@ -49,14 +50,14 @@ export default function QuoteTool({
               setServiceId(s.id);
               setPackageId(s.packages[0].id);
             }}
-            className="label press shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-[0.55rem] whitespace-nowrap aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
+            className="label press shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-3xs whitespace-nowrap aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
           >
             {s.name.replace(" Photoshoot", "").replace("In-House ", "")}
           </button>
         ))}
       </div>
 
-      <ul className={cn("grid gap-2", !compact && "sm:grid-cols-2")}>
+      <ul className={cn("grid [&>*]:min-w-0 gap-2", !compact && "sm:grid-cols-2")}>
         {q.service.packages.map((p) => (
           <li key={p.id}>
             <button
@@ -67,7 +68,7 @@ export default function QuoteTool({
             >
               <span>
                 <span className="block font-serif text-base leading-snug">{p.name}</span>
-                <span className="label text-[0.52rem] text-ink/55">{p.detail}</span>
+                <span className="label text-3xs text-ink/70">{p.detail}</span>
               </span>
               <span className="shrink-0 font-display text-base">{p.price}</span>
             </button>
@@ -77,7 +78,7 @@ export default function QuoteTool({
 
       {(perHead || custom) && (
         <div className="flex flex-wrap items-center gap-3">
-          <span className="label text-[0.55rem] text-ink/55">People</span>
+          <span className="label text-3xs text-ink/70">People</span>
           <button type="button" onClick={() => setPeople(Math.max(min, count - 1))} aria-label="Fewer people" className="press h-8 w-8 rounded-full border border-ink/20">
             −
           </button>
@@ -85,13 +86,13 @@ export default function QuoteTool({
           <button type="button" onClick={() => setPeople(Math.min(custom ? 20 : 50, count + 1))} aria-label="More people" className="press h-8 w-8 rounded-full border border-ink/20">
             +
           </button>
-          {custom && <span className="font-serif text-sm text-ink/55 italic">{PRIVATE_PEOPLE_INCLUDED} included</span>}
+          {custom && <span className="font-serif text-sm text-ink/70 italic">{PRIVATE_PEOPLE_INCLUDED} included</span>}
         </div>
       )}
 
       {custom && (
         <div>
-          <p className="label mb-2 text-[0.55rem] text-ink/55">Add-ons</p>
+          <p className="label mb-2 text-3xs text-ink/70">Add-ons</p>
           <div className="flex flex-wrap gap-1.5">
             {addOns.map((a) => (
               <button
@@ -104,7 +105,7 @@ export default function QuoteTool({
                 }}
                 className="press rounded-full border border-ink/15 px-3 py-1.5 text-left font-serif text-sm aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-paper"
               >
-                {a.name} <span className="opacity-70">{a.amount === null ? "· quote" : `+${peso(a.amount)}`}</span>
+                {a.name} <span className="opacity-80">{a.amount === null ? "· quote" : `+${peso(a.amount)}`}</span>
               </button>
             ))}
           </div>
@@ -113,13 +114,13 @@ export default function QuoteTool({
 
       <div className="flex flex-wrap items-end justify-between gap-4 rounded-[2px] bg-ink p-4 text-paper">
         <div>
-          <p className="label text-[0.55rem] text-sky">{q.total === null ? "Price" : "Total"}</p>
+          <p className="label text-3xs text-sky">{q.total === null ? "Price" : "Total"}</p>
           <p className="font-display text-4xl leading-none">{q.total === null ? "By quote" : peso(q.total)}</p>
-          {q.downpayment !== null && <p className="mt-2 font-serif text-sm text-paper/70 italic">{peso(q.downpayment)} downpayment secures the date</p>}
-          {q.quoted.length > 0 && <p className="font-serif text-sm text-paper/60 italic">+ {q.quoted.join(", ")}, quoted separately</p>}
+          {q.downpayment !== null && <p className="mt-2 font-serif text-sm text-paper/75">{peso(q.downpayment)} downpayment secures the date</p>}
+          {q.quoted.length > 0 && <p className="font-serif text-sm text-paper/75">+ {q.quoted.join(", ")}, quoted separately</p>}
         </div>
         <Link href={q.bookHref} className="btn bg-paper py-3 text-ink hover:bg-sky">
-          Book this <span className="arrow">→</span>
+          Book this <Icon name="arrow-right" className="arrow" />
         </Link>
       </div>
       {!compact && <Note>{bookingTerms.join(" ")}</Note>}

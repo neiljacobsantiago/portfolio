@@ -3,12 +3,12 @@ import Link from "next/link";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
 import CountUp from "@/components/ui/CountUp";
 import Magnetic from "@/components/ui/Magnetic";
+import Icon from "@/components/ui/Icon";
 import Tilt from "@/components/ui/Tilt";
 import ProjectCover from "@/components/work/ProjectCover";
 import WorkFilter from "@/components/work/WorkFilter";
 import WorkViews from "@/components/work/WorkViews";
 import { categories, projects, type Category } from "@/content/work";
-import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Work",
@@ -27,12 +27,12 @@ export default function WorkPage() {
       <PageHeader
         eyebrow="Work"
         title={<>Built, secured, <em className="font-serif text-ember">directed.</em></>}
-        lead="Networks you never notice because they simply work, web systems planned before they're coded, and productions shot under pressure. Every project has a one-line version for the non-engineers."
+        lead="Networks, offline AI, web systems and event coverage, each with the brief, the build and the part I played. Every project opens with a one-line summary for readers who don't write code."
         aside={
           <dl className="grid grid-cols-3 gap-4 md:grid-cols-1">
             {keys.map((k) => (
               <div key={k}>
-                <dt className="label text-[0.6rem] text-ink/50">{categories[k].label}</dt>
+                <dt className="label text-2xs text-ink/70">{categories[k].label}</dt>
                 <dd className="font-display text-4xl">
                   <CountUp value={projects.filter((p) => p.category === k).length} />
                 </dd>
@@ -45,9 +45,10 @@ export default function WorkPage() {
       <Container className="pb-24 md:pb-32">
         <WorkFilter tabs={tabs}>
           <WorkViews>
-            <ul className="grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+            {/* grid-cols-1 = minmax(0, 1fr): a card can never be wider than the column, whatever its cover art contains */}
+            <ul className="grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((p, i) => (
-                <li key={p.slug} data-category={p.category} style={{ viewTransitionName: `work-${p.slug}` }} className={i === 0 ? "sm:col-span-2" : undefined}>
+                <li key={p.slug} data-category={p.category} style={{ viewTransitionName: `work-${p.slug}` }} className={i === 0 ? "min-w-0 sm:col-span-2" : "min-w-0"}>
                   <Tilt max={4} className="rounded-[2px]">
                     <Link href={`/work/${p.slug}`} className="group block">
                       <ProjectCover
@@ -57,8 +58,8 @@ export default function WorkPage() {
                         className={`rounded-[2px] ${i === 0 ? "aspect-[16/9]" : "aspect-[4/3]"}`}
                       />
                       <div className="mt-5 flex items-center justify-between gap-3">
-                        <span className="label text-[0.62rem] text-ember">{categories[p.category].label}</span>
-                        <span className="label text-[0.62rem] text-ink/45">{p.status}</span>
+                        <span className="label text-2xs text-ember">{categories[p.category].label}</span>
+                        <span className="label text-2xs text-ink/70">{p.status}</span>
                       </div>
                       <h2 className="mt-2 font-display text-3xl leading-tight transition-colors group-hover:text-ember">{p.title}</h2>
                       <p className="mt-2 font-serif text-lg leading-snug text-ink/75 italic">{p.plain}</p>
@@ -70,15 +71,15 @@ export default function WorkPage() {
           </WorkViews>
         </WorkFilter>
 
-        <div className="mt-24 grid gap-8 rounded-[2px] bg-ink p-8 text-paper md:grid-cols-12 md:p-14">
+        <div className="mt-24 grid grid-cols-1 gap-8 rounded-[2px] bg-ink p-6 text-paper sm:p-8 md:grid-cols-12 md:p-14">
           <h2 className="font-display text-4xl leading-tight md:col-span-7 md:text-5xl">
             Need a network planned, a system built or an event covered? <em className="font-serif text-sky">Let&apos;s scope it.</em>
           </h2>
           <div className="flex flex-col justify-end gap-4 md:col-span-5 md:items-end">
-            <p className="font-serif text-lg text-paper/75">Freelance projects start at {site.rate}.</p>
+            <p className="font-serif text-lg text-paper/75">Quoted to the scope of each job, in writing, before work begins.</p>
             <Magnetic>
               <Link href="/contact" className="btn bg-paper text-ink hover:bg-sky">
-                Start a project <span className="arrow">→</span>
+                Start a project <Icon name="arrow-right" className="arrow" />
               </Link>
             </Magnetic>
           </div>

@@ -12,6 +12,11 @@ export interface Source {
   href: string;
   /** Shown on the chip and in the confirmation, e.g. "en.wikipedia.org". */
   host: string;
+  /**
+   * "vetted" (the default): from the list below, picked for what Neil's site
+   * mentions. "web": a live web search result that nobody here has checked.
+   */
+  kind?: "vetted" | "web";
 }
 
 interface Entry {
@@ -76,6 +81,8 @@ const ENTRIES: Entry[] = [
   { label: "Canon EOS 80D", href: wiki("Canon EOS 80D"), names: ["EOS 80D"] },
   { label: "Canon EOS 1500D", href: wiki("Canon EOS 2000D"), names: ["EOS 1500D"] },
   { label: "Formula 1", href: "https://www.formula1.com", names: ["Formula 1", "F1"] },
+  { label: "Forza Horizon", href: wiki("Forza Horizon"), names: ["Forza Horizon"] },
+  { label: "RStudio", href: "https://posit.co/products/open-source/rstudio/", names: ["RStudio"] },
 ];
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -119,5 +126,23 @@ export function resolveTopic(topic: string, kind: SourceKind = "thing"): Source 
   return toSource({ label: name, href: `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(name)}` });
 }
 
-/** Only ever open http(s) links from the chat. */
-export const isSafeHref = (href: string) => /^https:\/\//.test(href) && hostOf(href) !== "";
+/** Only ever open https links from the chat: never a bare IP, a local name or a URL carrying credentials. */
+export function isSafeHref(href: string): boolean {
+  if (!/^https:\/\//i.test(href) || href.length > 2000) return false;
+  try {
+    const url = new URL(href);
+    if (url.username || url.password) return false;
+    const host = url.hostname;
+    if (!host.includes(".") || /^[\d.]+$/.test(host) || host.includes(":") || /(^|\.)(localhost|local|internal)$/i.test(host)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** A Google search for the visitor's own question: the way out when NeilAI can't search for them. */
+export function googleSearch(query: string): Source {
+  const q = query.replace(/\s+/g, " ").trim().slice(0, 120);
+  const short = q.length > 48 ? `${q.slice(0, 46).trimEnd()}…` : q;
+  return { label: `Search Google: “${short}”`, href: `https://www.google.com/search?q=${encodeURIComponent(q)}`, host: "google.com", kind: "web" };
+}

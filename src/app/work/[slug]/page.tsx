@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/PageHeader";
 import Magnetic from "@/components/ui/Magnetic";
+import Icon from "@/components/ui/Icon";
 import ShareButton from "@/components/ui/ShareButton";
 import FacebookMedia from "@/components/work/FacebookMedia";
 import ProjectCover from "@/components/work/ProjectCover";
@@ -46,7 +47,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   return (
     <article>
       <header className="mx-auto max-w-[90rem] px-5 pt-32 md:px-10 md:pt-44">
-        <nav aria-label="Breadcrumb" className="label animate-rise-in flex flex-wrap items-center gap-2 text-ink/60">
+        <nav aria-label="Breadcrumb" className="label animate-rise-in flex flex-wrap items-center gap-2 text-ink/75">
           <Link href="/work" className="ulink hover:text-ink">Work</Link>
           <span aria-hidden>/</span>
           <Link href={`/work#${project.category}`} className="ulink hover:text-ink">{categories[project.category].label}</Link>
@@ -84,15 +85,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       </Container>
 
-      <Container className="grid gap-14 py-16 md:grid-cols-12 md:py-24">
+      <Container className="grid grid-cols-1 gap-14 py-16 md:grid-cols-12 md:py-24">
         <dl className="grid h-max min-w-0 grid-cols-2 gap-x-6 gap-y-8 md:sticky md:top-28 md:col-span-4 md:grid-cols-1">
           <Meta label="Role">{project.role}</Meta>
           <Meta label="Status">{project.status}</Meta>
           <div className="col-span-2 md:col-span-1">
-            <dt className="label mb-3 text-ink/50">Built with</dt>
+            <dt className="label mb-3 text-ink/70">Built with</dt>
             <dd className="flex flex-wrap gap-2">
               {project.stack.map((t) => (
-                <span key={t} className="label rounded-full border border-ink/20 px-3 py-1.5 text-[0.62rem]">{t}</span>
+                <span key={t} className="label rounded-full border border-ink/20 px-3 py-1.5 text-2xs">{t}</span>
               ))}
             </dd>
           </div>
@@ -100,20 +101,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             {project.links?.map((l) => (
               <Magnetic key={l.href}>
                 <a href={l.href} target="_blank" rel="noopener noreferrer" className="btn bg-ink py-3 text-paper hover:bg-ember">
-                  {l.label} <span className="arrow">↗</span>
+                  {l.label} <Icon name="arrow-up-right" className="arrow" />
                 </a>
               </Magnetic>
             ))}
             {project.privateRepo && (
-              <span className="label inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-3 text-ink/60">
-                <span aria-hidden>🔒</span> Private repository
+              <span className="label inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-3 text-ink/75">
+                <Icon name="lock" className="h-4 w-4" /> Private repository
               </span>
             )}
             <ShareButton title={project.title} text={project.plain} />
           </div>
           {project.notice && (
-            <p className="col-span-2 flex gap-3 rounded-[2px] border-l-2 border-ember bg-ember/[0.06] px-4 py-3 font-serif text-base leading-snug text-ink/75 italic md:col-span-1">
-              <span aria-hidden className="not-italic">ⓘ</span>
+            <p className="col-span-2 flex gap-3 rounded-[2px] border-l-2 border-ember bg-ember/[0.06] px-4 py-3 font-serif text-base leading-snug text-ink/80 md:col-span-1">
+              <Icon name="info" className="mt-0.5 h-5 w-5 shrink-0 text-ember" />
               {project.notice}
             </p>
           )}
@@ -128,7 +129,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
           {project.timeline && (
             <section className="mt-14" aria-label="How it evolved">
-              <h2 className="label mb-6 text-ink/50">How it evolved</h2>
+              <h2 className="label mb-6 text-ink/70">How it evolved</h2>
               <ol className="relative grid gap-4 md:grid-cols-3">
                 <span aria-hidden className="absolute top-5 right-[16%] left-[16%] hidden h-px bg-gradient-to-r from-ember via-ember/60 to-ink/30 md:block" />
                 {project.timeline.map((step, i) => (
@@ -137,7 +138,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                       {i + 1}
                     </span>
                     <div className="h-full rounded-[2px] border border-ink/10 bg-paper/70 p-5 transition-[transform,box-shadow] duration-500 ease-[var(--ease-apple)] group-hover:-translate-y-1 group-hover:shadow-[0_20px_40px_-24px_rgb(0_48_73/0.5)]">
-                      <p className="label text-[0.6rem] text-ember">
+                      <p className="label text-2xs text-ember">
                         <span className="md:hidden">0{i + 1} · </span>
                         {step.course}
                       </p>
@@ -154,20 +155,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             <blockquote {...reveal("up")} className="relative mt-12 border-l-2 border-ember pl-6 font-display text-2xl leading-snug text-ink md:pl-8 md:text-3xl">
               <span aria-hidden className="absolute -top-6 -left-1 font-display text-7xl leading-none text-ember/30">“</span>
               {project.quote}
-              <footer className="label mt-4 text-[0.62rem] text-ink/50">— Neil, on Day 2</footer>
+              <footer className="label mt-4 text-2xs text-ink/70">— Neil, on Day 2</footer>
             </blockquote>
           )}
 
           {project.media && project.media.length > 0 && (
             <section className="mt-14">
-              <h2 className="label mb-4 text-ink/50">{project.media.some((m) => m.kind === "video") ? "Watch the series" : "As published"}</h2>
+              <h2 className="label mb-4 text-ink/70">{project.media.some((m) => m.kind === "video") ? "Watch the series" : "As published"}</h2>
               <FacebookMedia items={project.media} />
             </section>
           )}
 
           {project.scrollShot && (
             <section className="mt-14">
-              <h2 className="label mb-4 text-ink/50">Scroll through the prototype</h2>
+              <h2 className="label mb-4 text-ink/70">Scroll through the prototype</h2>
               <ScrollShot
                 src={project.scrollShot.src}
                 alt={project.scrollShot.alt}
@@ -176,16 +177,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </section>
           )}
 
+          {/* The Lab tools are also used full width on /lab; here they sit in a narrow column, so every
+              grid cell and range slider inside is allowed to shrink instead of pushing past the box's right edge. */}
           {project.tool && (
-            <section className="mt-14 rounded-[2px] bg-paper-deep/50 p-5 ring-1 ring-ink/10 md:p-8">
+            <section className="mt-14 min-w-0 rounded-[2px] bg-paper-deep/50 p-4 ring-1 ring-ink/10 sm:p-5 md:p-8 [&_.grid>*]:min-w-0 [&_input[type=range]]:min-w-0">
               <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <h2 className="label text-ember">Try it yourself</h2>
                   <p className="mt-2 font-display text-3xl leading-tight">{toolById(project.tool).title}</p>
                   <p className="mt-2 max-w-xl font-serif text-lg text-ink/70">{toolById(project.tool).blurb}</p>
                 </div>
-                <Link href={`/lab#${project.tool}`} className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
-                  All Lab tools →
+                <Link href={`/lab#${project.tool}`} className="label ulink inline-flex items-center gap-1.5 text-2xs text-ink/75 hover:text-ink">
+                  All Lab tools <Icon name="arrow-right" />
                 </Link>
               </div>
               <ToolView id={project.tool} />
@@ -197,14 +200,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
           {project.team && (
             <section className="mt-14 border-t border-ink/15 pt-8">
-              <h2 className="label mb-4 text-ink/50">Team</h2>
+              <h2 className="label mb-4 text-ink/70">Team</h2>
               <ul className="grid gap-2 font-serif text-lg sm:grid-cols-2">
                 {project.team.map((m) => {
                   const [name, role] = m.split(" — ");
                   return (
                     <li key={m} className={name === "Neil Jacob Santiago" ? "text-ember" : undefined}>
                       {name}
-                      {role && <span className="block text-base text-ink/60 italic">{role}</span>}
+                      {role && <span className="block text-base text-ink/75 italic">{role}</span>}
                     </li>
                   );
                 })}
@@ -216,7 +219,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
           {gallery.length > 0 && (
             <section className="mt-14">
-              <h2 className="label mb-4 text-ink/50">Gallery</h2>
+              <h2 className="label mb-4 text-ink/70">Gallery</h2>
               <ProjectImages images={gallery} />
             </section>
           )}
@@ -226,11 +229,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <nav aria-label="More projects" className="border-t border-ink/15">
         <div className="mx-auto grid max-w-[90rem] md:grid-cols-2">
           <Link href={`/work/${prev.slug}`} className="group press border-b border-ink/15 px-5 py-10 md:border-r md:border-b-0 md:px-10 md:py-14">
-            <span className="label text-ink/50">← Previous</span>
+            <span className="label inline-flex items-center gap-2 text-ink/70"><Icon name="arrow-left" /> Previous</span>
             <span className="mt-3 block font-display text-3xl transition-colors group-hover:text-ember md:text-4xl">{prev.title}</span>
           </Link>
           <Link href={`/work/${next.slug}`} className="group press px-5 py-10 text-right md:px-10 md:py-14">
-            <span className="label text-ink/50">Next →</span>
+            <span className="label inline-flex items-center gap-2 text-ink/70">Next <Icon name="arrow-right" /></span>
             <span className="mt-3 block font-display text-3xl transition-colors group-hover:text-ember md:text-4xl">{next.title}</span>
           </Link>
         </div>
@@ -242,7 +245,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="label mb-2 text-ink/50">{label}</dt>
+      <dt className="label mb-2 text-ink/70">{label}</dt>
       <dd className="font-serif text-lg leading-snug">{children}</dd>
     </div>
   );

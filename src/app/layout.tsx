@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Courier_Prime, Gloock, Newsreader } from "next/font/google";
+import { Gloock, IBM_Plex_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/layout/NavBar";
 import Footer from "@/components/layout/Footer";
@@ -14,8 +14,10 @@ import Shortcuts from "@/components/effects/Shortcuts";
 import { site, siteUrl, socials } from "@/lib/site";
 
 const display = Gloock({ subsets: ["latin"], weight: "400", variable: "--font-gloock" });
-const serif = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-newsreader" });
-const mono = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-courier-prime" });
+// Optical sizing keeps the serif sturdy at small sizes instead of thin and faint.
+const serif = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"], variable: "--font-newsreader" });
+// Labels: a mono with real weight, readable at small sizes on any screen.
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-mono" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),

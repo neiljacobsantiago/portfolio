@@ -7,6 +7,7 @@ import { categories, projects } from "@/content/work";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import ProjectCover from "./ProjectCover";
+import Icon from "@/components/ui/Icon";
 
 const KEY = "work-view";
 
@@ -73,9 +74,18 @@ export default function WorkViews({ children }: { children: ReactNode }) {
               role="radio"
               aria-checked={view === v}
               onClick={() => choose(v)}
-              className="label press flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.58rem] text-ink/60 aria-checked:bg-ink aria-checked:text-paper"
+              className="label press flex items-center gap-1.5 rounded-full px-3.5 py-2 text-3xs text-ink/75 aria-checked:bg-ink aria-checked:text-paper"
             >
-              <span aria-hidden>{v === "grid" ? "▦" : "☰"}</span>
+              {v === "grid" ? (
+                <span aria-hidden className="grid h-2.5 w-2.5 grid-cols-2 gap-[2px]">
+                  <i className="rounded-[1px] bg-current" />
+                  <i className="rounded-[1px] bg-current" />
+                  <i className="rounded-[1px] bg-current" />
+                  <i className="rounded-[1px] bg-current" />
+                </span>
+              ) : (
+                <Icon name="menu" className="h-3.5 w-3.5" />
+              )}
               {v === "grid" ? "Grid" : "List"}
             </button>
           ))}
@@ -95,7 +105,7 @@ export default function WorkViews({ children }: { children: ReactNode }) {
                 onBlur={() => setHover(null)}
                 className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 py-5 transition-colors hover:bg-paper-deep/40 md:grid-cols-[4rem_1fr_16rem_2rem] md:gap-6 md:px-3 md:py-7"
               >
-                <span className="label hidden text-[0.6rem] text-ink/40 md:block">{String(i + 1).padStart(2, "0")}</span>
+                <span className="label hidden text-2xs text-ink/70 md:block">{String(i + 1).padStart(2, "0")}</span>
                 {/* Phones and tablets get a thumbnail instead of the floating preview. */}
                 <span className="relative block h-14 w-20 overflow-hidden rounded-[2px] pointer-fine:hidden md:hidden">
                   <ProjectCover project={p} sizes="80px" className="absolute inset-0" />
@@ -104,15 +114,13 @@ export default function WorkViews({ children }: { children: ReactNode }) {
                   <span className="block truncate font-display text-[clamp(1.6rem,4.5vw,4rem)] leading-[1.05] transition-[color,transform] duration-500 ease-[var(--ease-apple)] group-hover:translate-x-3 group-hover:text-ember">
                     {p.title}
                   </span>
-                  <span className="mt-1 block truncate font-serif text-base text-ink/60 italic md:hidden">{p.context}</span>
+                  <span className="mt-1 block truncate font-serif text-base text-ink/75 italic md:hidden">{p.context}</span>
                 </span>
                 <span className="hidden md:block">
-                  <span className="label block text-[0.58rem] text-ember">{categories[p.category].label}</span>
-                  <span className="mt-1 block truncate font-serif text-ink/60 italic">{p.context}</span>
+                  <span className="label block text-3xs text-ember">{categories[p.category].label}</span>
+                  <span className="mt-1 block truncate font-serif text-ink/75 italic">{p.context}</span>
                 </span>
-                <span aria-hidden className="text-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:-rotate-45">
-                  →
-                </span>
+                <Icon name="arrow-right" className="h-5 w-5 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:-rotate-45" />
               </Link>
             </li>
           ))}
@@ -132,7 +140,7 @@ export default function WorkViews({ children }: { children: ReactNode }) {
           {hovered && (
             <>
               <ProjectCover key={hovered.slug} project={hovered} sizes="352px" className="aspect-[4/3]" />
-              <p className="label bg-ink px-3 py-2 text-[0.55rem] text-paper">{hovered.status}</p>
+              <p className="label bg-ink px-3 py-2 text-3xs text-paper">{hovered.status}</p>
             </>
           )}
         </div>

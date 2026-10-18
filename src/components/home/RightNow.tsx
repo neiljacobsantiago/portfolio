@@ -3,6 +3,7 @@ import { getWeather } from "@/lib/now";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
 import LocalClock from "./LocalClock";
+import Icon from "@/components/ui/Icon";
 
 /** A friendly "live" panel: local time, weather and what's being built. */
 export default async function RightNow() {
@@ -15,7 +16,7 @@ export default async function RightNow() {
         <h2 id="now-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
           Right <em className="font-serif text-ember">now.</em>
         </h2>
-        <span className="label flex items-center gap-2 text-ink/60">
+        <span className="label flex items-center gap-2 text-ink/75">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ember/60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-ember" />
@@ -31,17 +32,17 @@ export default async function RightNow() {
         </div>
 
         <div {...reveal("up", 100)} className="bg-sky/25 p-7 md:p-10">
-          <p className="label mb-6 text-ink/70">Outside the window</p>
+          <p className="label mb-6 text-ink/80">Outside the window</p>
           {weather ? (
             <>
               <span className="font-display text-[clamp(3.5rem,9vw,7rem)] leading-none">{weather.temperature}°</span>
-              <span className="mt-3 block font-serif text-xl italic text-ink/75">
+              <span className="mt-3 block font-serif text-xl italic text-ink/80">
                 {weather.sky}
                 {weather.isDay ? " — good light for shooting." : " — a night for the stars."}
               </span>
             </>
           ) : (
-            <span className="block font-serif text-xl italic text-ink/75">The weather station is quiet right now.</span>
+            <span className="block font-serif text-xl italic text-ink/80">No reading from the weather station just now.</span>
           )}
         </div>
 
@@ -54,15 +55,15 @@ export default async function RightNow() {
           <p className="label mb-4 text-ink/70">Latest code pushed</p>
           {repo ? (
             <a href={repo.url} target="_blank" rel="noopener noreferrer" className="group block">
-              <span className="font-display text-3xl break-words group-hover:text-ember">{repo.name} ↗</span>
+              <span className="font-display text-3xl break-words group-hover:text-ember">{repo.name} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" /></span>
               {repo.description && <span className="mt-2 block font-serif text-lg text-ink/75">{repo.description}</span>}
-              <span className="label mt-3 block text-[0.65rem] text-ink/50">
+              <span className="label mt-3 block text-2xs text-ink/70">
                 {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeZone: site.timeZone }).format(new Date(repo.pushedAt))}
               </span>
             </a>
           ) : (
             <a href={`https://github.com/${site.githubUser}`} target="_blank" rel="noopener noreferrer" className="font-display text-[clamp(1.5rem,6vw,1.875rem)] break-all hover:text-ember">
-              github.com/{site.githubUser} ↗
+              github.com/<span className="whitespace-nowrap">{site.githubUser} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" /></span>
             </a>
           )}
         </div>

@@ -33,6 +33,11 @@ export interface Offer {
   price: { label: string; note?: string };
   /** Real work that shows it, from this site. */
   proof: { label: string; href: string }[];
+  /**
+   * Outside people or companies the job may rely on (makeup artists, venues,
+   * hosting, suppliers). Their availability isn't Neil's to promise, so it's said up front.
+   */
+  partners?: string;
   /** For photo offers: where the packages and prices live. */
   packagesHref?: string;
   cta: string;
@@ -55,7 +60,7 @@ const offers: Offer[] = [
     topic: "website",
     title: "Websites & web systems",
     short: "Websites",
-    pitch: "From a one-page site to a system with logins and a database, planned before the first line is written.",
+    pitch: "From a one-page site to a system with logins and a database, built to a scope you've signed off.",
     forWho: "Small businesses, student organizations, freelancers and research teams.",
     deliverables: [
       "A clickable Figma design you approve before any build",
@@ -65,7 +70,8 @@ const offers: Offer[] = [
       "A walkthrough so you can update it yourself",
     ],
     timeline: "Landing page or portfolio: 1–2 weeks. Web system with a database: 4–8 weeks.",
-    price: { label: `From ${site.rate}`, note: "Quoted after the first call" },
+    price: { label: "Priced by scope", note: "A written quote after the first call: pages, features and deadline decide it" },
+    partners: "Domains, hosting and paid plugins come from outside providers. Their prices and terms are theirs; I'll tell you what each one costs before you commit.",
     proof: [
       { label: "PathoScan", href: "/work/pathoscan" },
       { label: "BuildIT", href: "/work/buildit" },
@@ -79,7 +85,7 @@ const offers: Offer[] = [
     topic: "network",
     title: "Network design & setup",
     short: "Networks",
-    pitch: "Wired and wireless networks that are mapped, addressed and documented, not just plugged in.",
+    pitch: "Wired and wireless networks that are mapped, addressed and documented, so whoever looks after them next isn't guessing.",
     forWho: "Homes, small offices, shops, dorms and org rooms.",
     deliverables: [
       "A site walkthrough and a topology diagram",
@@ -89,7 +95,8 @@ const offers: Offer[] = [
       "Plain-language documentation and passwords handed over",
     ],
     timeline: "Small office or home: 2–5 days including testing. Bigger sites after a walkthrough.",
-    price: { label: `From ${site.rate}`, note: "Quoted after a walkthrough" },
+    price: { label: "Priced by scope", note: "Quoted after a walkthrough: size, devices and equipment decide it" },
+    partners: "Routers, access points and cabling are bought from suppliers, and the internet line is your ISP's. Stock and install dates depend on them, so they're confirmed before work is scheduled.",
     proof: [
       { label: "Subnet & VLAN planner", href: "/lab#subnet" },
       { label: "Cisco NetAcad certificate", href: "/about#credentials" },
@@ -110,7 +117,7 @@ const offers: Offer[] = [
       "A short written report with fixes ranked by urgency",
     ],
     timeline: "Awareness session: 1–2 weeks to prepare. Basic audit and report: about a week.",
-    price: { label: "Quoted per scope", note: "A basic review, not a penetration test" },
+    price: { label: "Priced by scope", note: "A basic review, not a penetration test" },
     proof: [
       { label: "Cyber Awareness Series", href: "/work/cyber-awareness-series" },
       { label: "Link safety check", href: "/lab#link" },
@@ -131,6 +138,7 @@ const offers: Offer[] = [
       "A private online gallery",
     ],
     timeline: "Gallery in 7–10 days, or 3 days with rush delivery.",
+    partners: "Hair and makeup artists, studio rentals and venues are booked with partners. If one isn't free on your date, you'll hear it early, with alternatives.",
     price: { label: photoFrom(["private", "id_portrait", "graduation", "studio", "funshoot", "pre_event"]), note: "Every package and add-on is listed" },
     proof: [
       { label: "Fashion portraits", href: "/photography#portraits" },
@@ -154,6 +162,7 @@ const offers: Offer[] = [
       "Highlight video and same-day edits in the bigger packages",
     ],
     timeline: "Same-day highlights on request; the full gallery in 7–10 days.",
+    partners: "Second shooters, videographers and drone operators are freelancers too, booked per event. Bigger crews are confirmed once the date is.",
     price: { label: photoFrom(["event"]), note: "Live gigs and corporate events are quoted" },
     proof: [
       { label: "Aurora Fest 2026", href: "/work/aurora-fest-2026" },
@@ -178,7 +187,8 @@ const offers: Offer[] = [
       "Episodes or series planned as a set",
     ],
     timeline: "Reels in about a week; series and short films scoped together.",
-    price: { label: "Quoted per brief", note: "Reels can be added to any photo package" },
+    price: { label: "Priced by brief", note: "Length, crew and edit time decide it; reels can join any photo package" },
+    partners: "Extra crew, drone operators, voice talent and music licences come from outside. Their availability and fees are confirmed before the quote is final.",
     proof: [
       { label: "Cyber Awareness Series", href: "/work/cyber-awareness-series" },
       { label: "Mundane", href: "/work/mundane" },
@@ -213,7 +223,7 @@ const processSteps: ProcessStep[] = [
   },
   {
     title: "Deliver",
-    detail: "Everything handed over in your name: files, accounts, passwords and plain-language notes.",
+    detail: "Everything handed over in your name: files, accounts, passwords and clear handover notes.",
     shoot: "Your edited photos arrive in a private online gallery.",
   },
   {
@@ -229,10 +239,10 @@ export interface Principle {
 }
 
 const principles: Principle[] = [
-  { title: "Plan before building", detail: "Every system starts as a diagram, a prototype or a shot list. Planning is cheaper than rework." },
-  { title: "Plain language", detail: "You'll always know what's happening and why, without needing to speak IT." },
+  { title: "Drawn before it's built", detail: "Every system starts as a diagram, a prototype or a shot list. Rework costs more than a sketch." },
+  { title: "No jargon", detail: "You'll always know what's happening and why, without needing to speak IT." },
   { title: "Private by default", detail: "Your photos, data and passwords stay yours. Nothing is posted or shared without a yes." },
-  { title: "Fast on any phone", detail: "Sites are built and tested for budget Androids on mobile data, not just new laptops." },
+  { title: "Fast on any phone", detail: "Sites are built and tested on budget Androids and mobile data, as well as new laptops." },
   { title: "Finished, not raw", detail: "Photos are delivered edited and code is delivered documented. No loose ends to tidy up yourself." },
 ];
 
@@ -246,12 +256,16 @@ export interface Faq {
 const faqs: Faq[] = [
   {
     q: "How much does a project cost?",
-    a: `Freelance web and network projects start at ${site.rate}. After the first call you get a written quote for the agreed scope. Photo packages have set prices.`,
+    a: "It depends on the work. Web, network, security and video jobs are quoted after a short call, once the scope, deadline and any outside costs are clear, and the quote is in writing before anything starts. Photo packages have set prices.",
     link: { label: "Photo packages", href: "/photography#sessions" },
   },
   {
     q: "Do you work outside Nueva Ecija?",
     a: `I'm based in ${site.location} and work remotely on web projects anywhere. Shoots and on-site network work outside San Jose City add travel, quoted by distance.`,
+  },
+  {
+    q: "Do other people work on my project?",
+    a: "Sometimes. A shoot may need a hair and makeup artist, an event a second shooter, a network new equipment from a supplier. They're independent, so their availability isn't guaranteed: if someone can't make your date, you'll know early and get an alternative or an adjusted quote.",
   },
   {
     q: "How do I pay?",

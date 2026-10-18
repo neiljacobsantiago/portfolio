@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Icon from "@/components/ui/Icon";
 import AvailabilityBadge from "@/components/layout/AvailabilityBadge";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
 import Section, { JumpLinks } from "@/components/layout/Section";
@@ -19,37 +20,43 @@ function OfferBlock({ offer, index }: { offer: Offer; index: number }) {
   return (
     <article id={offer.id} aria-labelledby={`${offer.id}-title`} className="grid scroll-mt-28 gap-10 border-t border-ink/15 py-12 md:grid-cols-12 md:py-16">
       <div {...reveal("up")} className="min-w-0 md:col-span-5">
-        <p className="label text-[0.62rem] text-ember">{String(index + 1).padStart(2, "0")}</p>
+        <p className="label text-2xs text-ember">{String(index + 1).padStart(2, "0")}</p>
         <h3 id={`${offer.id}-title`} className="mt-3 font-display text-[clamp(2rem,4.5vw,3.25rem)] leading-[1.02]">
           {offer.title}
         </h3>
         <p className="mt-4 font-serif text-xl leading-relaxed text-ink/80">{offer.pitch}</p>
-        <p className="mt-4 font-serif text-lg text-ink/60 italic">Usually for {offer.forWho.charAt(0).toLowerCase() + offer.forWho.slice(1)}</p>
+        <p className="mt-4 font-serif text-lg text-ink/75 italic">Usually for {offer.forWho.charAt(0).toLowerCase() + offer.forWho.slice(1)}</p>
         <dl className="mt-8 grid gap-6 sm:grid-cols-2">
           <div>
-            <dt className="label text-[0.58rem] text-ink/45">Price</dt>
+            <dt className="label text-3xs text-ink/70">Price</dt>
             <dd className="mt-2 font-display text-2xl">{offer.price.label}</dd>
-            {offer.price.note && <dd className="font-serif text-base text-ink/60 italic">{offer.price.note}</dd>}
+            {offer.price.note && <dd className="font-serif text-base text-ink/75">{offer.price.note}</dd>}
           </div>
           <div>
-            <dt className="label text-[0.58rem] text-ink/45">Typical timeline</dt>
+            <dt className="label text-3xs text-ink/70">Typical timeline</dt>
             <dd className="mt-2 font-serif text-lg leading-snug">{offer.timeline}</dd>
           </div>
         </dl>
+        {offer.partners && (
+          <p className="mt-6 border-l-2 border-sky pl-4 font-serif text-base leading-snug text-ink/75">
+            <span className="label mb-1 block text-2xs text-ink/75">Outside partners</span>
+            {offer.partners}
+          </p>
+        )}
       </div>
 
       <div {...reveal("up", 100)} className="min-w-0 md:col-span-6 md:col-start-7">
-        <p className="label text-[0.58rem] text-ink/45">What you get</p>
+        <p className="label text-3xs text-ink/70">What you get</p>
         <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
           {offer.deliverables.map((d) => (
             <li key={d} className="flex gap-4 py-3 font-serif text-lg leading-snug">
-              <span aria-hidden className="mt-[0.15em] text-ember">✓</span>
+              <Icon name="check" className="mt-[0.2em] text-ember" />
               {d}
             </li>
           ))}
         </ul>
 
-        <p className="label mt-8 text-[0.58rem] text-ink/45">See it in the work</p>
+        <p className="label mt-8 text-3xs text-ink/70">See it in the work</p>
         <ul className="mt-3 flex flex-wrap gap-2">
           {offer.proof.map((p) => (
             <li key={p.href}>
@@ -62,11 +69,11 @@ function OfferBlock({ offer, index }: { offer: Offer; index: number }) {
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link href={contactHref(offer.topic)} className="btn bg-ink py-3.5 text-paper hover:bg-ember">
-            {offer.cta} <span className="arrow">→</span>
+            {offer.cta} <Icon name="arrow-right" className="arrow" />
           </Link>
           {offer.packagesHref && (
-            <Link href={offer.packagesHref} className="label ulink px-2 py-3 text-[0.62rem] text-ink/70 hover:text-ink">
-              Packages & prices →
+            <Link href={offer.packagesHref} className="label ulink px-2 py-3 text-2xs text-ink/70 hover:text-ink">
+              Packages & prices <Icon name="arrow-right" />
             </Link>
           )}
         </div>
@@ -111,12 +118,12 @@ export default async function ServicesPage() {
             Built right, <em className="font-serif text-ember">shot right.</em>
           </>
         }
-        lead="Websites, networks, security, photos and video. Planned before it starts, explained in plain language, and handed over finished."
+        lead="Websites, networks, security, photography and video. Every job is scoped in writing up front and handed over complete."
         aside={
           <div className="space-y-4">
             <AvailabilityBadge availability={availability} tone="ink" />
             <p className="font-serif text-lg text-ink/70">
-              Projects from {site.rate}. Based in {site.location}; web work anywhere.
+              Pricing follows the work: photo packages are fixed, everything else is quoted to its scope. Based in {site.location}; web work anywhere.
             </p>
           </div>
         }
@@ -138,8 +145,8 @@ export default async function ServicesPage() {
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ember font-display text-lg text-paper">{i + 1}</span>
                 <h3 className="mt-5 font-display text-2xl leading-tight">{s.title}</h3>
                 <p className="mt-3 font-serif text-lg leading-snug text-ink/80">{s.detail}</p>
-                <p className="mt-auto pt-5 font-serif text-base leading-snug text-ink/55 italic">
-                  <span className="label mr-1.5 align-middle text-[0.52rem] text-ember not-italic">Shoots</span>
+                <p className="mt-auto pt-5 font-serif text-base leading-snug text-ink/75">
+                  <span className="label mr-1.5 align-middle text-3xs text-ember">Shoots</span>
                   {s.shoot}
                 </p>
               </li>
@@ -149,7 +156,7 @@ export default async function ServicesPage() {
 
         <section aria-labelledby="principles-title" className="mt-24 rounded-[2px] bg-wine p-7 text-paper md:mt-32 md:p-14">
           <div className="grid gap-4 md:grid-cols-12">
-            <p className="label text-paper/60 md:col-span-3">How I work</p>
+            <p className="label text-paper/75 md:col-span-3">How I work</p>
             <h2 id="principles-title" className="font-display text-[clamp(2.25rem,5vw,4rem)] leading-none md:col-span-9">
               Five things <em className="font-serif text-sky">I won&apos;t skip.</em>
             </h2>
@@ -172,15 +179,15 @@ export default async function ServicesPage() {
               <details key={f.q} className="group border-b border-ink/15 first:border-t [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-display text-xl leading-snug transition-colors hover:text-ember md:text-2xl">
                   {f.q}
-                  <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink/20 font-serif text-xl transition-transform duration-500 ease-[var(--ease-spring)] group-open:rotate-45">
-                    +
+                  <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink/20 transition-transform duration-500 ease-[var(--ease-spring)] group-open:rotate-45">
+                    <Icon name="plus" className="h-4 w-4" />
                   </span>
                 </summary>
                 <div className="max-w-2xl pb-6 font-serif text-lg leading-relaxed text-ink/75">
                   <p>{f.a}</p>
                   {f.link && (
-                    <Link href={f.link.href} className="label ulink mt-3 inline-block text-[0.62rem] text-ember">
-                      {f.link.label} →
+                    <Link href={f.link.href} className="label ulink mt-3 inline-flex items-center gap-1.5 text-2xs text-ember">
+                      {f.link.label} <Icon name="arrow-right" />
                     </Link>
                   )}
                 </div>
@@ -199,7 +206,7 @@ export default async function ServicesPage() {
           <div className="md:col-span-4 md:text-right">
             <Magnetic>
               <Link href={contactHref("other")} className="btn bg-ink text-paper hover:bg-ember">
-                Start a conversation <span className="arrow">→</span>
+                Start a conversation <Icon name="arrow-right" className="arrow" />
               </Link>
             </Magnetic>
           </div>

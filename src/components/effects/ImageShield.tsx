@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 
 const isMedia = (t: EventTarget | null) => t instanceof Element && (t.tagName === "IMG" || t.tagName === "VIDEO" || t.tagName === "PICTURE" || !!t.closest("[data-protect]"));
@@ -105,7 +106,7 @@ export default function ImageShield() {
 
   return (
     <>
-      <p aria-hidden className="shield-badge label pointer-events-none fixed top-1/2 left-1/2 z-[200] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/90 px-5 py-3 text-[0.6rem] whitespace-nowrap text-paper shadow-2xl">
+      <p aria-hidden className="shield-badge label pointer-events-none fixed top-1/2 left-1/2 z-[200] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/90 px-5 py-3 text-2xs whitespace-nowrap text-paper shadow-2xl">
         © Neil Jacob Santiago · Protected
       </p>
       {notice && (
@@ -115,10 +116,10 @@ export default function ImageShield() {
           className="animate-blob-in fixed z-[200] w-[min(18rem,calc(100vw-2rem))] origin-top-left rounded-2xl bg-ink p-4 text-paper shadow-[0_24px_60px_-20px_rgb(0_0_0/0.6)] ring-1 ring-paper/10"
           style={{ left: Math.max(16, Math.min(notice.x, innerWidth - 304)), top: Math.max(16, Math.min(notice.y, innerHeight - 170)) }}
         >
-          <p className="label text-[0.55rem] text-sky">© Neil Jacob Santiago</p>
+          <p className="label text-3xs text-sky">© Neil Jacob Santiago</p>
           <p className="mt-2 font-serif leading-snug">Photos here are protected and can&apos;t be saved. Want a print, a licence or the full file?</p>
-          <Link href="/contact" onClick={() => setNotice(null)} className="label press mt-3 inline-flex rounded-full bg-paper px-4 py-2 text-[0.55rem] text-ink hover:bg-sky">
-            Ask Neil →
+          <Link href="/contact" onClick={() => setNotice(null)} className="label press mt-3 inline-flex items-center gap-1.5 rounded-full bg-paper px-4 py-2 text-3xs text-ink hover:bg-sky">
+            Ask Neil <Icon name="arrow-right" />
           </Link>
         </div>
       )}

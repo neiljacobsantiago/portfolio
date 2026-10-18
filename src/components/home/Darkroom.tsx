@@ -106,9 +106,9 @@ export default function Darkroom() {
         <span className="label pointer-events-none absolute top-5 left-5 text-paper/85">Plate No. 01</span>
         <span className="label pointer-events-none absolute right-5 bottom-5 text-paper/85">{developed ? "Developed" : "Negative"}</span>
       </div>
-      <figcaption className="mt-4 flex items-center justify-between gap-4 font-serif text-sm text-ink/70 italic">
+      <figcaption className="mt-4 flex items-center justify-between gap-4 font-serif text-[0.95rem] text-ink/75">
         <span>{finePointer ? "Move across the print to develop it — click to see it whole." : "Drag across the print to develop it — tap to see it whole."}</span>
-        <span className="label not-italic text-ember">Two exposures</span>
+        <span className="label shrink-0 text-ember">Two exposures</span>
       </figcaption>
     </figure>
   );

@@ -8,12 +8,12 @@ import { cn } from "@/lib/utils";
 // squeezed into a NeilAI chat bubble (`compact`).
 
 export const input =
-  "w-full rounded-[2px] border border-ink/20 bg-paper/80 px-3 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:text-ink/35 focus:border-ember focus:ring-1 focus:ring-ember";
+  "w-full rounded-[2px] border border-ink/20 bg-paper/80 px-3 py-2.5 font-mono text-sm text-ink outline-none transition-colors placeholder:text-ink/55 focus:border-ember focus:ring-1 focus:ring-ember";
 
 export function Field({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
     <label className={cn("block", className)}>
-      <span className="label mb-1.5 block text-[0.58rem] text-ink/55">{label}</span>
+      <span className="label mb-1.5 block text-3xs text-ink/70">{label}</span>
       {children}
     </label>
   );
@@ -22,7 +22,7 @@ export function Field({ label, children, className }: { label: string; children:
 export function Stat({ label, value, tone, compact }: { label: string; value: ReactNode; tone?: "ember" | "sky"; compact?: boolean }) {
   return (
     <div className="min-w-0 bg-paper p-3">
-      <dt className="label truncate text-[0.52rem] text-ink/50">{label}</dt>
+      <dt className="label truncate text-3xs text-ink/70">{label}</dt>
       <dd className={cn("mt-1 truncate font-mono", compact ? "text-xs" : "text-sm", tone === "ember" && "text-ember", tone === "sky" && "text-[#3d7398]")}>{value}</dd>
     </div>
   );
@@ -41,7 +41,7 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
             haptic();
             onChange(o.value);
           }}
-          className="label press shrink-0 rounded-full px-3 py-1.5 text-[0.58rem] whitespace-nowrap text-ink/65 transition-colors hover:text-ink aria-checked:bg-ink aria-checked:text-paper"
+          className="label press shrink-0 rounded-full px-3 py-1.5 text-3xs whitespace-nowrap text-ink/75 transition-colors hover:text-ink aria-checked:bg-ink aria-checked:text-paper"
         >
           {o.label}
         </button>
@@ -51,5 +51,5 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
 }
 
 export function Note({ children }: { children: ReactNode }) {
-  return <p className="font-serif text-sm leading-snug text-ink/55 italic">{children}</p>;
+  return <p className="font-serif text-[0.95rem] leading-snug text-ink/75">{children}</p>;
 }

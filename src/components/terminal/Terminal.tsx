@@ -70,7 +70,7 @@ export default function Terminal() {
       case "skills":
         return "Networking (VLANs, subnetting, routing), Linux, Next.js & React, Python, Java, multimedia direction.";
       case "rates":
-        return <span className="font-bold text-paper">Freelance retainer starts at {site.rate}. Connection refused for lower bids.</span>;
+        return <span className="font-bold text-paper">Rates are quoted per job. Send a brief: /contact</span>;
       case "ls":
         return (
           <div className="flex flex-wrap gap-x-6 gap-y-1">
@@ -97,7 +97,7 @@ export default function Terminal() {
                 {s.url ? (
                   <a href={s.url} target="_blank" rel="noopener noreferrer" className="interactive text-ember hover:underline">{s.url}</a>
                 ) : (
-                  <span className="opacity-50">pending</span>
+                  <span className="opacity-75">pending</span>
                 )}
               </li>
             ))}

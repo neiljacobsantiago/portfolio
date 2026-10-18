@@ -1,176 +1,333 @@
 import type { Metadata } from "next";
+import { Source_Serif_4 } from "next/font/google";
 import Link from "next/link";
 import ResumeActions from "@/components/resume/ResumeActions";
-import { certificates, education, inProgress, interests, organizations, toolkit } from "@/content/about";
-import { featuredProjects, projectBySlug } from "@/content/work";
+import Icon from "@/components/ui/Icon";
+import { certificates, education, inProgress } from "@/content/about";
 import { site, siteUrl, socials } from "@/lib/site";
+
+// A document face for the résumé alone: Source Serif 4 is built for long
+// reading at text sizes, prints crisply at 10pt and has true italics.
+const doc = Source_Serif_4({ subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"], variable: "--font-resume", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Résumé",
-  description: `${site.name}'s résumé: education, leadership, certificates, skills and selected projects in networks, web systems and photography.`,
+  description: `${site.name}'s résumé: BS Information Technology at Central Luzon State University, technical projects in web systems and networking, leadership, certifications and skills.`,
 };
 
-// Everything here comes from the same content as the rest of the site, so the
-// résumé never drifts out of date.
-const MORE = ["memory-allocation-simulator", "whisper-transcription", "img-stratcom", "worktayo"];
+/* ------------------------------------------------------------------------- */
+/* Content. Every line below is drawn from content/work.ts, content/about.ts  */
+/* and lib/site.ts; edit those first, then mirror any wording change here.    */
+/* ------------------------------------------------------------------------- */
 
-function Block({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+const SUMMARY =
+  "Third-year BS Information Technology student at Central Luzon State University, majoring in Network Systems & Infrastructure Engineering. Designs interfaces, trains models and builds full-stack web systems in team settings, most recently PathoScan, an offline plant-pathogen classifier accepted for operational use by DA PhilMech. Production Director of the ITSC Media Group, leading planning and delivery for the IT Student Council's productions.";
+
+interface Entry {
+  title: string;
+  /** Short descriptor after the title. */
+  kind?: string;
+  /** Right-aligned on the first line. */
+  date?: string;
+  /** Italic second line. */
+  role?: string;
+  /** Right-aligned on the second line. */
+  where?: string;
+  bullets: string[];
+  stack?: string;
+  href?: string;
+}
+
+const PROJECTS: Entry[] = [
+  {
+    title: "PathoScan",
+    kind: "Plant Pathogen Image Classification System",
+    date: "Sep 2026",
+    role: "UI/UX Designer & Model Trainer",
+    where: "COMSCI 3100 · for DA PhilMech",
+    href: "/work/pathoscan",
+    bullets: [
+      "Trained a MobileNetV2 classifier that identifies five mycotoxin-producing Aspergillus species from culture-plate photos, running fully in the browser with TensorFlow.js and answering “Unknown” rather than forcing a guess.",
+      "Designed the capture-to-result interface: confidence score, a probability matrix for every class, colony traits for comparison, and a 90% confidence bar that marks a result ready for preliminary screening or prompts a second look.",
+      "Delivered with a nine-member Agile-Scrum team as an offline Progressive Web App; formally turned over to the DA PhilMech Laboratory Services Division on September 28, 2026.",
+    ],
+    stack: "React, TypeScript, Vite, TensorFlow.js, IndexedDB, PWA",
+  },
+  {
+    title: "Student Information System",
+    kind: "Registrar Records Platform",
+    role: "Full-Stack Developer",
+    where: "INTECH 3112 · Final project",
+    href: "/work/student-information-system",
+    bullets: [
+      "Built a Laravel REST API over a relational MySQL schema (programs, sections, students and saved records) with search, filtering, sorting and pagination executed in SQL on the server.",
+      "Implemented Sanctum token sign-in with three roles (registrar, staff adviser, student), enforced by a server-side policy that refuses unauthorised requests with HTTP 403.",
+      "Moved business rules to the server: per-field 422 validation, section capacity limits, program–section consistency and student numbers issued once at creation.",
+    ],
+    stack: "Laravel, PHP 8.3, MySQL, Eloquent ORM, React, Tailwind CSS",
+  },
+  {
+    title: "BuildIT",
+    kind: "Custom PC Builder & Storefront",
+    role: "Lead UI/UX Designer",
+    where: "COMSCI 1200, INTECH 2100 & 2201",
+    href: "/work/buildit",
+    bullets: [
+      "Led the design of a storefront that brings part selection, compatibility checking and checkout into one flow for a five-person team.",
+      "Carried the product across three courses: a C command-line program, a high-fidelity Figma prototype and a cloud-hosted WordPress storefront on Azure.",
+    ],
+    stack: "C, Figma, WordPress, Azure",
+  },
+  {
+    title: "ParkMate",
+    kind: "Parking Management Desktop Application",
+    role: "UI/UX Designer & Frontend Developer",
+    where: "COMSCI 1201 · Final project",
+    href: "/work/parkmate",
+    bullets: [
+      "Designed and built the Java Swing interface for vehicle entries, slot allocation and parking records, with full create, read, update and delete over JDBC and MySQL, replacing a paper logbook.",
+    ],
+  },
+  {
+    title: "WorkTayo",
+    kind: "Conference Registration Monitoring System",
+    role: "UI/UX Designer & Frontend Developer",
+    where: "COMSCI 2110 · Final project",
+    href: "/work/worktayo",
+    bullets: [
+      "Designed the front end of a hub where coordinators register participants, manage conference records and track attendance in real time, replacing scattered spreadsheets with a relational MySQL database.",
+    ],
+  },
+  {
+    title: "Memory Allocation Simulator",
+    kind: "Operating Systems Tool",
+    role: "Front-End CLI & Interface Developer",
+    where: "COMSCI 2101 · Operating Systems",
+    href: "/work/memory-allocation-simulator",
+    bullets: ["Built the command-line interface of a Java simulator that visualises dynamic partitioning and the fragmentation behind First-Fit, Best-Fit and Worst-Fit allocation."],
+  },
+];
+
+const LEADERSHIP: Entry[] = [
+  {
+    title: "ITSC Media Group (IMG)",
+    kind: "CLSU IT Student Council",
+    role: "Production Director",
+    where: "Central Luzon State University",
+    href: "/work/it-fest",
+    bullets: [
+      "Lead the production division of the IT Student Council’s media arm, responsible for event coverage, highlight reels and broadcasts.",
+      "Planned and delivered IT Fest, the department’s largest week: highlight reels, coverage and same-day social posts.",
+      "Directed on location and handled filming and audio for the Cyber Awareness Series, six episodes on data privacy and security threats for the Department of Information Technology.",
+      "Coordinated a four-person media team across two buildings at IRCITE 2026, the International Research Conference on IT Education, using a shared shot list and staggered shifts.",
+    ],
+  },
+  {
+    title: "Builders of Information Technology Society (BITS)",
+    kind: "CLSU",
+    role: "Member",
+    href: "/work/ircite-2026",
+    bullets: ["Filmed and produced the society’s recruitment video."],
+  },
+];
+
+const SKILLS: { group: string; items: string }[] = [
+  { group: "Languages", items: "C, Java, Python, PHP, JavaScript, TypeScript, SQL (MySQL), HTML5, CSS3" },
+  { group: "Frameworks & Tools", items: "React, Next.js, Laravel (Sanctum, Eloquent), Tailwind CSS, Vite, TensorFlow.js, Pandas, Java Swing & JDBC, WordPress, Google Colab; Agile-Scrum" },
+  { group: "Networking", items: "Cisco Packet Tracer, routing & switching, IP addressing & VLAN planning, network troubleshooting, hardware architecture, Kali Linux (lab security testing)" },
+  { group: "Design", items: "Figma (high-fidelity prototypes), UI/UX design, responsive layouts; Premiere Pro, After Effects, DaVinci Resolve, OBS Studio" },
+];
+
+const LINK = "underline-offset-[0.18em] decoration-1 hover:underline focus-visible:underline print:no-underline";
+
+/* ------------------------------------------------------------------------- */
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className={className}>
-      <h2 className="label mb-4 flex items-center gap-3 text-[0.62rem] text-ember after:h-px after:flex-1 after:bg-ink/15">{title}</h2>
+    <section className="mt-[1.25em] first:mt-0">
+      <h2 className="break-after-avoid mb-[0.6em] border-b border-ink pb-[0.2em] text-[0.86em] font-semibold tracking-[0.16em] text-ink uppercase">{title}</h2>
       {children}
     </section>
   );
 }
 
+function Row({ left, right, className = "" }: { left: React.ReactNode; right?: React.ReactNode; className?: string }) {
+  return (
+    <div className={`flex flex-wrap items-baseline justify-between gap-x-4 sm:flex-nowrap print:flex-nowrap ${className}`}>
+      <div className="min-w-0 sm:flex-1 print:flex-1">{left}</div>
+      {right && <div className="w-full shrink-0 tabular-nums sm:ml-auto sm:w-auto sm:text-right print:ml-auto print:w-auto print:text-right">{right}</div>}
+    </div>
+  );
+}
+
+function EntryBlock({ e }: { e: Entry }) {
+  const title = <span className="font-semibold">{e.title}</span>;
+  return (
+    <div className="mt-[0.85em] break-inside-avoid first:mt-0">
+      <Row
+        left={
+          <>
+            {e.href ? (
+              <Link href={e.href} className={LINK}>
+                {title}
+              </Link>
+            ) : (
+              title
+            )}
+            {e.kind && <span> — {e.kind}</span>}
+          </>
+        }
+        right={e.date && <span className="font-semibold">{e.date}</span>}
+      />
+      {(e.role || e.where) && <Row className="text-ink/85 italic" left={e.role} right={e.where} />}
+      <ul className="mt-[0.3em] list-disc space-y-[0.18em] pl-[1.15em] marker:text-ink">
+        {e.bullets.map((b) => (
+          <li key={b} className="pl-[0.15em]">
+            {b}
+          </li>
+        ))}
+      </ul>
+      {e.stack && (
+        <p className="mt-[0.2em] pl-[1.3em] text-ink/85">
+          <span className="font-semibold text-ink">Stack:</span> {e.stack}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function ResumePage() {
-  const work = [...featuredProjects(), ...MORE.map(projectBySlug)].filter((p, i, all): p is NonNullable<typeof p> => !!p && all.indexOf(p) === i).slice(0, 7);
-  const leadership = organizations.filter((o) => o.role !== "Student");
-  const host = new URL(siteUrl()).host;
+  const url = siteUrl();
+  const host = new URL(url).host;
   const updated = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: site.timeZone });
   const github = socials.find((s) => s.name === "GitHub")?.url;
-  const instagram = socials.find((s) => s.name === "Instagram")?.url;
+  const schools = education.filter((e) => !/junior high/i.test(e.level));
 
   return (
-    <div className="px-5 pt-28 pb-24 md:px-10 md:pt-40 print:p-0">
-      <div className="mx-auto max-w-[58rem]">
-        <div className="animate-rise-in mb-6 flex flex-wrap items-end justify-between gap-4 print:hidden">
+    <div className="px-4 pt-28 pb-24 sm:px-6 md:pt-36 print:p-0">
+      <div className="mx-auto w-full max-w-[210mm] print:max-w-none">
+        <div className="animate-rise-in mb-5 flex flex-wrap items-end justify-between gap-4 print:hidden">
           <div>
             <p className="label text-ember">Résumé</p>
-            <p className="mt-2 font-serif text-ink/60 italic">Updated {updated} · ready to print or save as PDF</p>
+            <p className="mt-1.5 font-serif text-ink/80 italic">Updated {updated}. Ready to print or save as PDF.</p>
           </div>
           <ResumeActions />
         </div>
 
         <article
-          className="animate-rise-in rounded-[3px] bg-[#fffaf1] p-6 text-ink shadow-[0_50px_100px_-50px_rgb(0_48_73/0.45)] ring-1 ring-ink/10 [print-color-adjust:exact] sm:p-10 md:p-14 print:rounded-none print:bg-white print:p-0 print:shadow-none print:ring-0"
-          style={{ animationDelay: "120ms" }}
+          aria-label={`Résumé of ${site.name}`}
+          className={`${doc.variable} resume-sheet animate-rise-in bg-white px-5 py-8 font-[family-name:var(--font-resume)] text-[10.5pt] leading-[1.42] text-ink shadow-[0_1px_2px_rgb(0_48_73/0.08),0_30px_70px_-34px_rgb(0_48_73/0.45)] ring-1 ring-ink/10 [font-optical-sizing:auto] sm:px-[14mm] sm:py-[14mm] md:min-h-[297mm] md:px-[18mm] md:py-[16mm] print:min-h-0 print:p-0 print:text-[10pt] print:shadow-none print:ring-0`}
+          style={{ animationDelay: "100ms" }}
         >
-          <header className="grid gap-6 border-b-2 border-ink pb-8 md:grid-cols-[1fr_auto] md:items-end">
-            <div>
-              <h1 className="font-display text-[clamp(2.5rem,6.5vw,4.4rem)] leading-[0.92]">{site.name}</h1>
-              <p className="mt-3 font-serif text-xl text-ink/75 italic">Networks, web systems & photography</p>
-            </div>
-            <ul className="label space-y-1.5 text-[0.6rem] text-ink/70 md:text-right">
-              <li>
+          {/* Header */}
+          <header className="text-center">
+            <h1 className="text-[2.35em] leading-[1.05] font-semibold tracking-[0.01em] text-ink">{site.name}</h1>
+            <p className="mt-[0.3em] text-[1.08em] text-ink/90">BS Information Technology · Network Systems & Infrastructure · Web Systems</p>
+            <ul className="mt-[0.55em] flex flex-wrap items-center justify-center gap-x-[1.1em] gap-y-1 text-[0.95em] text-ink/90">
+              <li className="inline-flex items-center gap-[0.35em]">
+                <Icon name="map" className="text-ink/80" />
                 {site.location}, {site.country}
               </li>
-              <li>
-                <a href={`${siteUrl()}/contact`} className="ulink">{host}/contact</a>
+              <li className="inline-flex items-center gap-[0.35em]">
+                <Icon name="globe" className="text-ink/80" />
+                <a href={`${url}/contact`} className={LINK}>
+                  {host}/contact
+                </a>
               </li>
               {github && (
-                <li>
-                  <a href={github} className="ulink">{github.replace("https://", "")}</a>
-                </li>
-              )}
-              {instagram && (
-                <li>
-                  <a href={instagram} className="ulink">{instagram.replace("https://", "")}</a>
+                <li className="inline-flex items-center gap-[0.35em]">
+                  <Icon name="github" className="text-ink/80" />
+                  <a href={github} className={LINK}>
+                    {github.replace("https://", "")}
+                  </a>
                 </li>
               )}
             </ul>
           </header>
 
-          <p className="mt-8 max-w-3xl font-serif text-[1.15rem] leading-relaxed text-ink/85">
-            Third-year BS Information Technology student at Central Luzon State University, majoring in Network Systems & Infrastructure Engineering. Designs networks, builds web systems
-            and leads photo and video coverage as Production Director of the ITSC Media Group: comfortable from the network diagram to the interface to the camera.
-          </p>
+          <div className="mt-[1.4em]">
+            <Section title="Summary">
+              <p className="text-pretty">{SUMMARY}</p>
+            </Section>
 
-          <div className="mt-10 grid gap-10 md:grid-cols-[1.55fr_1fr] md:gap-12 print:grid-cols-[1.55fr_1fr]">
-            <div className="space-y-10">
-              <Block title="Selected projects">
-                <ul className="space-y-5">
-                  {work.map((p) => (
-                    <li key={p.slug} className="break-inside-avoid">
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                        <Link href={`/work/${p.slug}`} className="ulink font-display text-xl leading-tight">{p.title}</Link>
-                        <span className="label text-[0.52rem] text-ink/50">{p.status}</span>
-                      </div>
-                      <p className="label mt-1 text-[0.55rem] text-ink/55">{p.context} · {p.role}</p>
-                      <p className="mt-1.5 font-serif leading-snug text-ink/80">{p.plain}</p>
-                    </li>
-                  ))}
-                </ul>
-              </Block>
+            <Section title="Education">
+              {schools.map((e) => (
+                <div key={e.school} className="mt-[0.6em] break-inside-avoid first:mt-0">
+                  <Row left={<span className="font-semibold">{e.school}</span>} right={<span className="font-semibold">{e.years.replace(/\s*—\s*/, " – ")}</span>} />
+                  <Row
+                    className="text-ink/85 italic"
+                    left={/STEM/.test(e.level) ? "Senior High School, Science, Technology, Engineering & Mathematics (STEM) strand" : `${e.level}, major in Network Systems & Infrastructure Engineering`}
+                    right={/Present/.test(e.years) ? "Third year" : undefined}
+                  />
+                </div>
+              ))}
+            </Section>
 
-              <Block title="Leadership">
-                <ul className="space-y-4">
-                  {leadership.map((o) => (
-                    <li key={o.short} className="break-inside-avoid">
-                      <p className="font-display text-lg leading-tight">{o.name}</p>
-                      <p className="label mt-1 text-[0.55rem] text-ink/55">{o.role}</p>
-                      <p className="mt-1 font-serif leading-snug text-ink/75">{o.detail}</p>
-                    </li>
-                  ))}
-                </ul>
-              </Block>
+            <Section title="Technical Projects">
+              {PROJECTS.map((p) => (
+                <EntryBlock key={p.title} e={p} />
+              ))}
+            </Section>
 
-              <Block title="Photography">
-                <p className="font-serif leading-snug text-ink/80">
-                  Freelance and organisational photographer: school events, fashion and studio portraits, live concerts (Aurora Music Festival 2026, shot from the front barrier in
-                  manual) and astrophotography. Custom private shoots, graduation, event coverage and headshots.
-                </p>
-              </Block>
-            </div>
+            <Section title="Leadership & Organizations">
+              {LEADERSHIP.map((p) => (
+                <EntryBlock key={p.title} e={p} />
+              ))}
+            </Section>
 
-            <aside className="space-y-10">
-              <Block title="Education">
-                <ul className="space-y-4">
-                  {education.map((e) => (
-                    <li key={e.school} className="break-inside-avoid">
-                      <p className="label text-[0.52rem] text-ink/50">{e.years}</p>
-                      <p className="mt-1 font-display text-lg leading-tight">{e.school}</p>
-                      <p className="font-serif text-ink/75 italic">{e.level}</p>
-                    </li>
-                  ))}
-                </ul>
-              </Block>
-
-              <Block title="Certificates">
-                <ul className="space-y-3">
-                  {certificates.map((c) => (
+            <Section title="Certifications">
+              <ul className="space-y-[0.32em]">
+                {certificates.map((c) => {
+                  const id = c.verify?.split("/").pop();
+                  return (
                     <li key={c.title} className="break-inside-avoid">
-                      <p className="font-serif leading-snug font-medium">{c.title}</p>
-                      <p className="label mt-0.5 text-[0.52rem] text-ink/55">
-                        {c.issuer} · {c.date}
-                        {c.verify && (
+                      <Row
+                        left={
                           <>
-                            {" · "}
-                            <a href={c.verify} target="_blank" rel="noopener noreferrer" className="ulink text-ember">Verify</a>
+                            <span className="font-semibold">{c.title}</span>
+                            <span className="text-ink/90"> — {c.issuer.replace(" · The Art of Becoming", "")}</span>
+                            {c.title.startsWith("The Art of Becoming") && <span className="text-ink/85 italic"> (webinar)</span>}
+                            {id && (
+                              <span className="text-ink/85">
+                                {" · "}
+                                <a href={c.verify} className={LINK}>
+                                  Credential {id}
+                                </a>
+                              </span>
+                            )}
                           </>
-                        )}
-                      </p>
+                        }
+                        right={c.date}
+                      />
                     </li>
-                  ))}
-                  {inProgress.map((c) => (
-                    <li key={c.title}>
-                      <p className="font-serif leading-snug text-ink/70 italic">{c.title} · in progress</p>
-                    </li>
-                  ))}
-                </ul>
-              </Block>
+                  );
+                })}
+                <li className="break-inside-avoid">
+                  <Row left={<span className="text-ink/90 italic">In progress: {inProgress.map((c) => c.title).join(", ")}</span>} />
+                </li>
+              </ul>
+            </Section>
 
-              <Block title="Skills & tools">
-                <dl className="space-y-3">
-                  {toolkit.map((g) => (
-                    <div key={g.group} className="break-inside-avoid">
-                      <dt className="label text-[0.52rem] text-ink/50">{g.group}</dt>
-                      <dd className="mt-0.5 font-serif leading-snug text-ink/80">{g.tools.map((t) => t.name).join(" · ")}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </Block>
-
-              <Block title="Outside work">
-                <p className="font-serif leading-snug text-ink/75">{interests.map((i) => i.title).join(" · ")}</p>
-              </Block>
-            </aside>
+            <Section title="Technical Skills">
+              <dl className="grid gap-x-4 gap-y-[0.28em] sm:grid-cols-[10.5em_1fr] print:grid-cols-[10.5em_1fr]">
+                {SKILLS.map((s) => (
+                  <div key={s.group} className="contents">
+                    <dt className="font-semibold">{s.group}</dt>
+                    <dd className="mb-[0.3em] sm:mb-0 print:mb-0">{s.items}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Section>
           </div>
-
-          <p className="label mt-12 border-t border-ink/15 pt-5 text-[0.5rem] text-ink/45">
-            Full projects, photographs and working tools at {host}
-          </p>
         </article>
+
+        <p className="mt-6 text-center font-serif text-ink/80 print:hidden">
+          The full projects, with code and write-ups, are on the{" "}
+          <Link href="/work" className="ulink text-ember">
+            work page
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

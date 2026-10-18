@@ -34,5 +34,21 @@
   "photography-5.jpg": {
     "title": "Portrait Detail",
     "note": "Shot on iPhone 14 Pro Max"
+  },
+  "justine.jpg": {
+    "title": "Justine",
+    "note": "Outdoor portrait"
+  },
+  "margaret.jpg": {
+    "title": "Margaret",
+    "note": "On location, Nanotechnology R&D Facility"
+  },
+  "irish.jpg": {
+    "title": "Irish",
+    "note": "Library portrait"
+  },
+  "field-in-red.jpg": {
+    "title": "Field in Red",
+    "note": "Outdoor portrait"
   }
 }

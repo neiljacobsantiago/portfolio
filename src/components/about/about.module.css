@@ -1,0 +1,84 @@
+/* Scroll-driven touches for the About page.
+   Everything here animates only transform and opacity on CSS scroll timelines,
+   so it runs on the compositor with no JavaScript. Browsers without scroll
+   timelines, reduced motion and budget phones (html.low-power) get the plain,
+   finished layout instead. */
+
+.rail {
+  transform-origin: top;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Hero portrait settles back and the colour block slides as the hero leaves */
+    :global(html:not(.low-power)) .heroPhoto {
+      animation: heroPhoto linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    :global(html:not(.low-power)) .heroBlock {
+      animation: heroBlock linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+
+    /* Photos drift inside their frames while they cross the screen */
+    :global(html:not(.low-power)) .parallax {
+      animation: parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    /* The education rail fills as the list passes the middle of the screen */
+    :global(html:not(.low-power)) .rail {
+      animation: rail linear both;
+      animation-timeline: view();
+      animation-range: entry 60% cover 60%;
+    }
+
+    /* Big closing line: rises and sharpens into place */
+    :global(html:not(.low-power)) .lift {
+      animation: lift linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+  }
+}
+
+@keyframes heroPhoto {
+  to {
+    transform: translate3d(0, 10%, 0) scale(0.94);
+    opacity: 0.4;
+  }
+}
+@keyframes heroBlock {
+  to {
+    transform: translate3d(0, -14%, 0);
+  }
+}
+@keyframes parallax {
+  from {
+    transform: translate3d(0, -5%, 0) scale(1.1);
+  }
+  to {
+    transform: translate3d(0, 5%, 0) scale(1.1);
+  }
+}
+@keyframes rail {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes lift {
+  from {
+    transform: translate3d(0, 2.5rem, 0);
+    opacity: 0.15;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

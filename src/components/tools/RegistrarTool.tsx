@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { haptic } from "@/lib/haptics";
 import { handle, programs, ROLES, SEED, sections, type Action, type Payload, type Response, type Role, type Student } from "@/lib/tools/registrar";
+import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 import { Field, Note, Segmented, input } from "./ui";
 
@@ -52,7 +53,7 @@ export default function RegistrarTool({ compact }: { compact?: boolean }) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <span className="label block text-[0.58rem] text-ink/55">Signed in as</span>
+        <span className="label block text-3xs text-ink/70">Signed in as</span>
         <Segmented label="Signed in as" value={role} onChange={(r) => (setRole(r), setRes(null))} options={ROLES.map((r) => ({ value: r.id, label: r.label }))} />
         <Note>
           {roleInfo.email && <span className="font-mono not-italic text-ink/70">{roleInfo.email} · </span>}
@@ -61,7 +62,7 @@ export default function RegistrarTool({ compact }: { compact?: boolean }) {
       </div>
 
       <div className="space-y-2">
-        <span className="label block text-[0.58rem] text-ink/55">Request</span>
+        <span className="label block text-3xs text-ink/70">Request</span>
         <Segmented label="Request" value={action} onChange={pick} options={ACTIONS} />
       </div>
 
@@ -93,7 +94,7 @@ export default function RegistrarTool({ compact }: { compact?: boolean }) {
       )}
 
       {(action === "store" || action === "update") && (
-        <div className={cn("grid gap-3", !compact && "sm:grid-cols-2")}>
+        <div className={cn("grid [&>*]:min-w-0 gap-3", !compact && "sm:grid-cols-2")}>
           <Field label="first_name">
             <input value={form.firstName} onChange={(e) => set("firstName", e.target.value)} className={input} placeholder="Leave blank to see a 422" />
           </Field>
@@ -132,7 +133,7 @@ export default function RegistrarTool({ compact }: { compact?: boolean }) {
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={send} className="btn bg-ink py-3 text-paper hover:bg-ember">
-          Send request <span className="arrow">→</span>
+          Send request <Icon name="arrow-right" className="arrow" />
         </button>
         <button
           type="button"
@@ -140,7 +141,7 @@ export default function RegistrarTool({ compact }: { compact?: boolean }) {
             setStudents(SEED);
             setRes(null);
           }}
-          className="label press text-[0.55rem] text-ink/50 hover:text-ink"
+          className="label press text-3xs text-ink/70 hover:text-ink"
         >
           Reset data
         </button>
@@ -154,20 +155,20 @@ export default function RegistrarTool({ compact }: { compact?: boolean }) {
               <span className="min-w-0 flex-1 break-all text-paper/80">{res.url}</span>
               <span className={cn("rounded-full px-2 py-0.5 font-bold", tone(res.status))}>{res.status}</span>
             </div>
-            <pre className={cn("no-scrollbar overflow-auto px-3 py-3 font-mono leading-relaxed text-paper/85", compact ? "max-h-48 text-[0.62rem]" : "max-h-72 text-[0.7rem]")}>
+            <pre className={cn("no-scrollbar overflow-auto px-3 py-3 font-mono leading-relaxed text-paper/85", compact ? "max-h-48 text-2xs" : "max-h-72 text-[0.7rem]")}>
               {res.body === null ? "(204 No Content)" : JSON.stringify(res.body, null, 2)}
             </pre>
           </div>
           <div>
-            <p className="label mb-2 text-[0.55rem] text-ink/50">What ran on the server</p>
+            <p className="label mb-2 text-3xs text-ink/70">What ran on the server</p>
             <ol className="space-y-1.5">
               {res.trace.map((t, i) => (
                 <li key={i} className="flex gap-2.5 font-serif text-sm leading-snug">
-                  <span aria-hidden className={cn("mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[0.6rem] text-paper", t.ok ? "bg-[#2e7d32]" : "bg-ember")}>
-                    {t.ok ? "✓" : "×"}
+                  <span aria-hidden className={cn("mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-paper", t.ok ? "bg-[#2e7d32]" : "bg-ember")}>
+                    <Icon name={t.ok ? "check" : "close"} className="h-2.5 w-2.5" strokeWidth={2.5} />
                   </span>
                   <span>
-                    <code className="font-mono text-[0.72rem] text-ink">{t.at}</code> <span className="text-ink/65">{t.note}</span>
+                    <code className="font-mono text-[0.72rem] text-ink">{t.at}</code> <span className="text-ink/75">{t.note}</span>
                   </span>
                 </li>
               ))}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Project } from "@/content/work";
 import { haptic } from "@/lib/haptics";
+import Icon from "@/components/ui/Icon";
 
 type Item = NonNullable<Project["media"]>[number];
 
@@ -40,11 +41,11 @@ export default function FacebookMedia({ items }: { items: Item[] }) {
                 }}
                 className="group absolute inset-0 flex flex-col items-center justify-center gap-5 bg-[radial-gradient(circle_at_30%_20%,rgb(193_18_31/0.45),transparent_60%)]"
               >
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-paper text-2xl text-ink shadow-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 group-active:scale-95">
-                  ▶
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-paper text-ink shadow-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 group-active:scale-95">
+                  <Icon name="play" className="ml-1 h-8 w-8" />
                 </span>
                 <span className="label text-paper/80">Play {videos[0].label}</span>
-                <span className="font-serif text-sm text-paper/50 italic">Loads Facebook&apos;s player only when you press play</span>
+                <span className="font-serif text-sm text-paper/70 italic">Loads Facebook&apos;s player only when you press play</span>
               </button>
             )}
           </div>
@@ -62,7 +63,7 @@ export default function FacebookMedia({ items }: { items: Item[] }) {
                     }}
                     className="press group flex w-28 flex-col gap-1 rounded-[2px] border border-ink/15 p-3 text-left transition-colors hover:border-ink aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-paper md:w-full"
                   >
-                    <span className="label text-[0.55rem] opacity-60">{playing === i ? "Now playing" : "Episode"}</span>
+                    <span className="label text-3xs opacity-75">{playing === i ? "Now playing" : "Episode"}</span>
                     <span className="font-display text-3xl leading-none">{String(i + 1).padStart(2, "0")}</span>
                   </button>
                 </li>
@@ -70,8 +71,8 @@ export default function FacebookMedia({ items }: { items: Item[] }) {
             </ol>
           )}
           {current && (
-            <a href={current.href} target="_blank" rel="noopener noreferrer" className="label ulink mt-4 inline-block text-ink/60 hover:text-ink">
-              Open {current.label} on Facebook ↗
+            <a href={current.href} target="_blank" rel="noopener noreferrer" className="label ulink mt-4 inline-flex items-center gap-1.5 text-ink/75 hover:text-ink">
+              Open {current.label} on Facebook <Icon name="arrow-up-right" />
             </a>
           )}
         </div>
@@ -82,18 +83,16 @@ export default function FacebookMedia({ items }: { items: Item[] }) {
           {posts.map((p) => (
             <li key={p.href}>
               <a href={p.href} target="_blank" rel="noopener noreferrer" className="group press flex items-center justify-between gap-4 py-5">
-                <span className="flex items-center gap-4">
+                <span className="flex min-w-0 items-center gap-4">
                   <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1877f2] font-display text-xl text-white transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-rotate-12">
                     f
                   </span>
                   <span>
                     <span className="block font-serif text-xl leading-snug transition-colors group-hover:text-ember">{p.label}</span>
-                    <span className="label text-[0.58rem] text-ink/50">Published post · facebook.com</span>
+                    <span className="label text-3xs text-ink/70">Published post · facebook.com</span>
                   </span>
                 </span>
-                <span aria-hidden className="text-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:-translate-y-1">
-                  ↗
-                </span>
+                <Icon name="arrow-up-right" className="h-5 w-5 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:-translate-y-1" />
               </a>
             </li>
           ))}

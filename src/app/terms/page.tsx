@@ -18,7 +18,7 @@ export default function TermsPage() {
           The fine print, <em className="font-serif text-ember">kept short.</em>
         </>
       }
-      lead="By using this site or booking a shoot through it, you agree to the terms below."
+      lead="Short, readable terms for using this site and booking a shoot through it. Using either means you agree to them."
       updated={LEGAL_UPDATED}
       sections={[
         {
@@ -92,7 +92,7 @@ export default function TermsPage() {
           title: "Web & network projects",
           body: (
             <p>
-              Freelance web and network projects start at {site.rate}. Scope, timeline and price are agreed in writing before work begins; nothing on this site is a binding quote on its
+              Freelance web, network, security and video work is priced to its scope. Scope, timeline and price are agreed in writing before work begins; nothing on this site is a binding quote on its
               own.
             </p>
           ),

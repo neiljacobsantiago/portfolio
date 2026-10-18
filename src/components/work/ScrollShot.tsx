@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { haptic } from "@/lib/haptics";
+import Icon from "@/components/ui/Icon";
 
 /**
  * A full-length page capture inside a little browser window. Scroll it like a
@@ -66,16 +67,16 @@ export default function ScrollShot({ src, alt, host }: { src: string; alt: strin
             <span className="h-2.5 w-2.5 rounded-full bg-[#e5b84b]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#5bb974]" />
           </span>
-          <span className="mx-auto truncate rounded-full bg-paper px-4 py-1 font-mono text-[0.7rem] text-ink/60">{host}</span>
+          <span className="mx-auto min-w-0 truncate rounded-full bg-paper px-4 py-1 font-mono text-[0.7rem] text-ink/75">{host}</span>
           <button
             type="button"
             onClick={() => {
               haptic();
               setExpanded(true);
             }}
-            className="label press rounded-full px-2 py-1 text-[0.58rem] text-ink/60 hover:bg-ink hover:text-paper"
+            className="label press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-3xs text-ink/75 hover:bg-ink hover:text-paper"
           >
-            Expand ⤢
+            Expand <Icon name="plus" className="h-3.5 w-3.5" />
           </button>
         </div>
 
@@ -100,7 +101,7 @@ export default function ScrollShot({ src, alt, host }: { src: string; alt: strin
           </span>
           <span
             aria-hidden
-            className={`label pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-ink/85 px-4 py-2 text-[0.58rem] whitespace-nowrap text-paper backdrop-blur transition-opacity duration-500 ${touched ? "opacity-0" : "opacity-100"}`}
+            className={`label pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-ink/85 px-4 py-2 text-3xs whitespace-nowrap text-paper backdrop-blur transition-opacity duration-500 ${touched ? "opacity-0" : "opacity-100"}`}
           >
             <span className="pointer-fine:hidden">Swipe inside to scroll</span>
             <span className="hidden pointer-fine:inline">Hover to glide · scroll to explore</span>
@@ -113,8 +114,8 @@ export default function ScrollShot({ src, alt, host }: { src: string; alt: strin
           <div role="dialog" aria-modal="true" aria-label={alt} className="animate-page-in fixed inset-0 z-[90] flex flex-col bg-ink/95 backdrop-blur-sm" onClick={() => setExpanded(false)}>
             <div className="flex shrink-0 items-center justify-between px-5 py-4 text-paper">
               <span className="font-mono text-sm text-paper/70">{host}</span>
-              <button type="button" onClick={() => setExpanded(false)} aria-label="Close" className="press flex h-10 w-10 items-center justify-center rounded-full bg-paper/10 text-2xl hover:bg-paper/20">
-                ×
+              <button type="button" onClick={() => setExpanded(false)} aria-label="Close" className="press flex h-10 w-10 items-center justify-center rounded-full bg-paper/10 hover:bg-paper/20">
+                <Icon name="close" className="h-5 w-5" />
               </button>
             </div>
             <div data-lenis-prevent className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-10" onClick={(e) => e.stopPropagation()}>

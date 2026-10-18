@@ -7,7 +7,7 @@ export type Category = "systems" | "web" | "media";
 
 export const categories: Record<Category, { label: string; blurb: string }> = {
   systems: { label: "Systems & AI", blurb: "Operating systems and applied AI" },
-  web: { label: "Web & Software", blurb: "Planned architecture, built fast" },
+  web: { label: "Web & Software", blurb: "Web apps, storefronts and the databases behind them" },
   media: { label: "Media & Production", blurb: "Directing, filming and coverage" },
 };
 
@@ -66,7 +66,7 @@ export const projects: Project[] = [
     body: [
       "PathoScan is a web-based plant pathogen image classification system with a localized architecture, built for the Laboratory Services Division of DA PhilMech in the Science City of Muñoz. Several Aspergillus species produce mycotoxins that contaminate grains, corn and peanuts; identifying them by eye takes trained staff, printed references and often 10 to 14 days.",
       "Lab staff photograph a Potato Dextrose Agar plate (or upload one) and a MobileNetV2 convolutional neural network, running in the browser through TensorFlow.js, names one of five mycotoxin-producing species — A. flavus, A. terreus, A. fumigatus, A. tamarii or A. niger — or answers \"Unknown\" instead of forcing a guess. It shows the confidence, a probability matrix for every class, and the species' known colony traits to compare against the plate.",
-      "Results at 90% confidence or higher are cleared for preliminary screening; anything lower is flagged for PCR confirmation. Everything runs on the device inside PhilMech's local network: no login, no cloud, no stored history beyond the most recent scan for crash recovery, and it installs and works offline as a Progressive Web App.",
+      "The 90% confidence threshold is a prompt, not a verdict. A top match at 90% or more is confident enough to use for preliminary screening; anything lower is PathoScan's cue to look twice: re-scan the plate, compare it with the species' colony traits, or verify further at the lab's discretion. The bar is there because false positives are the real risk: a wrong species reported with confidence does more harm than a second look. Everything runs on the device inside PhilMech's local network: no login, no cloud, no stored history beyond the most recent scan for crash recovery, and it installs and works offline as a Progressive Web App.",
       "We built it as our COMSCI 3100 project using an Agile-Scrum approach, working in sprints as a team of nine, and I designed the interface and trained the classification model. On September 28, 2026, the team formally turned the system over to PhilMech, where it was accepted for operational use.",
     ],
     stack: ["React", "TypeScript", "Vite", "TensorFlow.js", "MobileNetV2", "Teachable Machine", "IndexedDB", "PWA", "Agile-Scrum"],
@@ -94,7 +94,7 @@ export const projects: Project[] = [
     title: "Student Information System",
     category: "web",
     featured: 2,
-    plain: "A registrar's student records app where every rule — who can edit, which section is full — is enforced by the server, not just hidden in the page.",
+    plain: "A registrar's records app where the server enforces every rule, from who may edit a student to when a section is full.",
     context: "INTECH 3112 · Final project",
     role: "Full-stack developer",
     status: "Final project · INTECH 3112",
@@ -114,11 +114,12 @@ export const projects: Project[] = [
   },
   {
     slug: "buildit",
+    tool: "buildit",
     title: "BuildIT",
     category: "web",
     featured: 3,
     plain: "Pick PC parts, check they fit together, and check out — all in one place.",
-    context: "COMSCI 1200 → INTECH 2100 → INTECH 2201",
+    context: "COMSCI 1200 · INTECH 2100 · INTECH 2201",
     role: "Lead UI/UX designer",
     status: "Shipped",
     body: [
@@ -154,12 +155,12 @@ export const projects: Project[] = [
     featured: 4,
     title: "Cyber Awareness Series",
     category: "media",
-    plain: "Six short videos that make data privacy make sense to everyone.",
+    plain: "Six short videos that explain data privacy to people who don't work in IT.",
     context: "CLSU Department of Information Technology",
     role: "Videographer & on-site director",
     status: "Published",
     body: [
-      "A six-part video series for the CLSU Department of Information Technology that explains data privacy and common security threats in short, plain-language episodes.",
+      "A six-part video series for the CLSU Department of Information Technology that explains data privacy and common security threats in short episodes anyone can follow.",
       "I directed on location and handled filming and audio for every episode.",
     ],
     stack: ["Direction", "Videography", "Audio capture"],
@@ -210,6 +211,7 @@ export const projects: Project[] = [
   },
   {
     slug: "parkmate",
+    tool: "parkmate",
     title: "ParkMate",
     category: "web",
     plain: "Replaced a parking lot's paper logbook with a desktop app.",
@@ -228,6 +230,7 @@ export const projects: Project[] = [
   },
   {
     slug: "worktayo",
+    tool: "worktayo",
     title: "WorkTayo",
     category: "web",
     plain: "One place to register and track every attendee at a big conference.",
@@ -249,6 +252,7 @@ export const projects: Project[] = [
   },
   {
     slug: "bankosantiago",
+    tool: "banko",
     title: "BankoSantiago",
     category: "web",
     plain: "A banking dashboard that does the essentials, fast, and nothing else.",
@@ -306,7 +310,7 @@ export const projects: Project[] = [
     tool: "whisper",
     title: "Whisper AI Transcription",
     category: "systems",
-    plain: "Taught a machine to turn hours of recorded speech into accurate text.",
+    plain: "Python pipelines that turn hours of recorded speech into clean, usable text.",
     context: "Applied AI",
     role: "Developer",
     status: "Model trained",
@@ -395,7 +399,7 @@ export const projects: Project[] = [
     status: "Released",
     body: [
       "A short experimental film for ARTS 1100 that sets conventional narrative aside and builds its meaning through image, sound and pacing instead.",
-      "It follows the small routines most people stop noticing — commutes, waiting, the same light at the same hour — and lets light and shadow carry the mood. I directed, produced and shot it; the team handled the concept, location filming and post-production ourselves.",
+      "It follows the small routines most people stop noticing — commutes, waiting, the same light at the same hour — and lets light and shadow carry the mood. I directed, produced and shot it; as a team, we handled the concept, location filming and post-production ourselves.",
     ],
     stack: ["Nikon D780", "iPhone 14 Pro Max", "DJI Osmo Mobile 7", "Premiere Pro", "After Effects", "DaVinci Resolve"],
     cover: "/projects/mundane.jpg",

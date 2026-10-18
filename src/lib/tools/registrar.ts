@@ -112,13 +112,13 @@ const ROUTE: Record<Action, { method: Response["method"]; name: string }> = {
 export function handle(students: Student[], req: Request): Response {
   const r = ROUTE[req.action];
   const url = `/api/registrar/students${req.id && req.action !== "index" && req.action !== "store" ? `/${req.id}` : ""}${req.action === "index" && req.q ? `?q=${encodeURIComponent(req.q)}` : ""}`;
-  const trace: Response["trace"] = [{ at: "routes/api.php", note: `${r.method} ${url} → ${r.name}`, ok: true }];
+  const trace: Response["trace"] = [{ at: "routes/api.php", note: `${r.method} ${url} matches ${r.name}`, ok: true }];
   const done = (status: number, body: unknown, next = students): Response => ({ method: r.method, url, status, body, trace, students: next });
   const role = ROLES.find((x) => x.id === req.role)!;
 
   // auth:sanctum
   if (req.role === "guest") {
-    trace.push({ at: "auth:sanctum", note: "No bearer token → request stops here", ok: false });
+    trace.push({ at: "auth:sanctum", note: "No bearer token, so the request stops here", ok: false });
     return done(401, { message: "Unauthenticated." });
   }
   trace.push({ at: "auth:sanctum", note: `Token belongs to ${role.email} (${req.role === "staff" ? "staff" : req.role})`, ok: true });
@@ -131,12 +131,12 @@ export function handle(students: Student[], req: Request): Response {
 
   // StudentPolicy
   const policy = (() => {
-    if (req.action === "index") return { ok: true, why: "viewAny → any signed-in user" };
-    if (req.action === "store") return req.role === "student" ? { ok: false, why: "create → only admin or staff" } : { ok: true, why: `create → ${req.role === "admin" ? "admin" : "staff"} may add` };
-    if (req.action === "destroy") return req.role === "admin" ? { ok: true, why: "delete → admin" } : { ok: false, why: "delete → registrar (admin) only, even for an adviser" };
-    if (req.role === "admin") return { ok: true, why: "update → admin" };
+    if (req.action === "index") return { ok: true, why: "viewAny: any signed-in user" };
+    if (req.action === "store") return req.role === "student" ? { ok: false, why: "create: only admin or staff" } : { ok: true, why: `create: ${req.role === "admin" ? "admin" : "staff"} may add` };
+    if (req.action === "destroy") return req.role === "admin" ? { ok: true, why: "delete: admin" } : { ok: false, why: "delete: registrar (admin) only, even for an adviser" };
+    if (req.role === "admin") return { ok: true, why: "update: admin" };
     const advises = sections.find((s) => s.id === target!.sectionId)?.adviser === req.role;
-    return req.role === "staff" && advises ? { ok: true, why: "update → staff advising this student's section" } : { ok: false, why: req.role === "staff" ? "update → staff, but not this section's adviser" : "update → students can't edit records" };
+    return req.role === "staff" && advises ? { ok: true, why: "update: staff advising this student's section" } : { ok: false, why: req.role === "staff" ? "update: staff, but not this section's adviser" : "update: students can't edit records" };
   })();
   trace.push({ at: `StudentPolicy@${req.action === "index" ? "viewAny" : req.action === "store" ? "create" : req.action === "destroy" ? "delete" : "update"}`, note: policy.why, ok: policy.ok });
   if (!policy.ok) return done(403, { message: "This action is unauthorized." });
@@ -150,7 +150,7 @@ export function handle(students: Student[], req: Request): Response {
   }
 
   if (req.action === "destroy") {
-    trace.push({ at: "StudentController@destroy", note: `$student->delete() → row ${target!.id} removed`, ok: true });
+    trace.push({ at: "StudentController@destroy", note: `$student->delete() removed row ${target!.id}`, ok: true });
     return done(204, null, students.filter((s) => s.id !== target!.id));
   }
 

@@ -5,6 +5,7 @@ import Magnetic from "@/components/ui/Magnetic";
 import type { SeriesWithPhotos } from "@/lib/photos";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
+import Icon from "@/components/ui/Icon";
 
 /** Home-page window into the photography: one card per series, swipeable on phones. */
 export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) {
@@ -14,10 +15,10 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
         <p className="label text-sky md:col-span-3">Photography</p>
         <div className="md:col-span-9">
           <h2 id="photo-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
-            Light, caught <em className="font-serif text-ember">in passing.</em>
+            From the barrier <em className="font-serif text-sky">to the stars.</em>
           </h2>
           <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed text-paper/80">
-            Concert barricades, studio portraits, campus events and long nights under Andromeda — shot on Canon, Nikon and iPhone.
+            Concert barricades, studio portraits, campus events, long nights under Andromeda and a few laps in photo mode — shot on Canon, Nikon, iPhone and in-game cameras.
           </p>
         </div>
       </div>
@@ -37,7 +38,7 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
                 </div>
                 <div className="mt-4 flex items-baseline justify-between gap-4">
                   <h3 className="font-display text-2xl">{s.title}</h3>
-                  <span className="label text-[0.65rem] text-paper/60">{s.photos.length} frames</span>
+                  <span className="label text-2xs text-paper/75">{s.photos.length} frames</span>
                 </div>
                 <p className="mt-1 line-clamp-2 font-serif italic text-paper/70">{s.story}</p>
               </Link>
@@ -49,12 +50,12 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
       <div className="mx-auto mt-12 flex max-w-[90rem] flex-wrap gap-4 px-5 md:px-10">
         <Magnetic>
           <Link href="/photography" className="btn bg-paper text-ink hover:bg-sky">
-            Open the gallery <span className="arrow">→</span>
+            Open the gallery <Icon name="arrow-right" className="arrow" />
           </Link>
         </Magnetic>
         {site.photographySite.url && (
-          <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className="label rounded-full border border-paper/30 px-7 py-4 transition-colors hover:border-paper">
-            {site.photographySite.label} ↗
+          <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-2 rounded-full border border-paper/30 px-7 py-4 transition-colors hover:border-paper">
+            {site.photographySite.label} <Icon name="arrow-up-right" />
           </a>
         )}
       </div>

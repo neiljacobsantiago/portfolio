@@ -2,6 +2,7 @@ import { projects } from "@/content/work";
 import type { ChatCard } from "@/lib/tools";
 import type { Algorithm } from "@/lib/tools/memory";
 import { findService } from "@/lib/tools/quote";
+import { PATHOSCAN_THRESHOLD } from "./facts";
 
 // Reads a visitor's message and decides which Lab tools or project cards
 // answer it. Runs in the browser, so NeilAI's tools work even when the AI
@@ -101,47 +102,49 @@ export function introFor(card: ChatCard, rng: () => number = Math.random): strin
     case "subnet":
       return one(
         rng,
-        `Here's ${card.input} broken down 👇 Drag the slider to try other prefix lengths.`,
-        `${card.input}, taken apart: network, broadcast and the usable range 👇 Slide to try another prefix.`,
-        `Crunched ${card.input} for you 👇 Try a different prefix length with the slider.`,
+        `Here's ${card.input} broken down. Drag the slider to try other prefix lengths.`,
+        `${card.input}, taken apart: network, broadcast and the usable range. Slide to try another prefix.`,
+        `Crunched ${card.input} for you. Try a different prefix length with the slider.`,
       );
     case "vlsm":
       return one(
         rng,
-        `Planned it largest-first from ${card.base}, biggest segment first, so nothing overlaps 👇`,
-        `Here's the VLAN plan carved out of ${card.base} — biggest segment first, no overlaps 👇`,
-        `Done: every segment gets its own subnet from ${card.base}, sized to fit 👇`,
+        `Planned it largest-first from ${card.base}, biggest segment first, so nothing overlaps.`,
+        `Here's the VLAN plan carved out of ${card.base} — biggest segment first, no overlaps.`,
+        `Done: every segment gets its own subnet from ${card.base}, sized to fit.`,
       );
     case "memory":
       return one(
         rng,
-        "Here's the allocation, drawn to scale 👇 Switch algorithms or step through process by process.",
-        "Memory map, to scale 👇 Flip between First, Best, Worst and Next Fit to compare the gaps.",
-        "Watch where each process lands 👇 Step through it, or switch algorithms to see fragmentation change.",
+        "Here's the allocation, drawn to scale. Switch algorithms or step through process by process.",
+        "Memory map, to scale. Flip between First, Best, Worst and Next Fit to compare the gaps.",
+        "Watch where each process lands. Step through it, or switch algorithms to see fragmentation change.",
       );
     case "link":
       return card.url
-        ? one(rng, "Checked the address — here's what stands out 👇 (I never open the link.)", "Here are the red flags I can see in that address 👇 I only read it, never open it.", "Looked it over without clicking 👇 Here's the verdict.")
-        : one(rng, "Paste the link here and I'll point out any red flags 👇", "Got a suspicious link? Drop it in 👇 I'll read it without opening it.", "Paste any link below and I'll check it for phishing signs 👇");
-    case "pathoscan":
-      return one(
+        ? one(rng, "Checked the address — here's what stands out. (I never open the link.)", "Here are the red flags I can see in that address. I only read it, never open it.", "Looked it over without clicking. Here's the verdict.")
+        : one(rng, "Paste the link here and I'll point out any red flags.", "Got a suspicious link? Drop it in. I'll read it without opening it.", "Paste any link below and I'll check it for phishing signs.");
+    case "pathoscan": {
+      const verdict = card.confidence >= 90 ? PATHOSCAN_THRESHOLD.above(card.confidence) : PATHOSCAN_THRESHOLD.below(card.confidence);
+      return `**${card.species}** — ${verdict}\n\n${one(
         rng,
-        "This is PathoScan's decision rule in action 👇 Slide the confidence to see when a result clears.",
-        `${card.species} at ${card.confidence}% — here's what PathoScan would do 👇 Move the slider to test the 90% bar.`,
-        "PathoScan clears a result at 90% or higher; anything lower goes to PCR 👇 Try it with the slider.",
-      );
+        "Slide the confidence below to see where the line falls.",
+        "Try other values with the slider.",
+        "Move the slider to test the 90% line yourself.",
+      )}`;
+    }
     case "quote":
       return one(
         rng,
-        "Here's the quote, straight from Neil's package list 👇 Tap Book this when you're ready.",
-        "Priced from Neil's package list 👇 Switch packages to compare, then tap Book this.",
-        "Here's what that shoot costs, with the 30% downpayment worked out 👇",
+        "Here's the quote, straight from Neil's package list. Tap Book this when you're ready.",
+        "Priced from Neil's package list. Switch packages to compare, then tap Book this.",
+        "Here's what that shoot costs, with the 30% downpayment worked out.",
       );
     case "github":
-      return one(rng, "Fresh from GitHub 👇", "Here's Neil's commit log at a glance 👇", "Live from GitHub — streaks and all 👇");
+      return one(rng, "Fresh from GitHub.", "Here's Neil's commit log at a glance.", "Live from GitHub — streaks and all.");
     case "project":
-      return one(rng, "Here's that project 👇", "This one 👇", "Here it is 👇");
+      return one(rng, "Here's that project.", "This one.", "Here it is.");
     case "collection":
-      return one(rng, `Here's the ${card.title} collection 👇`, `${card.title}, coming right up 👇`, `A look at ${card.title} 👇`);
+      return one(rng, `Here's the ${card.title} collection.`, `${card.title}, coming right up.`, `A look at ${card.title}`);
   }
 }

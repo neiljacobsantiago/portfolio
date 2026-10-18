@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { SeriesWithPhotos } from "@/lib/photos";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { useLightbox } from "./Lightbox";
@@ -9,9 +10,9 @@ import Photo from "./Photo";
 import Plate from "./Plate";
 
 const TONES = {
-  paper: { section: "bg-transparent text-ink", head: "bg-ink text-paper", muted: "text-paper/55" },
-  ink: { section: "bg-ink text-paper", head: "bg-ink text-paper", muted: "text-paper/55" },
-  night: { section: "bg-[#050a12] text-paper", head: "bg-[#050a12] text-paper", muted: "text-paper/55" },
+  paper: { section: "bg-transparent text-ink", head: "bg-ink text-paper", muted: "text-paper/70" },
+  ink: { section: "bg-ink text-paper", head: "bg-ink text-paper", muted: "text-paper/70" },
+  night: { section: "bg-[#050a12] text-paper", head: "bg-[#050a12] text-paper", muted: "text-paper/70" },
 };
 
 /**
@@ -55,7 +56,7 @@ export default function Collections({ series }: { series: SeriesWithPhotos[] }) 
                   active === s.slug ? "border-ink bg-ink text-paper" : "border-ink/20 hover:border-ink",
                 )}
               >
-                {s.title} <span className="ml-2 opacity-50">{s.photos.length}</span>
+                {s.title} <span className="ml-2 opacity-75">{s.photos.length}</span>
               </a>
             </li>
           ))}
@@ -79,7 +80,7 @@ export default function Collections({ series }: { series: SeriesWithPhotos[] }) 
                   </h2>
                   <span aria-hidden className="mt-5 block h-0.5 w-16 bg-ember" />
                   {s.story && <p className="mt-5 max-w-2xl font-serif text-lg leading-relaxed opacity-75">{s.story}</p>}
-                  {s.gear && <p className={cn("label mt-4 text-[0.62rem]", tone.muted)}>{s.gear}</p>}
+                  {s.gear && <p className={cn("label mt-4 text-2xs", tone.muted)}>{s.gear}</p>}
                 </div>
               </div>
             </header>
@@ -145,15 +146,15 @@ function FeatureSpread({ photo, index, onOpen, count, flip, dark }: { photo: Ser
         />
       </button>
       <figcaption className="min-w-0 flex-1 md:max-w-[26rem] md:pb-1" data-reveal="up">
-        <p className="label text-[0.6rem] opacity-55">Cover frame · 01 / {String(count).padStart(2, "0")}</p>
+        <p className="label text-2xs opacity-75">Cover frame · 01 / {String(count).padStart(2, "0")}</p>
         <p className="mt-3 font-display text-[clamp(2.25rem,4.2vw,4.25rem)] leading-[0.95] md:mt-5">{photo.alt}</p>
-        {photo.note && <p className={cn("label mt-4 text-[0.62rem]", dark ? "text-sky" : "text-ember")}>{photo.note}</p>}
+        {photo.note && <p className={cn("label mt-4 text-2xs", dark ? "text-sky" : "text-ember")}>{photo.note}</p>}
         <button
           type="button"
           onClick={() => onOpen(index)}
-          className="label press mt-6 inline-flex items-center gap-2 rounded-full border border-current/25 px-5 py-3 text-[0.6rem] hover:border-current md:mt-8"
+          className="label press mt-6 inline-flex items-center gap-2 rounded-full border border-current/25 px-5 py-3 text-2xs hover:border-current md:mt-8"
         >
-          View full frame <span aria-hidden>↗</span>
+          View full frame <Icon name="arrow-up-right" />
         </button>
       </figcaption>
     </figure>
@@ -180,7 +181,7 @@ function PhotoButton({ photo, index, onOpen, sizes }: { photo: SeriesPhoto; inde
       <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end bg-gradient-to-t from-ink/85 via-ink/20 to-transparent p-4 text-left text-paper opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100">
         <span>
           <span className="block font-display text-xl leading-none">{photo.alt}</span>
-          {photo.note && <span className="label mt-2 block text-[0.6rem] text-[#ff6b6b]">{photo.note}</span>}
+          {photo.note && <span className="label mt-2 block text-2xs text-[#ff6b6b]">{photo.note}</span>}
         </span>
       </span>
     </button>

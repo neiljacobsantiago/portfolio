@@ -5,43 +5,48 @@ import { useRef } from "react";
 import { useDeviceProfile } from "@/lib/device";
 import { useScrollProgress } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
+import Icon from "@/components/ui/Icon";
 
 const practices = [
   {
     n: "01",
     title: "Networks",
     line: "Designing how buildings full of computers talk to each other.",
-    detail: "Topologies, VLANs and routing protocols: his major at CLSU, and the planner in the Lab.",
+    detail: "Topologies, VLANs and routing protocols: my major at CLSU, and the subnet planner in the Lab.",
     href: "/work",
     tone: "bg-ink text-paper",
     accent: "text-sky",
+    quiet: "opacity-85",
   },
   {
     n: "02",
     title: "Security",
-    line: "Breaking into my own systems, so nobody else can.",
-    detail: "Security fundamentals on Kali Linux, data-privacy awareness work, and CompTIA Security+ in progress.",
+    line: "Testing my own systems the way an attacker would.",
+    detail: "Security fundamentals on Kali Linux, data-privacy awareness videos, and CompTIA Security+ in progress.",
     href: "/work",
     tone: "bg-paper-deep text-ink",
     accent: "text-ember",
+    quiet: "opacity-85",
   },
   {
     n: "03",
     title: "Web",
-    line: "Architecture first, then fast, careful iteration.",
-    detail: "Planning the data, routes and components before a line is written, then building and refining with React, Next.js and Tailwind.",
+    line: "The data model on paper before the first component on screen.",
+    detail: "Data, routes and components mapped out first, then built and refined in short passes with React, Next.js and Tailwind.",
     href: "/work#web",
     tone: "bg-paper text-ink ring-1 ring-ink/10",
-    accent: "text-sky",
+    accent: "text-wine",
+    quiet: "opacity-85",
   },
   {
     n: "04",
     title: "Photography",
     line: "Concert pits, campus stages and the slow light of distant galaxies.",
-    detail: "Nikon, Canon, an iPhone in ProRAW and a DJI gimbal — from concert pits to portrait sessions.",
+    detail: "Nikon and Canon bodies, an iPhone and a DJI gimbal, carried from festival barriers to portrait sessions.",
     href: "/photography",
     tone: "bg-ember text-paper",
     accent: "text-paper-deep",
+    quiet: "",
   },
   {
     n: "05",
@@ -51,6 +56,7 @@ const practices = [
     href: "/about",
     tone: "bg-sky text-ink",
     accent: "text-wine",
+    quiet: "",
   },
 ];
 
@@ -84,7 +90,9 @@ export default function Practices() {
           <h2 id="practices-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
             Five practices, <em className="font-serif text-ember">one eye.</em>
           </h2>
-          <p className="label hidden text-ink/60 md:block">{pinned ? "Keep scrolling →" : "Swipe →"}</p>
+          <p className="label hidden items-center gap-2 text-ink/75 md:flex">
+            {pinned ? "Keep scrolling" : "Swipe"} <Icon name="arrow-right" />
+          </p>
         </div>
 
         <div
@@ -104,15 +112,15 @@ export default function Practices() {
               )}
             >
               <div className="flex items-start justify-between">
-                <span className="label opacity-70">{p.n} / 0{practices.length}</span>
-                <Link href={p.href} className="label press rounded-full border border-current px-4 py-2 opacity-80 hover:opacity-100">
+                <span className={cn("label", p.quiet)}>{p.n} / 0{practices.length}</span>
+                <Link href={p.href} className={cn("label press rounded-full border border-current px-4 py-2 hover:opacity-100", p.quiet)}>
                   Explore
                 </Link>
               </div>
               <div>
                 <h3 className="font-display text-[clamp(3rem,8vw,8rem)] leading-[0.9]">{p.title}</h3>
                 <p className={cn("mt-5 max-w-lg font-serif text-2xl leading-snug italic md:text-3xl", p.accent)}>{p.line}</p>
-                <p className="mt-4 max-w-md font-serif text-base leading-relaxed opacity-80 md:text-lg">{p.detail}</p>
+                <p className={cn("mt-4 max-w-md font-serif text-base leading-relaxed md:text-lg", p.quiet)}>{p.detail}</p>
               </div>
             </article>
           ))}

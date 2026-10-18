@@ -1,5 +1,6 @@
 "use client";
 
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 
 export default function BackToTop() {
@@ -12,7 +13,7 @@ export default function BackToTop() {
       }}
       className="group label press inline-flex items-center gap-2 transition-colors hover:text-sky"
     >
-      Back to top <span className="inline-block transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-translate-y-1">↑</span>
+      Back to top <Icon name="arrow-up" className="transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-translate-y-1" />
     </button>
   );
 }

@@ -3,6 +3,7 @@ import { getGitHubActivity } from "@/lib/github";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
 import ContributionGraph from "./ContributionGraph";
+import Icon from "@/components/ui/Icon";
 
 const LANGUAGE_COLORS = ["bg-ember", "bg-sky", "bg-paper", "bg-wine", "bg-paper/40"];
 
@@ -52,7 +53,7 @@ export default async function CommitLog() {
             </h2>
           </div>
           <a href={profile} target="_blank" rel="noopener noreferrer" className="btn border border-paper/30 text-paper hover:border-paper hover:bg-paper hover:text-ink">
-            Open GitHub <span className="arrow">↗</span>
+            Open GitHub <Icon name="arrow-up-right" className="arrow" />
           </a>
         </div>
 
@@ -67,23 +68,23 @@ export default async function CommitLog() {
                   { label: "Public repos", value: data.publicRepos, unit: "and counting" },
                 ].map((s, i) => (
                   <div key={s.label} {...reveal("up", i * 70)} className="group bg-ink p-5 transition-colors hover:bg-paper/[0.04] lg:p-6">
-                    <dt className="label text-[0.58rem] text-paper/50">{s.label}</dt>
+                    <dt className="label text-3xs text-paper/70">{s.label}</dt>
                     <dd className="mt-1 flex items-baseline gap-2">
                       <span className="font-display text-4xl leading-none transition-colors group-hover:text-sky xl:text-5xl">
                         <CountUp value={s.value} />
                       </span>
-                      <span className="font-serif text-sm text-paper/60 italic">{s.unit}</span>
+                      <span className="font-serif text-sm text-paper/75 italic">{s.unit}</span>
                     </dd>
                   </div>
                 ))}
                 {data.best && (
                   <div {...reveal("up", 280)} className="group col-span-2 bg-ink p-5 transition-colors hover:bg-paper/[0.04] lg:col-span-1 lg:p-6">
-                    <dt className="label text-[0.58rem] text-paper/50">Busiest day</dt>
+                    <dt className="label text-3xs text-paper/70">Busiest day</dt>
                     <dd className="mt-1 flex items-baseline gap-2">
-                      <span className="font-display text-4xl leading-none text-ember xl:text-5xl">
+                      <span className="font-display text-4xl leading-none text-sky xl:text-5xl">
                         <CountUp value={data.best.count} />
                       </span>
-                      <span className="font-serif text-sm text-paper/60 italic">on {shortDate(data.best.date)}</span>
+                      <span className="font-serif text-sm text-paper/75 italic">on {shortDate(data.best.date)}</span>
                     </dd>
                   </div>
                 )}
@@ -96,7 +97,7 @@ export default async function CommitLog() {
               <div className="relative mt-14 grid gap-10 border-t border-paper/10 pt-10 lg:grid-cols-12 lg:gap-12">
                 {data.languages.length > 0 && (
                   <div className="lg:col-span-3">
-                    <p className="label mb-4 text-[0.58rem] text-paper/50">Languages by repo</p>
+                    <p className="label mb-4 text-3xs text-paper/70">Languages by repo</p>
                     <div className="flex h-2.5 overflow-hidden rounded-full">
                       {data.languages.map((l, i) => (
                         <span key={l.name} className={`${LANGUAGE_COLORS[i]} transition-[flex-grow] duration-700 hover:grow-[2]`} style={{ flexGrow: l.count }} title={l.name} />
@@ -109,7 +110,7 @@ export default async function CommitLog() {
                             <span className={`h-2 w-2 rounded-full ${LANGUAGE_COLORS[i]}`} />
                             {l.name}
                           </span>
-                          <span className="font-mono text-xs text-paper/50">{l.count}</span>
+                          <span className="font-mono text-xs text-paper/70">{l.count}</span>
                         </li>
                       ))}
                     </ul>
@@ -126,13 +127,19 @@ export default async function CommitLog() {
                         className="group press flex h-full flex-col justify-between gap-6 rounded-[2px] bg-paper/[0.06] p-5 ring-1 ring-paper/10 transition-colors hover:bg-paper hover:text-ink"
                       >
                         <div>
-                          <p className="label text-[0.55rem] text-paper/45 transition-colors group-hover:text-ember">Pushed {ago(r.pushedAt)}</p>
+                          <p className="label text-3xs text-paper/70 transition-colors group-hover:text-ember">Pushed {ago(r.pushedAt)}</p>
                           <p className="mt-2 font-display text-2xl leading-tight break-words">{r.name}</p>
-                          {r.description && <p className="mt-2 line-clamp-3 font-serif text-base text-paper/65 transition-colors group-hover:text-ink/70">{r.description}</p>}
+                          {r.description && <p className="mt-2 line-clamp-3 font-serif text-base text-paper/75 transition-colors group-hover:text-ink/70">{r.description}</p>}
                         </div>
-                        <p className="flex items-center justify-between font-mono text-xs text-paper/55 transition-colors group-hover:text-ink/60">
+                        <p className="flex items-center justify-between font-mono text-xs text-paper/70 transition-colors group-hover:text-ink/60">
                           <span>{r.language ?? "—"}</span>
-                          <span>{r.stars > 0 ? `★ ${r.stars}` : "↗"}</span>
+                          {r.stars > 0 ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Icon name="star" title="Stars" /> {r.stars}
+                            </span>
+                          ) : (
+                            <Icon name="arrow-up-right" />
+                          )}
                         </p>
                       </a>
                     </li>
@@ -143,7 +150,7 @@ export default async function CommitLog() {
           </>
         ) : (
           <p className="relative mt-10 max-w-xl font-serif text-xl text-paper/75 italic">
-            GitHub is taking a breather — the live contribution graph will be back shortly. Meanwhile, everything is on{" "}
+            GitHub isn&apos;t answering at the moment, so the live graph is paused. The code is all still on{" "}
             <a href={profile} target="_blank" rel="noopener noreferrer" className="ulink text-paper not-italic">
               github.com/{site.githubUser}
             </a>
