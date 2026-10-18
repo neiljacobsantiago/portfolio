@@ -1,19 +1,17 @@
-// Island Drive's sound, synthesised with Web Audio (no files to download):
-// an engine note that follows the speed, a two-tone jeepney horn, tyre
-// screech when drifting, thuds for collisions, a chime for packets, and a
-// voice for each prop you can knock over (wooden pins clack, cones bonk,
-// crates thunk, drums clang, balls boing) plus a fanfare for a strike.
-
-export type KnockKind = "pin" | "cone" | "crate" | "drum" | "ball";
+// The car's sound, synthesised with Web Audio (no files to download): a
+// high-revving engine note that follows the gearbox (it drops on every
+// upshift), a turbo whine on throttle, tyre scrub at the limit, kerb rumble,
+// wall impacts, the start-light beeps and lights out, the DRS flap, and
+// chimes for sectors, laps and trophies.
 
 export interface DriveAudio {
-  update: (s: { speed: number; throttle: number; slip: number; boost: boolean }) => void;
-  horn: () => void;
+  update: (s: { rpm: number; throttle: number; slip: number; kerb: boolean; speed: number }) => void;
   impact: (strength: number) => void;
-  /** A prop being hit: by the jeepney, or by something else (another prop, the ground). */
-  knock: (kind: KnockKind, strength: number) => void;
-  strike: () => void;
-  chime: (big?: boolean) => void;
+  /** One more start light (1–5), or lights out (0). */
+  light: (n: number) => void;
+  drs: (open: boolean) => void;
+  shift: () => void;
+  chime: (kind: "sector" | "best" | "lap" | "trophy" | "warn") => void;
   setMuted: (muted: boolean) => void;
   suspend: () => void;
   resume: () => void;
@@ -25,44 +23,62 @@ export function createAudio(): DriveAudio | null {
   if (!AC) return null;
   const ctx = new AC();
   const master = ctx.createGain();
-  master.gain.value = 0.55;
+  master.gain.value = 0.5;
   master.connect(ctx.destination);
 
-  // Engine: two detuned oscillators through a low-pass filter
+  // Engine: a saw for the bark, a square an octave down for body, through a
+  // resonant low-pass that opens with the throttle
   const engineGain = ctx.createGain();
   engineGain.gain.value = 0;
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = 600;
-  filter.Q.value = 2;
+  filter.Q.value = 3;
   const o1 = ctx.createOscillator();
   o1.type = "sawtooth";
   const o2 = ctx.createOscillator();
   o2.type = "square";
+  const o2g = ctx.createGain();
+  o2g.gain.value = 0.5;
+  const o3 = ctx.createOscillator();
+  o3.type = "triangle";
   o1.connect(filter);
-  o2.connect(filter);
+  o2.connect(o2g);
+  o2g.connect(filter);
+  o3.connect(filter);
   filter.connect(engineGain);
   engineGain.connect(master);
-  o1.start();
-  o2.start();
+  // Turbo: a thin sine high above
+  const turbo = ctx.createOscillator();
+  turbo.type = "sine";
+  const turboGain = ctx.createGain();
+  turboGain.gain.value = 0;
+  turbo.connect(turboGain);
+  turboGain.connect(master);
+  for (const o of [o1, o2, o3, turbo]) o.start();
 
-  // Noise, for screech and impacts
+  // Noise for scrub, rumble, impacts and the DRS whoosh
   const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
   const data = noise.getChannelData(0);
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-  const screechSrc = ctx.createBufferSource();
-  screechSrc.buffer = noise;
-  screechSrc.loop = true;
-  const screechFilter = ctx.createBiquadFilter();
-  screechFilter.type = "bandpass";
-  screechFilter.frequency.value = 1400;
-  screechFilter.Q.value = 6;
-  const screechGain = ctx.createGain();
-  screechGain.gain.value = 0;
-  screechSrc.connect(screechFilter);
-  screechFilter.connect(screechGain);
-  screechGain.connect(master);
-  screechSrc.start();
+  const loop = (type: BiquadFilterType, freq: number, q: number) => {
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    f.Q.value = q;
+    const g = ctx.createGain();
+    g.gain.value = 0;
+    src.connect(f);
+    f.connect(g);
+    g.connect(master);
+    src.start();
+    return g;
+  };
+  const scrub = loop("bandpass", 1600, 5);
+  const rumble = loop("lowpass", 160, 1);
+  const wind = loop("bandpass", 600, 0.6);
 
   const now = () => ctx.currentTime;
   const tone = (freq: number, start: number, dur: number, type: OscillatorType, vol: number) => {
@@ -74,21 +90,6 @@ export function createAudio(): DriveAudio | null {
     g.gain.linearRampToValueAtTime(vol, start + 0.01);
     g.gain.setValueAtTime(vol, start + dur - 0.03);
     g.gain.linearRampToValueAtTime(0, start + dur);
-    o.connect(g);
-    g.connect(master);
-    o.start(start);
-    o.stop(start + dur + 0.02);
-  };
-
-  // A short pitched blip with an exponential tail (no sustain), optionally sliding in pitch
-  const blip = (freq: number, to: number, start: number, dur: number, type: OscillatorType, vol: number) => {
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = type;
-    o.frequency.setValueAtTime(freq, start);
-    if (to !== freq) o.frequency.exponentialRampToValueAtTime(to, start + dur);
-    g.gain.setValueAtTime(vol, start);
-    g.gain.exponentialRampToValueAtTime(0.0008, start + dur);
     o.connect(g);
     g.connect(master);
     o.start(start);
@@ -110,85 +111,51 @@ export function createAudio(): DriveAudio | null {
   };
 
   let lastImpact = 0;
-  let lastKnock = 0;
-  const lastKind: Record<KnockKind, number> = { pin: 0, cone: 0, crate: 0, drum: 0, ball: 0 };
+  let kerbPhase = 0;
   return {
-    update({ speed, throttle, slip, boost }) {
-      const s = Math.abs(speed);
+    update({ rpm, throttle, slip, kerb, speed }) {
       const t = now();
-      const base = 42 + s * 3.1 + Math.max(0, throttle) * 14 + (boost ? 18 : 0);
-      o1.frequency.setTargetAtTime(base, t, 0.08);
-      o2.frequency.setTargetAtTime(base * 0.502, t, 0.08);
-      filter.frequency.setTargetAtTime(380 + s * 38 + Math.max(0, throttle) * 400, t, 0.1);
-      engineGain.gain.setTargetAtTime(0.05 + Math.min(0.07, s * 0.003) + Math.max(0, throttle) * 0.03, t, 0.1);
-      screechGain.gain.setTargetAtTime(Math.min(0.12, Math.max(0, slip - 3.5) * 0.02), t, 0.06);
-    },
-    horn() {
-      // The classic jeepney "beep-beep"
-      const t = now();
-      for (const start of [t, t + 0.24]) {
-        tone(415, start, 0.17, "square", 0.08);
-        tone(523, start, 0.17, "square", 0.06);
-      }
+      // Six cylinders: three firing pulses per revolution
+      const f = (rpm / 60) * 1.5;
+      o1.frequency.setTargetAtTime(f, t, 0.03);
+      o2.frequency.setTargetAtTime(f * 0.5, t, 0.03);
+      o3.frequency.setTargetAtTime(f * 2.01, t, 0.03);
+      const th = Math.max(0, throttle);
+      filter.frequency.setTargetAtTime(500 + rpm * 0.12 + th * 1800, t, 0.05);
+      engineGain.gain.setTargetAtTime(0.035 + th * 0.05 + Math.min(0.03, rpm / 400000), t, 0.06);
+      turbo.frequency.setTargetAtTime(2600 + rpm * 0.25, t, 0.1);
+      turboGain.gain.setTargetAtTime(th * 0.008 * Math.min(1, rpm / 9000), t, 0.15);
+      scrub.gain.setTargetAtTime(Math.min(0.09, Math.max(0, slip - 0.15) * 0.25), t, 0.05);
+      kerbPhase += 1;
+      rumble.gain.setTargetAtTime(kerb ? 0.22 + (kerbPhase % 2) * 0.08 : 0, t, 0.03);
+      wind.gain.setTargetAtTime(Math.min(0.05, (speed / 90) ** 2 * 0.05), t, 0.2);
     },
     impact(strength) {
       const t = now();
-      if (t - lastImpact < 0.08 || strength < 1.2) return;
+      if (t - lastImpact < 0.1 || strength < 1.5) return;
       lastImpact = t;
-      const src = ctx.createBufferSource();
-      src.buffer = noise;
-      const f = ctx.createBiquadFilter();
-      f.type = "lowpass";
-      f.frequency.value = 280 + Math.min(900, strength * 60);
-      const g = ctx.createGain();
-      const vol = Math.min(0.5, 0.06 + strength * 0.025);
-      g.gain.setValueAtTime(vol, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-      src.connect(f);
-      f.connect(g);
-      g.connect(master);
-      src.start(t, Math.random() * 0.5, 0.3);
+      burst(t, 0.3, "lowpass", 260 + Math.min(900, strength * 50), Math.min(0.55, 0.08 + strength * 0.02));
+      tone(70, t, 0.12, "sine", Math.min(0.3, strength * 0.015));
     },
-    knock(kind, strength) {
+    light(n) {
       const t = now();
-      // At most ~25 voices a second, and one per kind per 45 ms: a strike clatters, it doesn't roar
-      if (strength < 1 || t - lastKnock < 0.04 || t - lastKind[kind] < 0.045) return;
-      lastKnock = lastKind[kind] = t;
-      const v = Math.min(1, 0.25 + strength / 14);
-      const j = 1 + (Math.random() - 0.5) * 0.12; // a little variety
-      if (kind === "pin") {
-        // Hard maple: a bright clack with a hollow ring
-        blip(1250 * j, 900 * j, t, 0.09, "triangle", 0.16 * v);
-        blip(2350 * j, 2100 * j, t, 0.05, "sine", 0.07 * v);
-        burst(t, 0.04, "highpass", 2500, 0.12 * v);
-      } else if (kind === "cone") {
-        blip(340 * j, 170 * j, t, 0.12, "square", 0.05 * v);
-        burst(t, 0.05, "bandpass", 900, 0.08 * v);
-      } else if (kind === "crate") {
-        blip(150 * j, 90 * j, t, 0.16, "sine", 0.22 * v);
-        burst(t, 0.12, "lowpass", 700, 0.22 * v);
-      } else if (kind === "drum") {
-        blip(210 * j, 190 * j, t, 0.45, "square", 0.045 * v);
-        blip(317 * j, 300 * j, t, 0.38, "triangle", 0.06 * v);
-        burst(t, 0.08, "bandpass", 1800, 0.1 * v);
-      } else {
-        blip(160 * j, 420 * j, t, 0.16, "sine", 0.16 * v);
-      }
+      if (n > 0) tone(880, t, 0.12, "square", 0.05);
+      else tone(1320, t, 0.35, "square", 0.06);
     },
-    strike() {
-      // Pins crashing, then a little arcade fanfare
+    drs(open) {
       const t = now();
-      burst(t, 0.5, "highpass", 1800, 0.18);
-      [523, 659, 784, 1047, 1319].forEach((n, i) => tone(n, t + 0.18 + i * 0.075, 0.14, "triangle", 0.07));
-      tone(1568, t + 0.6, 0.35, "sine", 0.06);
+      burst(t, 0.25, "highpass", open ? 2200 : 1200, 0.06);
     },
-    chime(big) {
+    shift() {
+      burst(now(), 0.06, "bandpass", 900, 0.05);
+    },
+    chime(kind) {
       const t = now();
-      const notes = big ? [784, 988, 1175, 1568] : [988, 1319];
-      notes.forEach((n, i) => tone(n, t + i * 0.07, 0.16, "sine", 0.07));
+      const notes = kind === "best" ? [784, 988, 1175, 1568] : kind === "lap" ? [880, 1175] : kind === "trophy" ? [988, 1319, 1760] : kind === "warn" ? [440, 330] : [1175];
+      notes.forEach((n, i) => tone(n, t + i * 0.08, kind === "warn" ? 0.2 : 0.14, kind === "warn" ? "square" : "sine", kind === "warn" ? 0.04 : 0.06));
     },
     setMuted(muted) {
-      master.gain.setTargetAtTime(muted ? 0 : 0.55, now(), 0.05);
+      master.gain.setTargetAtTime(muted ? 0 : 0.5, now(), 0.05);
     },
     suspend() {
       void ctx.suspend();
