@@ -47,7 +47,7 @@ const groups: UseGroup[] = [
       item("Nikon 50mm f/1.8G", "Portraits on the D780."),
       item("Canon EOS 80D", "Landscapes, open roads and coastlines.", "EOS 80D"),
       item("Canon EOS 1500D + EF 50mm f/1.8", "Astro stacks, and portraits on the fast 50mm.", "EOS 1500D"),
-      item("iPhone 14 Pro Max", "ProRAW stills, and footage for short films.", "iPhone 14 Pro Max"),
+      item("iPhone 14 Pro Max", "Quick stills on the move, and footage for short films.", "iPhone 14 Pro Max"),
       item("Studio lighting", "Controlled light for portraits, headshots and in-house sessions.", "studio lighting"),
       item("DJI Osmo Mobile 7", "Phone gimbal for moving shots.", "Osmo Mobile 7"),
       item("DJI Ronin mini gimbal", "Smooth camera moves on shoots and short films."),

@@ -75,7 +75,7 @@ export default function WorkPage() {
             Need a network planned, a system built or an event covered? <em className="font-serif text-sky">Let&apos;s scope it.</em>
           </h2>
           <div className="flex flex-col justify-end gap-4 md:col-span-5 md:items-end">
-            <p className="font-serif text-lg text-paper/75">Freelance projects start at {site.rate}.</p>
+            <p className="font-serif text-lg text-paper/75">Quoted to the scope of each job, in writing, before work begins.</p>
             <Magnetic>
               <Link href="/contact" className="btn bg-paper text-ink hover:bg-sky">
                 Start a project <span className="arrow">→</span>

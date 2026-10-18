@@ -227,6 +227,7 @@ export function senderEmail(inq: Inquiry) {
       sections: briefSections(br.brief, br.answers),
       note: { title: "In your words", body: inq.message },
       steps: { title: "What happens next", items: br.brief.next },
+      smallPrint: br.brief.partners ? [br.brief.partners] : undefined,
       footer: `— ${site.firstName} · Reply to this email to add anything or send files.`,
     });
   }

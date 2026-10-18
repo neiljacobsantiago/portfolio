@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Icon from "@/components/ui/Icon";
 import AvailabilityBadge from "@/components/layout/AvailabilityBadge";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
 import Section, { JumpLinks } from "@/components/layout/Section";
@@ -36,6 +37,12 @@ function OfferBlock({ offer, index }: { offer: Offer; index: number }) {
             <dd className="mt-2 font-serif text-lg leading-snug">{offer.timeline}</dd>
           </div>
         </dl>
+        {offer.partners && (
+          <p className="mt-6 border-l-2 border-sky pl-4 font-serif text-base leading-snug text-ink/75">
+            <span className="label mb-1 block text-[0.62rem] text-ink/60">Outside partners</span>
+            {offer.partners}
+          </p>
+        )}
       </div>
 
       <div {...reveal("up", 100)} className="min-w-0 md:col-span-6 md:col-start-7">
@@ -43,7 +50,7 @@ function OfferBlock({ offer, index }: { offer: Offer; index: number }) {
         <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
           {offer.deliverables.map((d) => (
             <li key={d} className="flex gap-4 py-3 font-serif text-lg leading-snug">
-              <span aria-hidden className="mt-[0.15em] text-ember">✓</span>
+              <Icon name="check" className="mt-[0.2em] text-ember" />
               {d}
             </li>
           ))}
@@ -62,11 +69,11 @@ function OfferBlock({ offer, index }: { offer: Offer; index: number }) {
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link href={contactHref(offer.topic)} className="btn bg-ink py-3.5 text-paper hover:bg-ember">
-            {offer.cta} <span className="arrow">→</span>
+            {offer.cta} <Icon name="arrow-right" className="arrow" />
           </Link>
           {offer.packagesHref && (
             <Link href={offer.packagesHref} className="label ulink px-2 py-3 text-[0.62rem] text-ink/70 hover:text-ink">
-              Packages & prices →
+              Packages & prices <Icon name="arrow-right" />
             </Link>
           )}
         </div>
@@ -116,7 +123,7 @@ export default async function ServicesPage() {
           <div className="space-y-4">
             <AvailabilityBadge availability={availability} tone="ink" />
             <p className="font-serif text-lg text-ink/70">
-              Projects from {site.rate}. Based in {site.location}; web work anywhere.
+              Pricing follows the work: photo packages are fixed, everything else is quoted to its scope. Based in {site.location}; web work anywhere.
             </p>
           </div>
         }

@@ -45,6 +45,8 @@ export interface Brief {
   message: { label: string; placeholder: string };
   /** What happens after sending, in order. Shown on the form and in both emails. */
   next: string[];
+  /** Outside people or companies the job may depend on, said up front. */
+  partners?: string;
 }
 
 const budget = (...ranges: string[]) => [...ranges, "Not sure yet"] as const;
@@ -130,6 +132,7 @@ export const briefs: Brief[] = [
       keepInTouch,
     ],
     message: { label: "Tell me about the site", placeholder: "Who it's for, what visitors should be able to do, anything you've seen elsewhere and want here…" },
+    partners: "Domains, hosting and any paid plugins come from outside providers; their costs are listed separately in the quote.",
     next: [reply, "A short call or chat to agree on pages, features and the timeline.", "You get a written quote and plan; a 30% downpayment starts the work.", "You see progress on a preview link and give feedback as it's built.", "Launch, a walkthrough of how to update it, and 30 days of free fixes."],
   },
   {
@@ -183,6 +186,7 @@ export const briefs: Brief[] = [
       keepInTouch,
     ],
     message: { label: "Tell me about the video", placeholder: "The story or message, the audience, the feeling you're after…" },
+    partners: "Extra crew, drone operators, voice talent and music licences come from outside and depend on their availability.",
     next: [reply, "A call to settle the story, shot list and schedule.", "You get a written quote; a 30% downpayment books the dates.", "Filming, then a first cut for your notes (two rounds of revisions included).", "Final files delivered in the sizes each platform needs."],
   },
   {
@@ -253,6 +257,7 @@ export const briefs: Brief[] = [
       keepInTouch,
     ],
     message: { label: "Tell me about the network", placeholder: "What's frustrating now, the layout of the place, anything already bought…" },
+    partners: "Equipment comes from suppliers and the line from your ISP, so stock and install dates are confirmed before work is scheduled.",
     next: [reply, "A site visit or video call to walk the space and check the signal.", "You get a plan with an equipment list and a quote; nothing is bought without your OK.", "Setup and testing, room by room.", "A network map, the passwords handed over, and a walkthrough."],
   },
   {
