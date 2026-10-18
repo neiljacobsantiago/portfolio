@@ -50,10 +50,10 @@ export function starterFor(id: ChatToolId, rng: Rng = Math.random): ChatCard {
 /* ------------------------------------------------------------------ */
 
 function hello(hour: number, rng: Rng) {
-  if (hour >= 5 && hour < 12) return pick(["Good morning! ☀️", "Morning! ☕", "Hi, early bird! 🌤️"], rng);
-  if (hour >= 12 && hour < 18) return pick(["Good afternoon! 👋", "Hey there! 👋", "Hi! 👋"], rng);
-  if (hour >= 18 && hour < 22) return pick(["Good evening! 🌆", "Evening! 🌇", "Hey, good evening! 👋"], rng);
-  return pick(["Up late? 🌙", "Hello, night owl! 🦉", "Hi from the night shift! 🌌"], rng);
+  if (hour >= 5 && hour < 12) return pick(["Good morning!", "Morning!", "Hi, early bird!"], rng);
+  if (hour >= 12 && hour < 18) return pick(["Good afternoon!", "Hey there!", "Hi!"], rng);
+  if (hour >= 18 && hour < 22) return pick(["Good evening!", "Evening!", "Hey, good evening!"], rng);
+  return pick(["Up late?", "Hello, night owl!", "Hi from the night shift!"], rng);
 }
 
 const INTROS = [
@@ -83,15 +83,15 @@ export function greeting(path: string, hour: number, rng: Rng = Math.random): [s
       rng,
     );
   } else if (page === "/photography") {
-    second = pick([`Ask about any collection — the ${shots} are a good start — or get a quote for a shoot. 📸`, `Want a price for a shoot, or the story behind the ${shots}? Just ask.`], rng);
+    second = pick([`Ask about any collection — the ${shots} are a good start — or get a quote for a shoot.`, `Want a price for a shoot, or the story behind the ${shots}? Just ask.`], rng);
   } else if (page === "/lab") {
-    second = pick(["Every tool here also runs inside this chat — open Tools up top, or just paste a link or an IP. 🧪", "Paste a suspicious link, an IP or a memory layout and I'll run the right tool. 🧪"], rng);
+    second = pick(["Every tool here also runs inside this chat — open Tools up top, or just paste a link or an IP.", "Paste a suspicious link, an IP or a memory layout and I'll run the right tool."], rng);
   } else if (page === "/play") {
-    second = pick([`Between rounds, ask me about ${others[0]} — or let me plan a subnet for you. 🕹️`, "Ask me how the games came about, or let me do the subnetting for you. 🕹️"], rng);
+    second = pick([`Between rounds, ask me about ${others[0]} — or let me plan a subnet for you.`, "Ask me how the games came about, or let me do the subnetting for you."], rng);
   } else if (page === "/about" || page === "/resume") {
     second = pick(["Ask about his school, orgs or certificates — or what he does off the clock.", `Ask me about his time at CLSU, his gear, or the ${shots}.`], rng);
   } else if (page === "/contact" || page === "/bookings") {
-    second = pick(["Not sure what to book? I can quote a shoot first, or tell you how fast Neil replies.", "Want a price before you message? Ask me for a quote on any shoot. 💬"], rng);
+    second = pick(["Not sure what to book? I can quote a shoot first, or tell you how fast Neil replies.", "Want a price before you message? Ask me for a quote on any shoot."], rng);
   } else {
     second = pick(
       [
@@ -137,10 +137,10 @@ function buildSurprises(rng: Rng): Surprise[][] {
       .filter((o) => o.role !== "Student")
       .map((o) => ({ text: `${lead(rng)} Neil is part of the ${o.name} (${o.short}) — role: ${o.role}. ${o.detail}`, topic: "about:orgs", links: [{ label: "Organizations", href: "/about" }] })),
     ...education.map((e) => ({ text: `${lead(rng)} ${e.school}, ${e.years}: ${e.level}. ${e.detail}`, topic: "about:education", links: [{ label: "The full story", href: "/about" }] })),
-    ...gearList.map((g) => ({ text: `${lead(rng)} from Neil's camera bag — ${g.brand}: ${g.items.join(", ")}. 📸`, topic: "about:gear", links: [{ label: "See the gear", href: "/about#gear" }] })),
+    ...gearList.map((g) => ({ text: `${lead(rng)} from Neil's camera bag — ${g.brand}: ${g.items.join(", ")}.`, topic: "about:gear", links: [{ label: "See the gear", href: "/about#gear" }] })),
     ...toolkit.map((g) => ({ text: `${lead(rng)} Neil's ${g.group.toLowerCase()} toolkit: ${g.tools.map((t) => t.name).join(", ")}.`, topic: "about:skills", links: [{ label: "About", href: "/about" }] })),
     { text: `${lead(rng)} this site's motto is “${site.tagline}”`, topic: "about:who", links: [{ label: "About", href: "/about" }] },
-    { text: `${lead(rng)} there's a back room. /terminal is a small shell where this site started — type help, ls, or cd photography. ⌨️`, topic: "fun:secret", links: [{ label: "Terminal", href: "/terminal" }] },
+    { text: `${lead(rng)} there's a back room. /terminal is a small shell where this site started — type help, ls, or cd photography.`, topic: "fun:secret", links: [{ label: "Terminal", href: "/terminal" }] },
   ];
   const trivia: Surprise[] = TRIVIA.map((t) => {
     const src = resolveTopic(t.label, t.kind);

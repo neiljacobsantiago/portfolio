@@ -15,7 +15,7 @@ export const seriesList: Series[] = [
     slug: "events",
     title: "School Events",
     kicker: "01 — Collection",
-    story: "Official coverage and creative documentation produced under my direction with the ITSC Media Group (IMG), formerly the ITSC Multimedia Group (MMT), at Central Luzon State University.",
+    story: "Campus coverage produced under my direction for the ITSC Media Group (IMG), formerly the ITSC Multimedia Group (MMT), at Central Luzon State University.",
     gear: "Nikon D780 · Canon · ITSC Media Group",
     tone: "paper",
   },

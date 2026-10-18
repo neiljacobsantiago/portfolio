@@ -59,7 +59,7 @@ export default function WorkFilter({ tabs, children }: { tabs: Tab[]; children: 
               filter === t.key ? "border-ink bg-ink text-paper" : "border-ink/20 hover:border-ink",
             )}
           >
-            {t.label} <span className="opacity-50">{t.count}</span>
+            {t.label} <span className="opacity-75">{t.count}</span>
           </button>
         ))}
       </div>

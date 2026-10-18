@@ -37,7 +37,7 @@ export default function PathoScanTool({ species = "A. flavus", confidence = 94, 
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="label w-20 shrink-0 text-[0.55rem] text-ink/55 sm:w-24">Top match</span>
+        <span className="label w-20 shrink-0 text-3xs text-ink/70 sm:w-24">Top match</span>
         <input
           type="range"
           min={20}
@@ -56,7 +56,7 @@ export default function PathoScanTool({ species = "A. flavus", confidence = 94, 
         <div className="flex gap-2">
           <span className="w-24 shrink-0" />
           <div className="relative h-3 flex-1">
-            <span className="label absolute -translate-x-1/2 text-[0.5rem] whitespace-nowrap text-ember" style={{ left: `${THRESHOLD}%` }}>
+            <span className="label absolute -translate-x-1/2 text-3xs whitespace-nowrap text-ember" style={{ left: `${THRESHOLD}%` }}>
               {THRESHOLD}% bar
             </span>
           </div>
@@ -64,7 +64,7 @@ export default function PathoScanTool({ species = "A. flavus", confidence = 94, 
         </div>
         {r.matrix.map((m, i) => (
           <div key={m.label} className="flex items-center gap-2">
-            <span className={cn("w-24 shrink-0 truncate font-serif text-sm italic", i === 0 ? "text-ink" : "text-ink/55")}>{m.label}</span>
+            <span className={cn("w-24 shrink-0 truncate font-serif text-sm italic", i === 0 ? "text-ink" : "text-ink/70")}>{m.label}</span>
             <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-ink/[0.07]">
               <span aria-hidden className="absolute inset-y-0 z-10 w-px bg-ember" style={{ left: `${THRESHOLD}%` }} />
               <div
@@ -72,7 +72,7 @@ export default function PathoScanTool({ species = "A. flavus", confidence = 94, 
                 style={{ width: `${m.value}%` }}
               />
             </div>
-            {!compact && <span className="w-10 text-right font-mono text-[0.65rem] text-ink/55">{m.value}%</span>}
+            {!compact && <span className="w-10 text-right font-mono text-2xs text-ink/70">{m.value}%</span>}
           </div>
         ))}
       </div>
@@ -95,10 +95,10 @@ export default function PathoScanTool({ species = "A. flavus", confidence = 94, 
 
       {traits && (
         <div className="rounded-[2px] ring-1 ring-ink/10">
-          <p className="label border-b border-ink/10 px-3 py-2 text-[0.55rem] text-ink/55">
+          <p className="label border-b border-ink/10 px-3 py-2 text-3xs text-ink/70">
             <span className="font-serif text-[0.8rem] tracking-normal normal-case italic">{r.top}</span> on PDA · reference traits
           </p>
-          <dl className={cn("grid gap-px bg-ink/10", compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
+          <dl className={cn("grid [&>*]:min-w-0 gap-px bg-ink/10", compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
             {(
               [
                 ["Growth", traits.growth],
@@ -108,7 +108,7 @@ export default function PathoScanTool({ species = "A. flavus", confidence = 94, 
               ] as const
             ).map(([k, v]) => (
               <div key={k} className="bg-paper p-2.5">
-                <dt className="label text-[0.5rem] text-ink/50">{k}</dt>
+                <dt className="label text-3xs text-ink/70">{k}</dt>
                 <dd className="mt-0.5 font-serif text-sm leading-snug">{v}</dd>
               </div>
             ))}

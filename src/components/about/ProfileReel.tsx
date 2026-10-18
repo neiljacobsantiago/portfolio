@@ -142,13 +142,13 @@ export default function ProfileReel({ profiles }: { profiles: Profile[] }) {
                   <p className="font-display text-2xl leading-none">{p.title}</p>
                   <p className="mt-1 font-serif text-base text-paper/85 italic">{p.caption}</p>
                   {p.exif && (
-                    <p className="mt-3 grid grid-rows-[0fr] font-mono text-[0.62rem] text-sky transition-[grid-template-rows] duration-500 ease-[var(--ease-apple)] group-hover:grid-rows-[1fr] group-data-[active=true]:max-sm:grid-rows-[1fr]">
+                    <p className="mt-3 grid grid-rows-[0fr] font-mono text-2xs text-sky transition-[grid-template-rows] duration-500 ease-[var(--ease-apple)] group-hover:grid-rows-[1fr] group-data-[active=true]:max-sm:grid-rows-[1fr]">
                       <span className="overflow-hidden">{p.exif}</span>
                     </p>
                   )}
                 </figcaption>
               </figure>
-              <p aria-hidden className="mt-2 flex justify-between font-mono text-[0.6rem] tracking-[0.2em] text-sky">
+              <p aria-hidden className="mt-2 flex justify-between font-mono text-2xs tracking-[0.2em] text-sky">
                 <span>NJS {String(i + 1).padStart(2, "0")}A</span>
                 <span>{p.exif ? p.exif.split(" · ")[0].toUpperCase() : "STUDIO"}</span>
               </p>

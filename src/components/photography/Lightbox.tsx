@@ -3,6 +3,7 @@
 import Photo from "./Photo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 
 export interface LightboxItem {
@@ -111,8 +112,8 @@ function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; i
     >
       <div className="flex items-center justify-between px-5 py-4 pt-[max(1rem,env(safe-area-inset-top))] md:px-10">
         <span className="label text-paper/70">{many ? `${String(index + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}` : ""}</span>
-        <button ref={closeRef} type="button" onClick={onClose} className="label press rounded-full border border-paper/30 px-4 py-2 hover:bg-paper hover:text-ink">
-          Close ✕
+        <button ref={closeRef} type="button" onClick={onClose} className="label press inline-flex items-center gap-2 rounded-full border border-paper/30 px-4 py-2 hover:bg-paper hover:text-ink">
+          Close <Icon name="close" className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -129,26 +130,26 @@ function Lightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; i
           style={{ viewTransitionName: "photo" }}
           className="h-auto max-h-full w-auto max-w-full rounded-[2px] object-contain shadow-[0_40px_80px_-30px_rgb(0_0_0/0.6)]"
         />
-        <span aria-hidden className="label pointer-events-none absolute right-5 bottom-3 text-[0.55rem] text-paper/40 md:right-10 md:bottom-5">
+        <span aria-hidden className="label pointer-events-none absolute right-5 bottom-3 text-3xs text-paper/40 md:right-10 md:bottom-5">
           © Neil Jacob Santiago
         </span>
       </div>
 
       <div className="flex items-center justify-between gap-4 px-5 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-10">
         {many ? (
-          <button type="button" onClick={() => go(-1)} className="press h-11 w-11 rounded-full border border-paper/30 hover:bg-paper hover:text-ink" aria-label="Previous">
-            ←
+          <button type="button" onClick={() => go(-1)} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-paper/30 hover:bg-paper hover:text-ink" aria-label="Previous">
+            <Icon name="arrow-left" className="h-5 w-5" />
           </button>
         ) : (
           <span />
         )}
         <p className="min-w-0 text-center">
           <span className="block truncate font-serif text-lg italic">{item.alt}</span>
-          {(item.note || item.group) && <span className="label text-[0.65rem] text-sky">{[item.group, item.note].filter(Boolean).join(" · ")}</span>}
+          {(item.note || item.group) && <span className="label text-2xs text-sky">{[item.group, item.note].filter(Boolean).join(" · ")}</span>}
         </p>
         {many ? (
-          <button type="button" onClick={() => go(1)} className="press h-11 w-11 rounded-full border border-paper/30 hover:bg-paper hover:text-ink" aria-label="Next">
-            →
+          <button type="button" onClick={() => go(1)} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-paper/30 hover:bg-paper hover:text-ink" aria-label="Next">
+            <Icon name="arrow-right" className="h-5 w-5" />
           </button>
         ) : (
           <span />

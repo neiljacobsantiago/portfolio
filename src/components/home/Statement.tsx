@@ -47,8 +47,8 @@ export default function Statement() {
             <li key={f.src} className="relative aspect-[4/5] w-[80vw] max-w-sm shrink-0 snap-start overflow-hidden rounded-[2px]">
               <Image src={f.src} alt={`${f.title}, ${f.place}`} fill sizes="(min-width: 640px) 24rem, 80vw" className="object-cover" style={{ objectPosition: f.position }} />
               <div className="absolute inset-0 bg-gradient-to-b from-wine/60 via-transparent to-wine/85" />
-              <p className="label absolute top-4 right-4 left-4 text-[0.6rem] text-paper/85">
-                {f.title} <span className="text-paper/55">· {f.place}</span>
+              <p className="label absolute top-4 right-4 left-4 text-2xs text-paper/85">
+                {f.title} <span className="text-paper/70">· {f.place}</span>
               </p>
             </li>
           ))}
@@ -59,18 +59,18 @@ export default function Statement() {
           <span className="sx st-line-b block text-right font-serif text-sky italic lg:pr-[8vw] lg:whitespace-nowrap">{tail}</span>
         </h2>
 
-        <p aria-hidden className="label absolute bottom-6 left-5 hidden rounded-full bg-ink/45 px-4 py-2 text-[0.62rem] text-paper/85 backdrop-blur-md scene:grid lg:top-28 lg:bottom-auto lg:left-8 xl:left-12">
+        <p aria-hidden className="label absolute bottom-6 left-5 hidden rounded-full bg-ink/45 px-4 py-2 text-2xs text-paper/85 backdrop-blur-md scene:grid lg:top-28 lg:bottom-auto lg:left-8 xl:left-12">
           {FRAMES.map((f, i) => (
             <span key={f.src} className={`sx ${i === 0 ? "st-cap-out" : "st-cap-in"} col-start-1 row-start-1 flex items-center gap-2 whitespace-nowrap`}>
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ember" /> Frame {String(i + 1).padStart(2, "0")} · {f.title}
-              <span className="hidden text-paper/50 sm:inline">— {f.place}</span>
+              <span className="hidden text-paper/70 sm:inline">— {f.place}</span>
             </span>
           ))}
         </p>
 
         <div className="pointer-events-none relative z-10 scene:absolute scene:inset-0 scene:flex scene:items-center scene:justify-center lg:scene:items-end lg:scene:pb-12">
           <p className="sx st-copy mx-auto mt-10 max-w-xl px-5 font-serif text-xl leading-snug text-paper/90 scene:mt-0 scene:text-center scene:text-paper lg:scene:text-2xl">
-            The same patience that traces a dropped packet through a network waits for the one frame where the stage light hits just right.
+            Tracing a dropped packet across a network and waiting for the stage light to land take the same kind of patience.
           </p>
         </div>
       </div>

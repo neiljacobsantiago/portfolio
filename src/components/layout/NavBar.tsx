@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { isActivePath, mainNav, site, socials } from "@/lib/site";
 import { haptic } from "@/lib/haptics";
 import { openPalette } from "@/components/search/PaletteHost";
+import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 export default function NavBar() {
@@ -62,7 +63,7 @@ export default function NavBar() {
       >
         <Link href="/" className={cn("group flex items-baseline gap-2 transition-colors duration-300", open && "text-paper delay-150")} aria-label={`${site.name} — home`}>
           <span className="font-display text-2xl leading-none">Neil Jacob</span>
-          <span className="font-serif text-lg italic opacity-60 transition-opacity group-hover:opacity-100">Santiago</span>
+          <span className="font-serif text-lg italic opacity-75 transition-opacity group-hover:opacity-100">Santiago</span>
         </Link>
 
         <ul className="hidden items-center gap-6 md:flex lg:gap-9">
@@ -82,8 +83,8 @@ export default function NavBar() {
                   )}
                 >
                   {item.href === "/play" && (
-                    <span aria-hidden className="flex h-4 w-4 items-center justify-center rounded-full bg-ember text-[0.45rem] text-paper ">
-                      ▶
+                    <span aria-hidden className="flex h-4 w-4 items-center justify-center rounded-full bg-ember text-paper">
+                      <Icon name="play" className="ml-px h-2.5 w-2.5" />
                     </span>
                   )}
                   {item.label}
@@ -100,10 +101,10 @@ export default function NavBar() {
               }}
               aria-label="Search the site (Ctrl or Command + K)"
               title="Search · Ctrl/⌘ K"
-              className="label press flex items-center gap-2 rounded-full bg-ink/[0.06] px-3 py-2 text-ink/60 hover:bg-ink hover:text-paper"
+              className="label press flex items-center gap-2 rounded-full bg-ink/[0.06] px-3 py-2 text-ink/75 hover:bg-ink hover:text-paper"
             >
-              <span aria-hidden className="text-sm leading-none">⌕</span>
-              <kbd className="hidden font-mono text-[0.6rem] lg:inline">⌘K</kbd>
+              <Icon name="search" className="h-3.5 w-3.5" />
+              <kbd className="hidden font-mono text-2xs lg:inline">⌘K</kbd>
             </button>
           </li>
         </ul>
@@ -140,7 +141,7 @@ export default function NavBar() {
                 className="flex items-end justify-between gap-4 py-4 aria-[current=page]:text-sky"
               >
                 <span className="font-display text-5xl leading-none">{item.label}</span>
-                <span className="label pb-1 text-paper/50">0{i + 1}</span>
+                <span className="label pb-1 text-paper/70">0{i + 1}</span>
               </Link>
             </li>
           ))}
@@ -154,12 +155,12 @@ export default function NavBar() {
           className="animate-slide-in label mt-8 flex w-full items-center justify-between rounded-full bg-paper/10 px-5 py-4 text-paper"
           style={{ animationDelay: "400ms" }}
         >
-          Search projects, tools & photos <span aria-hidden>⌕</span>
+          Search projects, tools & photos <Icon name="search" className="h-4 w-4" />
         </button>
         <div className="animate-slide-in mt-10 flex flex-wrap gap-x-6 gap-y-3" style={{ animationDelay: "420ms" }}>
           {socials.filter((s) => s.url).map((s) => (
-            <a key={s.name} href={s.url!} target="_blank" rel="noopener noreferrer" className="label text-paper/70">
-              {s.name} ↗
+            <a key={s.name} href={s.url!} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 text-paper/75">
+              {s.name} <Icon name="arrow-up-right" />
             </a>
           ))}
         </div>

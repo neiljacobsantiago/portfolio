@@ -290,7 +290,8 @@ test("corrected facts: PathoScan threshold, ProRAW, pricing, third parties, what
   assert.ok(!/15,000|starts? at ₱/.test(web) && /scope/.test(web), "web pricing depends on scope");
   assert.ok(/third part|partner/i.test(all("Can I add hair & makeup to a shoot?") + all("Who handles hosting for a website?")));
   assert.ok(/Photo Mode/.test(all("What's new in his photography?")) && /RStudio/.test(all("What certificates does he have?")));
-  assert.ok(!/jeepney/i.test(all("What's Island Drive?")));
+  const circuit = all("What's Bay Street Circuit?");
+  assert.ok(!/jeepney|island/i.test(circuit) && /street race/.test(circuit));
 });
 
 test("offline, a question about the wider world offers a Google search instead of guessing", () => {

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // One small, consistent icon set for the whole site, drawn on a 24px grid with
 // a 1.75 stroke so it sits well beside the serif and mono type. Use these
-// instead of emoji or text arrows (→ ↗ ▶ ✓), which render differently on
+// instead of emoji or text arrows and ticks, which render differently on
 // every phone.
 
 const paths = {
@@ -67,6 +67,36 @@ const paths = {
   ),
   print: <path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z" />,
   menu: <path d="M4 8h16M4 16h16" />,
+  enter: <path d="M19 5v7a2 2 0 0 1-2 2H6M10 10l-4 4 4 4" />,
+  file: <path d="M7 3.5h7l4.5 4.5v12a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5v-16a.5.5 0 0 1 .5-.5zM14 3.5V8h4.5" />,
+  grid: (
+    <>
+      <rect x="4.5" y="4.5" width="6" height="6" rx="1" />
+      <rect x="13.5" y="4.5" width="6" height="6" rx="1" />
+      <rect x="4.5" y="13.5" width="6" height="6" rx="1" />
+      <rect x="13.5" y="13.5" width="6" height="6" rx="1" />
+    </>
+  ),
+  image: (
+    <>
+      <rect x="3.5" y="5" width="17" height="14" rx="1.5" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="m4 17.5 5-5 4 4 2.5-2.5 4.5 4.5" />
+    </>
+  ),
+  briefcase: (
+    <>
+      <rect x="3.5" y="7.5" width="17" height="12" rx="1.5" />
+      <path d="M9 7.5v-2a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3.5 12.5h17" />
+    </>
+  ),
+  music: (
+    <>
+      <path d="M9 17.5V6l10-2v11.5" />
+      <circle cx="6.5" cy="17.5" r="2.5" />
+      <circle cx="16.5" cy="15.5" r="2.5" />
+    </>
+  ),
   info: (
     <>
       <circle cx="12" cy="12" r="8.5" />
@@ -74,6 +104,7 @@ const paths = {
     </>
   ),
   warning: <path d="M12 4 2.8 19.5h18.4zM12 10v4M12 17h.01" />,
+  alert: <path d="M12 5.5v8.5M12 18.5h.01" />,
   lock: (
     <>
       <rect x="5" y="10.5" width="14" height="9.5" rx="1.5" />

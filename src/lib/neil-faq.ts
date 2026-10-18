@@ -195,7 +195,7 @@ function gameAnswer(q: string, ctx: Ctx): FaqAnswer {
 function categoryAnswer(c: Category, ctx: Ctx): FaqAnswer {
   const all = projects.filter((p) => p.category === c);
   const picks = sample(all, Math.min(4, all.length), ctx.rng);
-  const lead = c === "web" ? one(ctx, "Web development is a big part of what he does: architecture first, then fast, careful iteration.", "He plans the architecture first, then builds fast.") : `**${categories[c].label}**: ${categories[c].blurb}.`;
+  const lead = c === "web" ? one(ctx, "Web development is a big part of what he does, from the data model to the finished interface.", "He maps out the data and routes first, then builds in short, careful passes.") : `**${categories[c].label}**: ${categories[c].blurb}.`;
   return {
     text: `${lead} ${one(ctx, "A few to start with:", "Some highlights:", "Worth a look:")}\n\n${bullets(picks.map((p) => `**${p.title}**: ${fixFacts(p.plain)}`))}\n\n${one(ctx, "Want the story behind one of them?", "Ask me about any of these, or what Neil did on it.")}`,
     links: [{ label: categories[c].label, href: `/work#${c}` }],
@@ -246,16 +246,16 @@ const RULES: Rule[] = [
     answer: (_, ctx) => ({
       text: one(
         ctx,
-        "Hey there! 👋 I'm NeilAI. I can walk you through Neil's projects, show his photo collections, quote a photoshoot, or run one of his Lab tools right here.\n\nWhat would you like to start with?",
-        "Hi! 👋 Ask me about a project, a photo collection or a shoot quote, or tap Surprise me and I'll pick something.",
-        "Hello! 😊 I can talk projects, photos and prices, or run one of Neil's tools. Where shall we start?",
+        "Hey there! I'm NeilAI. I can walk you through Neil's projects, show his photo collections, quote a photoshoot, or run one of his Lab tools right here.\n\nWhat would you like to start with?",
+        "Hi! Ask me about a project, a photo collection or a shoot quote, or tap Surprise me and I'll pick something.",
+        "Hello! I can talk projects, photos and prices, or run one of Neil's tools. Where shall we start?",
       ),
     }),
   },
   {
     test: /\b(secret|easter egg|hidden|terminal|back ?room)\b/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, "There is! **/terminal** is the back room: a small shell where this site started.", "Psst: **/terminal**. It's an interactive shell for the curious.")}\n\nTry typing \`help\`, \`ls\` or \`cd photography\` once you're in. ⌨️`.replace(/`/g, ""),
+      text: `${one(ctx, "There is! **/terminal** is the back room: a small shell where this site started.", "Psst: **/terminal**. It's an interactive shell for the curious.")}\n\nTry typing \`help\`, \`ls\` or \`cd photography\` once you're in.`.replace(/`/g, ""),
       links: [{ label: "Terminal", href: "/terminal" }],
     }),
   },
@@ -429,7 +429,7 @@ const RULES: Rule[] = [
   {
     test: /\b(gear|camera|lens|canon|nikon|iphone|dji|gimbal|equipment|camera bag|shoot on)/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, "The camera bag:", "What he shoots with:")}\n\n${bullets(gearList.map((g) => `**${g.brand}:** ${g.items.join(", ")}`))}\n\nConcerts are shot on the Nikon and Canon bodies; the iPhone shows up in landscapes and video. ${one(ctx, "Want to see what he shoots with them?", "Curious which collection used which camera?")} 📸`,
+      text: `${one(ctx, "The camera bag:", "What he shoots with:")}\n\n${bullets(gearList.map((g) => `**${g.brand}:** ${g.items.join(", ")}`))}\n\nConcerts are shot on the Nikon and Canon bodies; the iPhone shows up in landscapes and video. ${one(ctx, "Want to see what he shoots with them?", "Curious which collection used which camera?")}`,
       links: [{ label: "See the gear", href: "/about#gear" }],
     }),
   },
@@ -450,14 +450,14 @@ const RULES: Rule[] = [
   {
     test: /\b(where|location|based|hometown|from|taga|saan)\b/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, `Neil is based in **${site.location}**, in Central Luzon, ${site.country}.`, `Home is **${site.location}** (${site.coordinates}).`)} He studies at Central Luzon State University in the Science City of Muñoz, also in Nueva Ecija, and travels for shoots and concerts.\n\nWeb work can be done from anywhere; shoots outside San Jose City are quoted by distance. 📍`,
+      text: `${one(ctx, `Neil is based in **${site.location}**, in Central Luzon, ${site.country}.`, `Home is **${site.location}** (${site.coordinates}).`)} He studies at Central Luzon State University in the Science City of Muñoz, also in Nueva Ecija, and travels for shoots and concerts.\n\nWeb work can be done from anywhere; shoots outside San Jose City are quoted by distance.`,
       links: [{ label: "About Neil", href: "/about" }],
     }),
   },
   {
     test: /\b(resume|cv|curriculum vitae)\b|résumé/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, "His résumé lives at **/resume**.", "Here's the résumé.")} It covers his education, organisations, certificates, skills and selected projects, and you can share it or save it as a PDF. 📄\n\n${one(ctx, "Want the 30-second version instead?", "Want me to pick a project from it to explain?")}`,
+      text: `${one(ctx, "His résumé lives at **/resume**.", "Here's the résumé.")} It covers his education, organisations, certificates, skills and selected projects, and you can share it or save it as a PDF.\n\n${one(ctx, "Want the 30-second version instead?", "Want me to pick a project from it to explain?")}`,
       links: [{ label: "Résumé", href: "/resume" }],
     }),
   },
@@ -483,7 +483,7 @@ const RULES: Rule[] = [
     answer: (_, ctx) => {
       const picks = shuffle(seriesList, ctx.rng).slice(0, 4);
       return {
-        text: `${one(ctx, "He shoots a bit of everything. A few collections to start with:", "Pick a mood:")}\n\n${bullets(picks.map((s) => `**${s.title}**: ${(s.story.split(/(?<=[.!?])\s/)[0] ?? "").replace(/\bmy direction\b/, "Neil's direction")}`))}\n\nThere are ${seriesList.length} collections in all, including the new Photo Mode. ${one(ctx, "Which one should I open?", "Ask me about any of them.")} 📷`,
+        text: `${one(ctx, "He shoots a bit of everything. A few collections to start with:", "Pick a mood:")}\n\n${bullets(picks.map((s) => `**${s.title}**: ${(s.story.split(/(?<=[.!?])\s/)[0] ?? "").replace(/\bmy direction\b/, "Neil's direction")}`))}\n\nThere are ${seriesList.length} collections in all, including the new Photo Mode. ${one(ctx, "Which one should I open?", "Ask me about any of them.")}`,
         links: [{ label: "Photography", href: "/photography" }],
       };
     },
@@ -495,14 +495,14 @@ const RULES: Rule[] = [
         `**Certified:** ${certificateFacts.find((c) => /cisco/i.test(c.issuer))?.title ?? "Cisco NetAcad"} (Cisco Networking Academy)`,
         `**Next:** ${list(inProgress.map((c) => c.title))}`,
         "**Try it:** the subnet and VLAN planner runs right here in the chat",
-      ])}\n\n${one(ctx, "Give me a network, like 192.168.1.0/26, and I'll break it down.", "Want me to plan VLANs for a building?")} 🌐`,
+      ])}\n\n${one(ctx, "Give me a network, like 192.168.1.0/26, and I'll break it down.", "Want me to plan VLANs for a building?")}`,
       links: [{ label: "The Lab", href: "/lab" }],
     }),
   },
   {
     test: /\b(contact|email|reach|message|talk|collab|hire|available|free|reply|respond|open for)/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, "The best way is the **contact page**: Neil reads every message himself and replies within 24 hours.", "Send a message from **/contact**; Neil answers personally, usually within 24 hours. ✉️")}\n\nFor a project, include what you need, rough size and any deadline, since pricing depends on scope. For a shoot, the booking form on the photography page fills in the details for you.`,
+      text: `${one(ctx, "The best way is the **contact page**: Neil reads every message himself and replies within 24 hours.", "Send a message from **/contact**; Neil answers personally, usually within 24 hours.")}\n\nFor a project, include what you need, rough size and any deadline, since pricing depends on scope. For a shoot, the booking form on the photography page fills in the details for you.`,
       links: [
         { label: "Say hello", href: "/contact" },
         { label: "Services", href: "/services" },
@@ -535,7 +535,7 @@ const RULES: Rule[] = [
     },
   },
   {
-    test: /\b(play|game|games|drive|jeepney|arcade|bored|shutter|sprint|packet check|contact sheet|memory game|quiz)\b/i,
+    test: /\b(play|game|games|drive|circuit|race|f1|arcade|bored|shutter|sprint|packet check|contact sheet|memory game|quiz)\b/i,
     answer: gameAnswer,
   },
   {
@@ -547,7 +547,7 @@ const RULES: Rule[] = [
         "**Check a suspicious link** for phishing signs, without opening it",
         "**Show PathoScan's 90% confidence threshold** on a sample result",
         "**Quote a photoshoot** and pull up **Neil's GitHub activity**",
-      ])}\n\nOpen Tools up top, or just ask, e.g. “subnet 192.168.1.0/26”. The Lab page has ${LAB_ONLY.length} more that need a bigger screen: ${list(LAB_ONLY.map((t) => t.title))}. 🧪`,
+      ])}\n\nOpen Tools up top, or just ask, e.g. “subnet 192.168.1.0/26”. The Lab page has ${LAB_ONLY.length} more that need a bigger screen: ${list(LAB_ONLY.map((t) => t.title))}.`,
       links: [{ label: "Open the Lab", href: "/lab" }],
     }),
   },
@@ -559,7 +559,7 @@ const RULES: Rule[] = [
         `**Leads:** ${site.role}`,
         `**Builds:** web systems like PathoScan and the Student Information System`,
         `**Shoots:** concerts, events, portraits, landscapes and astrophotography`,
-      ])}\n\n${one(ctx, "Want to start with his projects or his photos?", "What would you like to see first?")} 👋`,
+      ])}\n\n${one(ctx, "Want to start with his projects or his photos?", "What would you like to see first?")}`,
       links: [
         { label: "About", href: "/about" },
         { label: "Work", href: "/work" },

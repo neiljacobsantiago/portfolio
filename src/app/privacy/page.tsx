@@ -44,7 +44,7 @@ export default function PrivacyPage() {
               <p>
                 <strong>NeilAI chats.</strong> When the AI assistant is switched on, what you type — with the last few messages and the page you&apos;re on — is sent to Google&apos;s
                 Gemini API to write a reply. Please don&apos;t share passwords, IDs or other sensitive details in the chat. The conversation itself stays in your browser tab and is
-                cleared when you close it or press ↺.
+                cleared when you close it or start a new chat.
               </p>
               <p>
                 <strong>Server logs.</strong> Like every website, the hosting provider receives your IP address and basic request details to deliver pages and keep the site secure. The

@@ -49,7 +49,7 @@ export default function LabPage() {
               <div key={l}>
                 <dt className="sr-only">{l}</dt>
                 <dd className="font-display text-4xl leading-none md:text-5xl">{n}</dd>
-                <dd className="label mt-1.5 text-[0.55rem] text-ink/55">{l}</dd>
+                <dd className="label mt-1.5 text-3xs text-ink/70">{l}</dd>
               </div>
             ))}
           </dl>
@@ -61,14 +61,14 @@ export default function LabPage() {
         <div className="mb-10 hidden gap-px overflow-hidden rounded-[2px] bg-ink/10 ring-1 ring-ink/10 md:grid md:grid-cols-2 xl:grid-cols-4">
           {groups.map((g) => (
             <div key={g.id} className="bg-paper p-5">
-              <a href={`#${g.anchor}`} className="label ulink text-[0.6rem] text-ember">
+              <a href={`#${g.anchor}`} className="label ulink text-2xs text-ember">
                 {g.label}
               </a>
               <ol className="mt-3 space-y-1.5">
                 {g.items.map((t) => (
                   <li key={t.id}>
                     <a href={`#${t.id}`} className="group flex gap-2.5 font-serif text-[0.95rem] leading-snug text-ink/75 hover:text-ink">
-                      <span className="font-mono text-[0.62rem] leading-[1.5rem] text-ink/35 group-hover:text-ember">{numbered.get(t.id)}</span>
+                      <span className="font-mono text-2xs leading-[1.5rem] text-ink/70 group-hover:text-ember">{numbered.get(t.id)}</span>
                       {t.title}
                     </a>
                   </li>
@@ -87,13 +87,13 @@ export default function LabPage() {
                 <h2 id={`${g.anchor}-title`} className="font-display text-[clamp(2.2rem,6vw,4.5rem)] leading-[0.95] text-wine">
                   {g.label}
                 </h2>
-                <p className="mt-3 max-w-xl font-serif text-lg leading-snug text-ink/65">{g.blurb}</p>
+                <p className="mt-3 max-w-xl font-serif text-lg leading-snug text-ink/75">{g.blurb}</p>
               </div>
               {g.items.length > 1 && (
                 <ul className="flex flex-wrap gap-1.5 md:hidden">
                   {g.items.map((t) => (
                     <li key={t.id}>
-                      <a href={`#${t.id}`} className="label inline-block rounded-full border border-ink/15 px-3 py-1.5 text-[0.52rem] text-ink/65">
+                      <a href={`#${t.id}`} className="label inline-block rounded-full border border-ink/15 px-3 py-1.5 text-3xs text-ink/75">
                         {numbered.get(t.id)} · {t.title}
                       </a>
                     </li>
@@ -111,14 +111,15 @@ export default function LabPage() {
               >
                 <div className="min-w-0 lg:col-span-4">
                   <div className="lg:sticky lg:top-40">
-                    <p className="font-display text-5xl leading-none text-ember/30 lg:text-6xl">{numbered.get(t.id)}</p>
+                    <p aria-hidden className="font-display text-5xl leading-none text-ember/30 lg:text-6xl">{numbered.get(t.id)}</p>
                     <h3 id={`${t.id}-title`} className="mt-3 font-display text-[clamp(1.9rem,4vw,3rem)] leading-[1.05]">
                       {t.title}
                     </h3>
                     <p className="mt-3 max-w-2xl font-serif text-lg leading-relaxed text-ink/75 lg:mt-4 lg:text-xl">{t.blurb}</p>
                     <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-4 lg:mt-6">
-                      <p className="label text-[0.6rem] text-ink/50">
-                        From{" "}
+                      <p className="label text-2xs text-ink/70">
+                        {/* Tools from a project say where they came from; the others link on with their own wording. */}
+                        {"slug" in t.project && "From "}
                         <Link href={toolHref(t)} className="ulink inline-flex items-center gap-1 text-ember hover:text-ink">
                           {t.project.title} <Icon name="arrow-right" />
                         </Link>

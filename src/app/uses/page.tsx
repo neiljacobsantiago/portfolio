@@ -39,7 +39,7 @@ export default async function UsesPage() {
                     <p className="font-serif text-lg leading-snug text-ink/75">{it.note}</p>
                     {it.seenIn && (
                       <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="label text-[0.55rem] text-ink/40">Seen in</span>
+                        <span className="label text-3xs text-ink/70">Seen in</span>
                         {it.seenIn.map((s) => (
                           <Link key={s.href} href={s.href} className="ulink font-serif text-base text-ember hover:text-ink">
                             {s.label}
@@ -70,12 +70,12 @@ export default async function UsesPage() {
             {colophon.map((c) => (
               <div key={c.name} className="border-t border-paper/15 py-4">
                 <dt className="font-display text-lg">{c.name}</dt>
-                <dd className="mt-1 font-serif text-base leading-snug text-paper/65">{c.role}</dd>
+                <dd className="mt-1 font-serif text-base leading-snug text-paper/75">{c.role}</dd>
               </div>
             ))}
           </dl>
-          <p className="mt-10 font-serif text-paper/60 italic md:ml-[25%]">
-            Palette: wine, ember, paper, ink and sky. Type: Gloock, Newsreader and Courier Prime.{" "}
+          <p className="mt-10 font-serif text-paper/75 md:ml-[25%]">
+            Palette: wine, ember, paper, ink and sky. Type: Gloock, Newsreader and IBM Plex Mono.{" "}
             <Link href="/accessibility" className="ulink text-paper/80 hover:text-paper">
               Accessibility notes
             </Link>{" "}

@@ -157,7 +157,7 @@ export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule
     const card = briefCard(br.brief, br.answers);
     const phone = typeof br.answers.phone === "string" ? br.answers.phone : "";
     const tel = phone.replace(/[^\d+]/g, "");
-    return out(`${br.brief.emoji} ${br.brief.topic}: ${card.title} — ${who}`, {
+    return out(`New brief · ${br.brief.topic}: ${card.title} — ${who}`, {
       preheader: [card.title, ...card.lines].join(" · "),
       eyebrow: `New ${br.brief.topic.toLowerCase()} brief`,
       heading: `${who} has a ${br.brief.topic.toLowerCase()}`,
@@ -175,7 +175,7 @@ export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule
   }
   if (!b) {
     const extra = br ? briefSections(br.brief, br.answers).flatMap((s) => s.rows) : [];
-    return out(`✉️ ${inq.topic} — ${who}`, {
+    return out(`New message · ${inq.topic} — ${who}`, {
       preheader: inq.message.slice(0, 120),
       eyebrow: "New message",
       heading: `${who} wrote in`,
@@ -188,7 +188,7 @@ export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule
   const sections = bookingSections(b.service, b.pkg, b.date, b.phone, b.extras);
   sections.unshift({ title: "Client", rows: [["Name", inq.name], ["Email", inq.email]] });
   const tel = b.phone.replace(/[^\d+]/g, "");
-  return out(`📸 Booking request: ${b.service.name} on ${prettyDate(b.date)} — ${who}`, {
+  return out(`Booking request: ${b.service.name} on ${prettyDate(b.date)} — ${who}`, {
     preheader: `${b.pkg.name} · ${b.pkg.price} · ${cardLines(b)[0]}`,
     eyebrow: "New booking request",
     heading: `${who} wants a shoot`,
@@ -197,7 +197,7 @@ export function ownerEmail(inq: Inquiry, respond?: { confirm: string; reschedule
     actions: [
       ...(respond
         ? ([
-            { label: "✓ Confirm booking", href: respond.confirm, tone: "ember" },
+            { label: "Confirm booking", href: respond.confirm, tone: "ember" },
             { label: "Suggest a date", href: respond.reschedule, tone: "ink" },
             { label: "Decline", href: respond.decline, tone: "ghost" },
           ] as Action[])
@@ -302,7 +302,7 @@ export function bookingAnswerEmail(
       },
       { title: "To lock the date", rows: [["Downpayment", b.downpayment ? `₱${b.downpayment.toLocaleString("en-PH")} (30%)` : "30% of the total"], ...(clean(d.payment) ? ([["How to pay", clean(d.payment)]] as [string, string][]) : [])] },
     ];
-    return out(`✅ Confirmed: your ${b.service.name} on ${when}`, {
+    return out(`Confirmed: your ${b.service.name} on ${when}`, {
       preheader: `See you on ${when}. Downpayment details inside.`,
       eyebrow: "Booking confirmed",
       heading: `You're booked, ${first}!`,
@@ -317,7 +317,7 @@ export function bookingAnswerEmail(
   }
 
   if (action === "reschedule") {
-    return out(`📅 About your ${b.service.name} booking — can we pick another date?`, {
+    return out(`About your ${b.service.name} booking — can we pick another date?`, {
       preheader: `${when} doesn't work, but here are dates that do.`,
       eyebrow: "A new date",
       heading: `Can we move it, ${first}?`,

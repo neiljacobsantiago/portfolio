@@ -32,19 +32,19 @@ export default function PlayPage() {
 
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-x-10 lg:gap-y-20">
           <section aria-labelledby="shutter-title" {...reveal("up")} className="min-w-0">
-            <p className="label text-[0.6rem] text-ink/50">Game 02</p>
+            <p className="label text-2xs text-ink/70">Game 02</p>
             <h3 id="shutter-title" className="mt-2 font-display text-4xl">Shutter</h3>
             <p className="mt-2 mb-6 font-serif text-lg text-ink/70 italic">Concert photography is timing. Follow the performer and shoot at the top of the jump, under a light. Easy mode shows you the moment; Pro tightens every window.</p>
             <ShutterGame />
           </section>
           <section aria-labelledby="packet-title" {...reveal("up", 120)} className="min-w-0">
-            <p className="label text-[0.6rem] text-ink/50">Game 03</p>
+            <p className="label text-2xs text-ink/70">Game 03</p>
             <h3 id="packet-title" className="mt-2 font-display text-4xl">Packet Check</h3>
             <p className="mt-2 mb-6 font-serif text-lg text-ink/70 italic">You&apos;re the router. Networking basics and everyday security, twelve questions at a time, with a short explanation after every answer.</p>
             <PacketCheck />
           </section>
           <section aria-labelledby="sheet-title" {...reveal("up")} className="min-w-0 lg:col-span-2">
-            <p className="label text-[0.6rem] text-ink/50">Game 04</p>
+            <p className="label text-2xs text-ink/70">Game 04</p>
             <h3 id="sheet-title" className="mt-2 font-display text-4xl">Contact Sheet</h3>
             <p className="mt-2 mb-6 max-w-2xl font-serif text-lg text-ink/70 italic">Pairs, played on Neil&apos;s photographs: festival stages, a blood moon, the coast and a few favourite places. Fewest moves wins.</p>
             <ContactSheet />

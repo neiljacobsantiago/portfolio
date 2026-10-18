@@ -17,6 +17,7 @@ import {
   type PhotoUse,
 } from "@/content/sessions";
 import { briefFor, briefs, briefSections, requiredIn, type Brief, type BriefAnswers, type Field, type TopicId } from "@/content/briefs";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 import { site } from "@/lib/site";
 import { bookingSections, peso, quote, time12 } from "@/lib/tools/quote";
@@ -32,7 +33,7 @@ const topics: { id: TopicId; label: string }[] = [
 ];
 
 const field =
-  "w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink outline-none transition-colors placeholder:text-ink/35 focus:border-ember disabled:opacity-60";
+  "w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink outline-none transition-colors placeholder:text-ink/55 focus:border-ember disabled:opacity-60";
 
 /** Pre-selection from a deep link such as /contact?service=studio&package=studio_b. */
 export interface ContactPreset {
@@ -178,7 +179,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-10">
       <fieldset>
-        <legend className="label mb-4 text-ink/60">What&apos;s it about?</legend>
+        <legend className="label mb-4 text-ink/75">What&apos;s it about?</legend>
         <div className="flex flex-wrap gap-2">
           {topics.map((t) => (
             <button
@@ -200,11 +201,11 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
       <div className="grid gap-10 sm:grid-cols-2">
         <label className="block">
-          <span className="label text-ink/60">Your name</span>
+          <span className="label text-ink/75">Your name</span>
           <input name="name" autoComplete="name" maxLength={80} required={booking || (brief && brief.id !== "other")} disabled={sending} className={field} placeholder="Juan Dela Cruz" />
         </label>
         <label className="block">
-          <span className="label text-ink/60">{booking || (brief && brief.id !== "other") ? "Your email — your copy goes here" : "Email"}</span>
+          <span className="label text-ink/75">{booking || (brief && brief.id !== "other") ? "Your email — your copy goes here" : "Email"}</span>
           <input required type="email" name="email" autoComplete="email" inputMode="email" maxLength={254} disabled={sending} className={field} placeholder="you@example.com" />
         </label>
       </div>
@@ -217,7 +218,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
           <Step n={1} title="The shoot" hint="Not sure which one? Pick the closest; Neil will suggest the right package.">
             <label className="block sm:col-span-2">
-              <span className="label text-ink/60">Service</span>
+              <span className="label text-ink/75">Service</span>
               <select
                 required
                 value={serviceId}
@@ -240,7 +241,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
             {service && (
               <fieldset className="animate-pop-in sm:col-span-2">
-                <legend className="label mb-3 text-ink/60">Package</legend>
+                <legend className="label mb-3 text-ink/75">Package</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {service.packages.map((p) => (
                     <label
@@ -251,7 +252,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
                         <input type="radio" name="package" value={p.id} required checked={packageId === p.id} onChange={() => setPackageId(p.id)} className="mt-1.5 accent-[var(--color-ember)]" />
                         <span>
                           <span className="block font-serif text-lg leading-snug">{p.name}</span>
-                          <span className="label text-[0.58rem] text-ink/55">{p.detail}</span>
+                          <span className="label text-3xs text-ink/70">{p.detail}</span>
                         </span>
                       </span>
                       <span className="font-display text-lg">{p.price}</span>
@@ -262,22 +263,22 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
             )}
 
             <label className="block sm:col-span-2">
-              <span className="label text-ink/60">What&apos;s the occasion?</span>
+              <span className="label text-ink/75">What&apos;s the occasion?</span>
               <input {...bind("occasion")} maxLength={120} className={field} placeholder={service?.occasion ?? "e.g. graduation, 18th birthday, company event"} />
             </label>
           </Step>
 
           <Step n={2} title="When" hint="A backup date helps if your first choice is already taken.">
             <label className="block">
-              <span className="label text-ink/60">Preferred date</span>
+              <span className="label text-ink/75">Preferred date</span>
               <input type="date" {...bind("date")} required min={today()} suppressHydrationWarning className={field} />
             </label>
             <label className="block">
-              <span className="label text-ink/60">Start time</span>
+              <span className="label text-ink/75">Start time</span>
               <input type="time" {...bind("time")} required min="05:00" max="21:00" step={900} className={field} />
             </label>
             <label className="block">
-              <span className="label text-ink/60">Backup date (optional)</span>
+              <span className="label text-ink/75">Backup date (optional)</span>
               <input type="date" {...bind("backupDate")} min={today()} suppressHydrationWarning className={field} />
             </label>
           </Step>
@@ -297,7 +298,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
           <Step n={4} title="Who's in it" hint="Helps Neil plan the lighting, the poses and how long it takes.">
             <div className="sm:col-span-2">
-              <span className="label block text-ink/60" id="people-label">
+              <span className="label block text-ink/75" id="people-label">
                 People in the photos{custom ? ` · ${PRIVATE_PEOPLE_INCLUDED} included` : ""}
               </span>
               <div role="group" aria-labelledby="people-label" className="mt-2 flex flex-wrap items-center gap-3">
@@ -310,15 +311,15 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
                 <button type="button" onClick={() => setPeople((n) => Math.min(50, n + 1))} aria-label="More people" className="press h-11 w-11 rounded-full border border-ink/20 text-xl hover:border-ink">
                   +
                 </button>
-                {custom && people > PRIVATE_PEOPLE_INCLUDED && <span className="font-serif text-sm text-ink/60 italic">+{peso(EXTRA_PERSON)} each beyond {PRIVATE_PEOPLE_INCLUDED}</span>}
-                {pkg?.price.includes("/ head") && <span className="font-serif text-sm text-ink/60 italic">{pkg.price}, so this sets the total</span>}
+                {custom && people > PRIVATE_PEOPLE_INCLUDED && <span className="font-serif text-sm text-ink/75 italic">+{peso(EXTRA_PERSON)} each beyond {PRIVATE_PEOPLE_INCLUDED}</span>}
+                {pkg?.price.includes("/ head") && <span className="font-serif text-sm text-ink/75 italic">{pkg.price}, so this sets the total</span>}
               </div>
             </div>
           </Step>
 
           <Step n={5} title="Your photos" hint="How they'll be used, and anything that helps Neil picture the shoot.">
             <fieldset className="sm:col-span-2">
-              <legend className="label mb-3 text-ink/60">After the shoot</legend>
+              <legend className="label mb-3 text-ink/75">After the shoot</legend>
               <div className="grid gap-2 sm:grid-cols-3">
                 {photoUses.map((u) => (
                   <label
@@ -328,24 +329,24 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
                     <input type="radio" name="use" checked={use === u.id} onChange={() => setUse(u.id)} className="mt-1.5 accent-[var(--color-ember)]" />
                     <span>
                       <span className="block font-serif text-lg leading-snug">{u.label}</span>
-                      <span className="font-serif text-sm text-ink/55 italic">{u.detail}</span>
+                      <span className="font-serif text-sm text-ink/70 italic">{u.detail}</span>
                     </span>
                   </label>
                 ))}
               </div>
             </fieldset>
             <label className="block">
-              <span className="label text-ink/60">Need them by (optional)</span>
+              <span className="label text-ink/75">Need them by (optional)</span>
               <input type="date" {...bind("deadline")} min={today()} suppressHydrationWarning className={field} />
             </label>
             <label className="block">
-              <span className="label text-ink/60">Mood board or Pinterest link (optional)</span>
+              <span className="label text-ink/75">Mood board or Pinterest link (optional)</span>
               <input type="url" {...bind("moodboard")} inputMode="url" maxLength={300} className={field} placeholder="https://pin.it/…" />
             </label>
 
             {custom && (
               <fieldset className="animate-pop-in sm:col-span-2">
-                <legend className="label mb-3 text-ink/60">Add-ons</legend>
+                <legend className="label mb-3 text-ink/75">Add-ons</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {addOns.map((a) => (
                     <label
@@ -361,7 +362,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
                         />
                         <span>
                           <span className="block font-serif text-lg leading-snug">{a.name}</span>
-                          <span className="font-serif text-sm text-ink/55 italic">{a.detail}</span>
+                          <span className="font-serif text-sm text-ink/70 italic">{a.detail}</span>
                         </span>
                       </span>
                       <span className="shrink-0 font-display text-base">{a.amount === null ? "Quote" : `+${peso(a.amount)}`}</span>
@@ -374,23 +375,23 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
           <Step n={6} title="Staying in touch" hint="For confirming the booking and coordinating on the day.">
             <label className="block">
-              <span className="label text-ink/60">Mobile number</span>
+              <span className="label text-ink/75">Mobile number</span>
               <input type="tel" {...bind("phone")} required autoComplete="tel" inputMode="tel" maxLength={20} pattern="[0-9+()\s-]{7,20}" className={field} placeholder="09xx xxx xxxx" />
             </label>
             <label className="block">
-              <span className="label text-ink/60">Messenger / Viber name (optional)</span>
+              <span className="label text-ink/75">Messenger / Viber name (optional)</span>
               <input {...bind("handle")} maxLength={80} className={field} placeholder="So Neil can find you" />
             </label>
             <div className="sm:col-span-2">
-              <span className="label mb-3 block text-ink/60">Best way to reach you</span>
+              <span className="label mb-3 block text-ink/75">Best way to reach you</span>
               <Chips label="Best way to reach you" options={contactPrefs} value={contact} onChange={setContact} />
             </div>
             <div className="sm:col-span-2">
-              <span className="label mb-3 block text-ink/60">Downpayment via</span>
+              <span className="label mb-3 block text-ink/75">Downpayment via</span>
               <Chips label="Downpayment via" options={paymentMethods} value={payment} onChange={setPayment} />
             </div>
             <label className="block sm:col-span-2">
-              <span className="label text-ink/60">How did you find Neil? (optional)</span>
+              <span className="label text-ink/75">How did you find Neil? (optional)</span>
               <select {...bind("referral")} className={`${field} cursor-pointer`}>
                 <option value="">Choose…</option>
                 {referralSources.map((r) => (
@@ -406,12 +407,12 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
             <aside className="animate-pop-in rounded-[2px] bg-ink p-5 text-paper sm:p-7" aria-live="polite" aria-label="Your booking summary">
               <div className="flex flex-wrap items-end justify-between gap-4 border-b border-paper/15 pb-5">
                 <div>
-                  <p className="label text-[0.55rem] text-sky">Your request, exactly as Neil will see it</p>
+                  <p className="label text-3xs text-sky">Your request, exactly as Neil will see it</p>
                   <p className="mt-2 font-display text-3xl leading-tight">{service.name}</p>
                 </div>
                 {est && est.total !== null && (
                   <div className="sm:text-right">
-                    <p className="label text-[0.55rem] text-sky">Estimated total</p>
+                    <p className="label text-3xs text-sky">Estimated total</p>
                     <p className="font-display text-4xl leading-none tabular-nums">{peso(est.total)}</p>
                     {est.downpayment !== null && <p className="mt-1 font-serif text-sm text-paper/70 italic">{peso(est.downpayment)} downpayment locks the date</p>}
                   </div>
@@ -420,14 +421,14 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
               <dl className="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2">
                 {summary.map((sec) => (
                   <div key={sec.title}>
-                    <dt className="label mb-2 text-[0.52rem] text-sky">{sec.title}</dt>
+                    <dt className="label mb-2 text-3xs text-sky">{sec.title}</dt>
                     <dd>
                       <ul className="space-y-1 font-serif text-[0.98rem] leading-snug">
                         {sec.rows
                           .filter(([k]) => k !== "Estimated total" && k !== "Downpayment (30%)")
                           .map(([k, v]) => (
                             <li key={k} className="break-words">
-                              <span className="text-paper/55">{k}:</span> {v}
+                              <span className="text-paper/70">{k}:</span> {v}
                             </li>
                           ))}
                       </ul>
@@ -437,7 +438,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
               </dl>
               {est && est.quoted.length > 0 && <p className="mt-4 font-serif text-sm text-paper/70 italic">{est.quoted.join(", ")} is quoted separately.</p>}
               <div className="mt-6 border-t border-paper/15 pt-5">
-                <p className="label text-[0.55rem] text-sky">What happens next</p>
+                <p className="label text-3xs text-sky">What happens next</p>
                 <ol className="mt-3 space-y-2">
                   {bookingSteps.map((step, i) => (
                     <li key={step} className="flex gap-3 font-serif text-paper/85">
@@ -455,7 +456,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
       {brief && <BriefForm key={brief.id} brief={brief} answers={answers} onChange={setAnswers} summary={briefSummary} />}
 
       <label className="block">
-        <span className="label text-ink/60">{booking ? "Creative vision & notes" : (brief?.message.label ?? "Tell me about it")}</span>
+        <span className="label text-ink/75">{booking ? "Creative vision & notes" : (brief?.message.label ?? "Tell me about it")}</span>
         <textarea
           required
           name="message"
@@ -470,7 +471,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
       {booking && (
         <fieldset className="animate-pop-in space-y-3">
-          <legend className="label mb-2 text-ink/60">Terms</legend>
+          <legend className="label mb-2 text-ink/75">Terms</legend>
           {terms.map((t) => (
             <label key={t} className="flex cursor-pointer items-start gap-3 font-serif text-lg text-ink/80">
               <input type="checkbox" required className="mt-1.5 h-4 w-4 accent-[var(--color-ember)]" />
@@ -488,7 +489,7 @@ export default function ContactForm({ preset }: { preset?: ContactPreset }) {
 
       <div className="flex flex-wrap items-center gap-6">
         <button type="submit" disabled={sending} className="btn bg-ember text-paper hover:bg-ink disabled:opacity-60">
-          {sending ? "Sending…" : booking ? "Request booking" : brief && brief.id !== "other" ? "Send brief" : "Send message"} <span className="arrow">→</span>
+          {sending ? "Sending…" : booking ? "Request booking" : brief && brief.id !== "other" ? "Send brief" : "Send message"} <Icon name="arrow-right" className="arrow" />
         </button>
         <p aria-live="polite" className="font-serif text-ember italic">
           {status.state === "error" && status.message}
@@ -510,7 +511,7 @@ function Step({ n, title, hint, id = String(n), children }: { n: number; title: 
           <h3 id={`step-${id}`} className="font-display text-2xl leading-tight">
             {title}
           </h3>
-          {hint && <p className="mt-1 font-serif text-ink/60 italic">{hint}</p>}
+          {hint && <p className="mt-1 font-serif text-ink/75 italic">{hint}</p>}
         </div>
       </div>
       <div className="grid gap-8 sm:grid-cols-2">{children}</div>
@@ -532,7 +533,7 @@ function Chips({ label, options, value, onChange }: { label: string; options: re
             haptic();
             onChange(value === o ? "" : o);
           }}
-          className="label press rounded-full border border-ink/20 bg-paper/60 px-4 py-2.5 text-[0.58rem] hover:border-ink aria-checked:border-ink aria-checked:bg-ink aria-checked:text-paper"
+          className="label press rounded-full border border-ink/20 bg-paper/60 px-4 py-2.5 text-3xs hover:border-ink aria-checked:border-ink aria-checked:bg-ink aria-checked:text-paper"
         >
           {o}
         </button>
@@ -551,7 +552,7 @@ function BriefForm({ brief, answers, onChange, summary }: { brief: Brief; answer
       {brief.intro && <p className="max-w-xl font-serif text-lg leading-snug text-ink/75 italic">{brief.intro}</p>}
       {brief.partners && (
         <p className="max-w-xl border-l-2 border-sky pl-4 font-serif text-base leading-snug text-ink/75">
-          <span className="label mb-1 block text-[0.62rem] text-ink/60">Outside partners</span>
+          <span className="label mb-1 block text-2xs text-ink/75">Outside partners</span>
           {brief.partners}
         </p>
       )}
@@ -564,17 +565,17 @@ function BriefForm({ brief, answers, onChange, summary }: { brief: Brief; answer
       ))}
       {!light && summary.length > 0 && (
         <aside className="animate-pop-in rounded-[2px] bg-ink p-5 text-paper sm:p-7" aria-live="polite" aria-label="Your brief summary">
-          <p className="label text-[0.55rem] text-sky">Your brief, exactly as Neil will see it</p>
+          <p className="label text-3xs text-sky">Your brief, exactly as Neil will see it</p>
           <p className="mt-2 font-display text-3xl leading-tight">{brief.topic}</p>
           <dl className="mt-5 grid gap-x-8 gap-y-5 border-t border-paper/15 pt-5 sm:grid-cols-2">
             {summary.map((sec) => (
               <div key={sec.title}>
-                <dt className="label mb-2 text-[0.52rem] text-sky">{sec.title}</dt>
+                <dt className="label mb-2 text-3xs text-sky">{sec.title}</dt>
                 <dd>
                   <ul className="space-y-1 font-serif text-[0.98rem] leading-snug">
                     {sec.rows.map(([k, v]) => (
                       <li key={k} className="break-words">
-                        <span className="text-paper/55">{k}:</span> {v}
+                        <span className="text-paper/70">{k}:</span> {v}
                       </li>
                     ))}
                   </ul>
@@ -583,7 +584,7 @@ function BriefForm({ brief, answers, onChange, summary }: { brief: Brief; answer
             ))}
           </dl>
           <div className="mt-6 border-t border-paper/15 pt-5">
-            <p className="label text-[0.55rem] text-sky">What happens next</p>
+            <p className="label text-3xs text-sky">What happens next</p>
             <ol className="mt-3 space-y-2">
               {brief.next.map((step, i) => (
                 <li key={step} className="flex gap-3 font-serif text-paper/85">
@@ -612,7 +613,7 @@ function BriefField({ f, value, required, onChange }: { f: Field; value: string 
     case "chips":
       return (
         <div id={`q-${f.id}`} className={cn("scroll-mt-28", wide)}>
-          <span className="label mb-3 block text-ink/60">
+          <span className="label mb-3 block text-ink/75">
             {caption}
             {required && <span className="text-ember"> *</span>}
           </span>
@@ -623,8 +624,8 @@ function BriefField({ f, value, required, onChange }: { f: Field; value: string 
       const list = Array.isArray(value) ? value : [];
       return (
         <div className={cn(wide)}>
-          <span className="label mb-3 block text-ink/60">
-            {caption} <span className="normal-case tracking-normal text-ink/40 italic">· pick any</span>
+          <span className="label mb-3 block text-ink/75">
+            {caption} <span className="normal-case tracking-normal text-ink/75">· pick any</span>
           </span>
           <div role="group" aria-label={f.label} className="flex flex-wrap gap-2">
             {f.options.map((o) => (
@@ -636,11 +637,9 @@ function BriefField({ f, value, required, onChange }: { f: Field; value: string 
                   haptic();
                   onChange(list.includes(o) ? list.filter((x) => x !== o) : [...list, o]);
                 }}
-                className="label press flex items-center gap-1.5 rounded-full border border-ink/20 bg-paper/60 px-4 py-2.5 text-[0.58rem] hover:border-ink aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-paper"
+                className="label press flex items-center gap-1.5 rounded-full border border-ink/20 bg-paper/60 px-4 py-2.5 text-3xs hover:border-ink aria-pressed:border-ember aria-pressed:bg-ember aria-pressed:text-paper"
               >
-                <span aria-hidden className="text-[0.7rem] leading-none">
-                  {list.includes(o) ? "✓" : "+"}
-                </span>
+                <Icon name={list.includes(o) ? "check" : "plus"} className="h-3 w-3" />
                 {o}
               </button>
             ))}
@@ -651,7 +650,7 @@ function BriefField({ f, value, required, onChange }: { f: Field; value: string 
     case "select":
       return (
         <label className={cn("block", wide)}>
-          <span className="label text-ink/60">{caption}</span>
+          <span className="label text-ink/75">{caption}</span>
           <select name={`brief-${f.id}`} value={one} onChange={(e) => onChange(e.target.value)} className={`${field} cursor-pointer`}>
             <option value="">Choose…</option>
             {f.options.map((o) => (
@@ -665,7 +664,7 @@ function BriefField({ f, value, required, onChange }: { f: Field; value: string 
     case "date":
       return (
         <label className={cn("block", wide)}>
-          <span className="label text-ink/60">{caption}</span>
+          <span className="label text-ink/75">{caption}</span>
           <input type="date" name={`brief-${f.id}`} value={one} onChange={(e) => onChange(e.target.value)} min={today()} suppressHydrationWarning className={field} />
         </label>
       );
@@ -679,7 +678,7 @@ function BriefField({ f, value, required, onChange }: { f: Field; value: string 
     default:
       return (
         <label className={cn("block", wide)}>
-          <span className="label text-ink/60">{caption}</span>
+          <span className="label text-ink/75">{caption}</span>
           <input
             name={`brief-${f.id}`}
             type={f.kind}

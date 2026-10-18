@@ -108,7 +108,7 @@ export const tools: ToolMeta[] = [
     id: "link",
     kind: "systems",
     title: "Link safety check",
-    blurb: "Paste a suspicious link and see the phishing red flags in plain language — it never opens the link.",
+    blurb: "Paste a suspicious link and see each phishing red flag explained. The link itself is never opened.",
     project: { slug: "cyber-awareness-series", title: "Cyber Awareness Series" },
     keywords: "phishing link url scam safe check security",
   },
@@ -117,7 +117,7 @@ export const tools: ToolMeta[] = [
     kind: "media",
     title: "Photoshoot quote",
     blurb: "Pick a shoot, package and add-ons to see the price, the 30% downpayment, and book it in one tap.",
-    project: { href: "/photography#sessions", title: "Photography sessions" },
+    project: { href: "/photography#sessions", title: "See the photography sessions" },
     keywords: "photoshoot price rate quote booking graduation studio event private custom add-ons",
   },
 ];

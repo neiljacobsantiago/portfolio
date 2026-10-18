@@ -74,7 +74,7 @@ function SideCard({
     <article {...reveal("up", delay)} className={`flex flex-col overflow-hidden rounded-[4px] ${dark ? "bg-ink text-paper" : "bg-paper-deep text-ink ring-1 ring-ink/10"}`}>
       <div className="relative aspect-[5/4] overflow-hidden bg-[#e7e5e1] sm:aspect-[16/11]">
         <Image src={image} alt={alt} fill sizes="(min-width: 1024px) 44vw, 94vw" className={`${styles.parallax} object-cover object-[50%_22%]`} />
-        <span className={`label absolute top-4 left-4 rounded-full px-3 py-1.5 text-[0.62rem] ${dark ? "bg-ink text-paper" : "bg-paper text-ink"}`}>{kicker}</span>
+        <span className={`label absolute top-4 left-4 rounded-full px-3 py-1.5 text-2xs ${dark ? "bg-ink text-paper" : "bg-paper text-ink"}`}>{kicker}</span>
       </div>
       <div className="flex flex-1 flex-col p-6 sm:p-8 md:p-10">
         <h3 className="font-display text-[clamp(1.8rem,3.2vw,2.6rem)] leading-[1.05]">{title}</h3>
@@ -159,11 +159,11 @@ export default function AboutPage() {
             <p className="label animate-rise-in text-ember">About</p>
             <h1 id="about-title" className="mt-5 font-display text-[clamp(2.75rem,9vw,5.75rem)] leading-[0.98] lg:text-[clamp(3.5rem,5.7vw,6.5rem)] tracking-[-0.01em]">
               <span className="line-mask">
-                <span className="animate-line-up block">Structural logic.</span>
+                <span className="animate-line-up block">I build systems.</span>
               </span>
               <span className="line-mask">
                 <em className="animate-line-up block font-serif text-ember" style={{ animationDelay: "90ms" }}>
-                  Editorial vision.
+                  I direct cameras.
                 </em>
               </span>
             </h1>
@@ -181,11 +181,11 @@ export default function AboutPage() {
                 className="object-cover object-[50%_18%]"
               />
               <figcaption className="absolute inset-x-3 bottom-3 flex flex-wrap items-center justify-between gap-2 rounded-[3px] bg-paper/95 px-4 py-3 text-ink shadow-[0_10px_30px_-12px_rgb(0_48_73/0.5)]">
-                <span className="label inline-flex items-center gap-1.5 text-[0.62rem]">
+                <span className="label inline-flex items-center gap-1.5 text-2xs">
                   <Icon name="map" className="h-3.5 w-3.5 text-ember" />
                   {site.location}
                 </span>
-                <span className="label text-[0.62rem] text-ink/75">{site.coordinates}</span>
+                <span className="label text-2xs text-ink/75">{site.coordinates}</span>
               </figcaption>
             </div>
           </figure>
@@ -197,8 +197,8 @@ export default function AboutPage() {
             </p>
             <p className="mt-5 font-serif text-lg leading-relaxed text-ink/80 md:text-xl">
               My work sits where two disciplines meet. One side maps networks, prototypes interfaces and builds systems people rely on, like PathoScan, now in use at DA
-              PhilMech. The other briefs a crew, keeps a shot list and gets the story out the same day. Both ask for the same habits: plan first, check the details,
-              finish properly.
+              PhilMech. The other briefs a crew, keeps a shot list and gets the story out the same day. Both reward the same discipline: prepare properly, sweat the
+              details, and finish the job.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/resume" className="btn bg-ink text-paper hover:bg-ember">
@@ -215,7 +215,7 @@ export default function AboutPage() {
         <dl className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-[4px] bg-ink/12 ring-1 ring-ink/12 md:mt-24 lg:grid-cols-4">
           {facts.map((f, i) => (
             <div key={f.label} {...reveal("up", i * 80)} className="flex flex-col-reverse justify-end bg-paper p-5 sm:p-7 md:p-8">
-              <dt className="label mt-3 text-[0.62rem] leading-relaxed text-ink/75">{f.label}</dt>
+              <dt className="label mt-3 text-2xs leading-relaxed text-ink/75">{f.label}</dt>
               <dd className="font-display text-5xl leading-none sm:text-6xl md:text-7xl">
                 <CountUp value={f.value} />
                 {f.suffix && <sup className="ml-1 font-serif text-xl text-ember italic sm:text-2xl">{f.suffix}</sup>}
@@ -235,7 +235,7 @@ export default function AboutPage() {
               Two sides of <em className="font-serif text-ember">the same work.</em>
             </>
           }
-          lead="One side plans how things connect, the other how they're seen. Each starts with a plan on paper and ends with something people use."
+          lead="Systems work decides how things connect; production decides how they're seen. Either way, the finish line is something people actually use."
         >
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <SideCard
@@ -287,7 +287,7 @@ export default function AboutPage() {
                 ) : (
                   <p className="mt-4 flex-1 font-serif text-lg leading-relaxed text-ink/85">{p.text}</p>
                 )}
-                <Link href={p.source.href} className="label ulink mt-6 inline-flex items-center gap-1.5 self-start text-[0.62rem] text-ink/80 hover:text-ember">
+                <Link href={p.source.href} className="label ulink mt-6 inline-flex items-center gap-1.5 self-start text-2xs text-ink/80 hover:text-ember">
                   From {p.source.label}
                   <Icon name="arrow-right" className="h-3.5 w-3.5" />
                 </Link>
@@ -302,7 +302,7 @@ export default function AboutPage() {
           label="Education"
           title={
             <>
-              Where the foundations <em className="font-serif text-ember">were laid.</em>
+              The classrooms <em className="font-serif text-ember">behind the work.</em>
             </>
           }
         >
@@ -343,7 +343,7 @@ export default function AboutPage() {
             <article {...reveal("up")} className="flex flex-col justify-between gap-10 rounded-[4px] bg-ink p-7 text-paper sm:p-10 lg:col-span-5">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  <p className="label text-[0.64rem] text-sky">{mainOrg.role}</p>
+                  <p className="label text-2xs text-sky">{mainOrg.role}</p>
                   <h3 className="mt-3 font-display text-3xl leading-tight md:text-4xl">{mainOrg.name}</h3>
                 </div>
                 <Logo name="IMG_LOGO_WHITE" label={mainOrg.short} className="h-16 w-16 text-paper md:h-20 md:w-20" bloom={false} />
@@ -369,7 +369,7 @@ export default function AboutPage() {
                 <li key={o.name} {...reveal("up", 80 + i * 70)} tabIndex={0} className="group flex gap-5 bg-paper p-6 outline-none focus-visible:ring-2 focus-visible:ring-ember focus-visible:ring-inset md:p-7">
                   <Logo name={o.logo} label={o.short} className="h-14 w-14 text-ink" />
                   <div className="min-w-0">
-                    <p className="label text-[0.6rem] text-ember">{o.role}</p>
+                    <p className="label text-2xs text-ember">{o.role}</p>
                     <h3 className="mt-1.5 font-display text-xl leading-snug">{o.name}</h3>
                     <p className="mt-1.5 font-serif text-base leading-snug text-ink/80">{o.detail}</p>
                   </div>
@@ -412,7 +412,7 @@ export default function AboutPage() {
           label="Toolkit"
           title={
             <>
-              Tools of <em className="font-serif text-ember">the trade.</em>
+              What I <em className="font-serif text-ember">work with.</em>
             </>
           }
         >
@@ -494,7 +494,7 @@ export default function AboutPage() {
                 </Link>
               </Magnetic>
               <Link href="/contact" className="btn border border-paper/35 text-paper hover:border-paper">
-                Start a conversation
+                Get in touch
               </Link>
             </div>
           </div>

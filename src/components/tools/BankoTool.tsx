@@ -62,12 +62,12 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
   return (
     <div className="space-y-5">
       {/* Balances */}
-      <ul className={cn("grid gap-px overflow-hidden rounded-[2px] bg-ink/10 ring-1 ring-ink/10", compact ? "grid-cols-1" : "sm:grid-cols-3")}>
+      <ul className={cn("grid [&>*]:min-w-0 gap-px overflow-hidden rounded-[2px] bg-ink/10 ring-1 ring-ink/10", compact ? "grid-cols-1" : "sm:grid-cols-3")}>
         {bank.accounts.map((a) => (
           <li key={a.id} className={cn("flex items-center justify-between gap-3 bg-paper p-3.5", !compact && "sm:block")}>
             <div className="min-w-0">
-              <p className="label text-[0.55rem] text-ink/60">{a.name}</p>
-              {!compact && <p className="mt-0.5 font-mono text-[0.62rem] text-ink/40">{a.number}</p>}
+              <p className="label text-3xs text-ink/75">{a.name}</p>
+              {!compact && <p className="mt-0.5 font-mono text-2xs text-ink/70">{a.number}</p>}
             </div>
             <p className={cn("font-display text-xl leading-none tabular-nums", !compact && "sm:mt-3 sm:text-[1.7rem]")}>{peso(a.balance)}</p>
           </li>
@@ -83,7 +83,7 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
         className="space-y-3"
       >
         <Segmented label="Transaction" value={kind} onChange={(k) => (setKind(k), setMsg(null))} options={KINDS} />
-        <div className={cn("grid gap-3", !compact && "sm:grid-cols-2")}>
+        <div className={cn("grid [&>*]:min-w-0 gap-3", !compact && "sm:grid-cols-2")}>
           {kind !== "deposit" && accountSelect("From", from, setFrom)}
           {kind !== "withdraw" && accountSelect(kind === "deposit" ? "Into" : "To", to, setTo)}
           <Field label="Amount (₱)">
@@ -102,7 +102,7 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {QUICK.map((q) => (
-            <button key={q} type="button" onClick={() => setAmount(q)} className="label press rounded-full border border-ink/15 px-3 py-1.5 text-[0.55rem] text-ink/65 hover:border-ink hover:text-ink">
+            <button key={q} type="button" onClick={() => setAmount(q)} className="label press rounded-full border border-ink/15 px-3 py-1.5 text-3xs text-ink/75 hover:border-ink hover:text-ink">
               ₱{q}
             </button>
           ))}
@@ -124,7 +124,7 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
       {/* Ledger */}
       <div>
         <div className="mb-2 flex items-baseline justify-between gap-3">
-          <p className="label text-[0.55rem] text-ink/55">Ledger · newest first</p>
+          <p className="label text-3xs text-ink/70">Ledger · newest first</p>
           <button
             type="button"
             onClick={() => {
@@ -132,17 +132,17 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
               setMsg(null);
               setFresh(null);
             }}
-            className="label press inline-flex items-center gap-1.5 text-[0.55rem] text-ink/50 hover:text-ink"
+            className="label press inline-flex items-center gap-1.5 text-3xs text-ink/70 hover:text-ink"
           >
             <Icon name="refresh" /> Reset
           </button>
         </div>
         <ol className={cn("no-scrollbar divide-y divide-ink/10 overflow-y-auto rounded-[2px] ring-1 ring-ink/10", compact ? "max-h-56" : "max-h-80")}>
           {bank.ledger.map((e, i) => (
-            <li key={`${e.ref}-${e.account}-${i}`} className={cn("grid grid-cols-[1fr_auto] gap-x-3 px-3 py-2.5 transition-colors", e.ref === fresh ? "bg-[#d9a441]/15" : "bg-paper")}>
+            <li key={`${e.ref}-${e.account}-${i}`} className={cn("grid [&>*]:min-w-0 grid-cols-[1fr_auto] gap-x-3 px-3 py-2.5 transition-colors", e.ref === fresh ? "bg-[#d9a441]/15" : "bg-paper")}>
               <div className="min-w-0">
                 <p className="truncate font-serif text-[0.95rem] leading-tight">{e.memo}</p>
-                <p className="mt-0.5 truncate font-mono text-[0.6rem] text-ink/45">
+                <p className="mt-0.5 truncate font-mono text-2xs text-ink/70">
                   {e.ref} · {ACCOUNT_NAMES[e.account]}
                   {e.kind === "transfer" && e.counterpart ? ` · ${e.amount < 0 ? "to" : "from"} ${ACCOUNT_NAMES[e.counterpart]}` : ""}
                 </p>
@@ -152,7 +152,7 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
                   {e.amount > 0 ? "+" : ""}
                   {peso(e.amount)}
                 </p>
-                <p className="font-mono text-[0.6rem] text-ink/45 tabular-nums">bal {peso(e.balance)}</p>
+                <p className="font-mono text-2xs text-ink/70 tabular-nums">bal {peso(e.balance)}</p>
               </div>
             </li>
           ))}
@@ -162,8 +162,8 @@ export default function BankoTool({ compact }: { compact?: boolean }) {
       {/* Reconciliation */}
       <div className={cn("flex items-start gap-3 rounded-[2px] p-3.5", rec.balanced ? "bg-ink text-paper" : "bg-ember text-paper")}>
         <Icon name={rec.balanced ? "check" : "warning"} className="mt-0.5 h-5 w-5 shrink-0 text-[#7bd88f]" />
-        <div className="min-w-0 font-mono text-[0.66rem] leading-relaxed text-paper/80">
-          <p className="label mb-1 text-[0.55rem] text-paper">{rec.balanced ? "Books balance" : "Out of balance"}</p>
+        <div className="min-w-0 font-mono text-2xs leading-relaxed text-paper/80">
+          <p className="label mb-1 text-3xs text-paper">{rec.balanced ? "Books balance" : "Out of balance"}</p>
           <p className="break-words">
             {peso(bank.opening)} opening + {peso(rec.deposits)} in − {peso(rec.withdrawals)} out = <span className="text-paper">{peso(rec.expected)}</span>
           </p>

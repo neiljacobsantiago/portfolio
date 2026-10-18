@@ -60,7 +60,7 @@ const offers: Offer[] = [
     topic: "website",
     title: "Websites & web systems",
     short: "Websites",
-    pitch: "From a one-page site to a system with logins and a database, planned before the first line is written.",
+    pitch: "From a one-page site to a system with logins and a database, built to a scope you've signed off.",
     forWho: "Small businesses, student organizations, freelancers and research teams.",
     deliverables: [
       "A clickable Figma design you approve before any build",
@@ -85,7 +85,7 @@ const offers: Offer[] = [
     topic: "network",
     title: "Network design & setup",
     short: "Networks",
-    pitch: "Wired and wireless networks that are mapped, addressed and documented, not just plugged in.",
+    pitch: "Wired and wireless networks that are mapped, addressed and documented, so whoever looks after them next isn't guessing.",
     forWho: "Homes, small offices, shops, dorms and org rooms.",
     deliverables: [
       "A site walkthrough and a topology diagram",
@@ -223,7 +223,7 @@ const processSteps: ProcessStep[] = [
   },
   {
     title: "Deliver",
-    detail: "Everything handed over in your name: files, accounts, passwords and plain-language notes.",
+    detail: "Everything handed over in your name: files, accounts, passwords and clear handover notes.",
     shoot: "Your edited photos arrive in a private online gallery.",
   },
   {
@@ -239,10 +239,10 @@ export interface Principle {
 }
 
 const principles: Principle[] = [
-  { title: "Plan before building", detail: "Every system starts as a diagram, a prototype or a shot list. Planning is cheaper than rework." },
-  { title: "Plain language", detail: "You'll always know what's happening and why, without needing to speak IT." },
+  { title: "Drawn before it's built", detail: "Every system starts as a diagram, a prototype or a shot list. Rework costs more than a sketch." },
+  { title: "No jargon", detail: "You'll always know what's happening and why, without needing to speak IT." },
   { title: "Private by default", detail: "Your photos, data and passwords stay yours. Nothing is posted or shared without a yes." },
-  { title: "Fast on any phone", detail: "Sites are built and tested for budget Androids on mobile data, not just new laptops." },
+  { title: "Fast on any phone", detail: "Sites are built and tested on budget Androids and mobile data, as well as new laptops." },
   { title: "Finished, not raw", detail: "Photos are delivered edited and code is delivered documented. No loose ends to tidy up yourself." },
 ];
 

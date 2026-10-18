@@ -97,7 +97,7 @@ export default function Terminal() {
                 {s.url ? (
                   <a href={s.url} target="_blank" rel="noopener noreferrer" className="interactive text-ember hover:underline">{s.url}</a>
                 ) : (
-                  <span className="opacity-50">pending</span>
+                  <span className="opacity-75">pending</span>
                 )}
               </li>
             ))}

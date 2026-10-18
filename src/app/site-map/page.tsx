@@ -21,7 +21,7 @@ function Group({ title, items }: { title: string; items: { label: string; href: 
           <li key={i.href}>
             <Link href={i.href} className="group block">
               <span className="font-serif text-lg transition-colors group-hover:text-ember">{i.label}</span>
-              {i.note && <span className="block font-serif text-sm text-ink/50 italic">{i.note}</span>}
+              {i.note && <span className="block font-serif text-sm text-ink/70 italic">{i.note}</span>}
             </Link>
           </li>
         ))}

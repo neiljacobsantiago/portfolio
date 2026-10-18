@@ -43,8 +43,8 @@ export default async function Hero({ prints = [], collections }: { prints?: Phot
         <div className="hero-exit lg:col-span-7">
           <div className="animate-rise-in flex flex-wrap items-center gap-x-4 gap-y-3">
             <AvailabilityBadge availability={availability} tone="ink" href="/services" className="text-[0.95rem]" />
-            <p className="label text-[0.6rem] text-ink/55">
-              {site.location} <span className="text-ink/30">·</span> {site.coordinates}
+            <p className="label text-2xs text-ink/70">
+              {site.location} <span aria-hidden>·</span> {site.coordinates}
             </p>
           </div>
 
@@ -66,8 +66,8 @@ export default async function Hero({ prints = [], collections }: { prints?: Phot
           </h1>
 
           <p className="animate-rise-in mt-10 max-w-xl font-serif text-xl leading-relaxed text-ink/80 md:text-[1.4rem]" style={{ animationDelay: "500ms" }}>
-            I&apos;m <strong className="font-medium text-ink">Neil Jacob Santiago</strong> — a third-year BSIT student at CLSU who builds web systems and designs networks by day, and directs the
-            ITSC Media Group&apos;s cameras at concerts, campus events and the night sky after.
+            I&apos;m <strong className="font-medium text-ink">Neil Jacob Santiago</strong>, a third-year BSIT student at CLSU. By day I build web systems and design networks; after hours I
+            direct coverage for the ITSC Media Group and photograph concerts, campus life and the night sky.
           </p>
 
           {/* Phones: two equal buttons side by side; larger screens: natural widths */}
@@ -92,7 +92,7 @@ export default async function Hero({ prints = [], collections }: { prints?: Phot
                 <dd className="font-display text-[clamp(2rem,7vw,3.25rem)] leading-none tabular-nums">
                   <CountUp value={s.value} />
                 </dd>
-                <dt className="label mt-2 text-[0.52rem] leading-snug text-ink/55">{s.label}</dt>
+                <dt className="label mt-2 text-3xs leading-snug text-ink/70">{s.label}</dt>
               </div>
             ))}
           </dl>
@@ -118,7 +118,7 @@ export default async function Hero({ prints = [], collections }: { prints?: Phot
           </div>
         </div>
 
-        <a href="#statement" className="label absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-ink/50 lg:flex">
+        <a href="#statement" className="label absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-ink/70 lg:flex">
           Scroll
           <span className="block h-10 w-px origin-top animate-pulse bg-ink/40" />
         </a>

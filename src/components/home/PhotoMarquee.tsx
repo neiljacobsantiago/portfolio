@@ -132,7 +132,7 @@ function PhotoRow({ photos, trackRef }: { photos: Photo[]; trackRef: (el: HTMLDi
               style={{ aspectRatio: `${p.width} / ${p.height}` }}
             >
               <PhotoImage src={p.src} variants={p.variants} alt={copy ? "" : p.alt} fill sizes="(min-width: 768px) 360px, 240px" className="object-cover transition-transform duration-700 ease-[var(--ease-apple)] group-hover/photo:scale-110" />
-              <span className="label absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/90 to-transparent px-3 pt-8 pb-2.5 text-[0.55rem] text-paper transition-transform duration-500 ease-[var(--ease-apple)] group-hover/photo:translate-y-0">
+              <span className="label absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/90 to-transparent px-3 pt-8 pb-2.5 text-3xs text-paper transition-transform duration-500 ease-[var(--ease-apple)] group-hover/photo:translate-y-0">
                 {p.alt}
               </span>
             </Link>

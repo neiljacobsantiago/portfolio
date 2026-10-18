@@ -31,10 +31,10 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
       <Link href={`/work/${p.slug}`} onClick={onNavigate} className="group block">
         <ProjectCover project={p} sizes="380px" className="aspect-[16/8]" />
         <div className="p-3.5">
-          <p className="label text-[0.52rem] text-ember">{p.context}</p>
+          <p className="label text-3xs text-ember">{p.context}</p>
           <p className="mt-1 font-display text-xl leading-tight transition-colors group-hover:text-ember">{p.title}</p>
           <p className="mt-1 font-serif text-[0.92rem] leading-snug text-ink/70 italic">{p.plain}</p>
-          <p className="label mt-2 flex items-center gap-1.5 text-[0.55rem] text-ink/55">
+          <p className="label mt-2 flex items-center gap-1.5 text-3xs text-ink/70">
             Open project <Icon name="arrow-right" />
           </p>
         </div>
@@ -50,7 +50,7 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent" />
           <p className="absolute bottom-3 left-3.5 font-display text-2xl text-paper">{card.title}</p>
         </div>
-        <p className="label flex justify-between p-3.5 text-[0.55rem] text-ink/60">
+        <p className="label flex justify-between p-3.5 text-3xs text-ink/75">
           <span>{card.count} frames</span>
           <span className="flex items-center gap-1.5">
             Open the collection <Icon name="arrow-right" />
@@ -67,10 +67,10 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
   return (
     <div>
       <div className="flex items-center justify-between gap-3 border-b border-ink/10 bg-paper-deep/40 px-3.5 py-2.5">
-        <p className="label flex items-center gap-1.5 text-[0.55rem] text-ink/70">
+        <p className="label flex items-center gap-1.5 text-3xs text-ink/70">
           <Icon name="tools" className="text-[0.8rem]" /> {toolById(tool).title}
         </p>
-        <Link href={`/lab#${tool}`} onClick={onNavigate} className="label flex shrink-0 items-center gap-1 text-[0.52rem] text-ember hover:text-ink">
+        <Link href={`/lab#${tool}`} onClick={onNavigate} className="label flex shrink-0 items-center gap-1 text-3xs text-ember hover:text-ink">
           Open in Lab <Icon name="arrow-up-right" />
         </Link>
       </div>
@@ -95,8 +95,8 @@ function GitHubCard() {
     };
   }, []);
 
-  if (data === null) return <p className="animate-pulse p-4 font-serif text-sm text-ink/55 italic">Reading the commit log…</p>;
-  if (data === "error") return <p className="p-4 font-serif text-sm text-ink/60">GitHub is taking a breather — try again in a bit.</p>;
+  if (data === null) return <p className="animate-pulse p-4 font-serif text-sm text-ink/70 italic">Reading the commit log…</p>;
+  if (data === "error") return <p className="p-4 font-serif text-sm text-ink/75">GitHub is taking a breather — try again in a bit.</p>;
 
   const recent = data.weeks.slice(-18);
   const LEVEL = ["bg-paper/10", "bg-sky/45", "bg-sky", "bg-paper", "bg-ember"];
@@ -104,7 +104,7 @@ function GitHubCard() {
     <div className="bg-ink p-3.5 text-paper">
       <div className="flex items-baseline justify-between gap-3">
         <p className="font-display text-3xl leading-none">{data.total.toLocaleString("en-US")}</p>
-        <p className="label text-[0.52rem] text-sky">contributions · last year</p>
+        <p className="label text-3xs text-sky">contributions · last year</p>
       </div>
       <div className="mt-3 grid grid-flow-col grid-rows-7 gap-[3px]" style={{ gridTemplateColumns: `repeat(${recent.length}, minmax(0,1fr))` }}>
         {recent.map((w, wi) =>
@@ -125,11 +125,11 @@ function GitHubCard() {
         ].map(([k, v]) => (
           <div key={k} className="rounded-[2px] bg-paper/[0.06] py-2">
             <dd className="font-display text-xl leading-none">{v}</dd>
-            <dt className="label mt-1 text-[0.48rem] text-paper/50">{k}</dt>
+            <dt className="label mt-1 text-3xs text-paper/70">{k}</dt>
           </div>
         ))}
       </dl>
-      <a href="https://github.com/neiljacobsantiago" target="_blank" rel="noopener noreferrer" className="label mt-3 inline-block text-[0.55rem] text-sky hover:text-paper">
+      <a href="https://github.com/neiljacobsantiago" target="_blank" rel="noopener noreferrer" className="label mt-3 inline-block text-3xs text-sky hover:text-paper">
         github.com/neiljacobsantiago <Icon name="arrow-up-right" />
       </a>
     </div>

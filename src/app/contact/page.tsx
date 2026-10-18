@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import ContactForm from "@/components/contact/ContactForm";
 import ContactFormFromUrl from "@/components/contact/ContactFormFromUrl";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
+import Icon from "@/components/ui/Icon";
 import { reveal } from "@/lib/reveal";
 import { site, socials } from "@/lib/site";
 
@@ -24,7 +25,7 @@ export default function ContactPage() {
       <Container className="grid gap-14 pb-24 md:grid-cols-12 md:pb-32">
         <aside className="space-y-10 md:col-span-4">
           <div>
-            <p className="label mb-3 text-ink/50">I can help with</p>
+            <p className="label mb-3 text-ink/70">I can help with</p>
             <ul className="space-y-1 font-serif text-xl">
               {services.map((s) => (
                 <li key={s}>{s}</li>
@@ -32,11 +33,11 @@ export default function ContactPage() {
             </ul>
           </div>
           <div>
-            <p className="label mb-3 text-ink/50">Rates</p>
+            <p className="label mb-3 text-ink/70">Rates</p>
             <p className="font-serif text-xl">Photo packages have set prices. Everything else is quoted to the work it needs, in writing, before anything starts.</p>
           </div>
           <div>
-            <p className="label mb-3 text-ink/50">Based in</p>
+            <p className="label mb-3 text-ink/70">Based in</p>
             <p className="font-serif text-xl">
               {site.location}, {site.country}
               <br />
@@ -45,8 +46,8 @@ export default function ContactPage() {
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             {socials.filter((s) => s.url).map((s) => (
-              <a key={s.name} href={s.url!} target="_blank" rel="noopener noreferrer" className="label text-ember hover:text-ink">
-                {s.name} ↗
+              <a key={s.name} href={s.url!} target="_blank" rel="noopener noreferrer" className="label inline-flex items-center gap-1 text-ember hover:text-ink">
+                {s.name} <Icon name="arrow-up-right" />
               </a>
             ))}
           </div>

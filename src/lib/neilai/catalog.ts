@@ -55,16 +55,15 @@ export interface Game {
 /** The games in /play. */
 export const GAMES: Game[] = [
   {
-    id: "island-drive",
-    title: "Island Drive",
-    // Being remade (as a night street circuit); described neutrally until it lands.
-    blurb: "Island Drive is a 3D driving game you can play right in the browser. 🏎️",
-    test: /\b(island drive|jeepney|drive|driving game)\b/i,
+    id: "bay-street-circuit",
+    title: "Bay Street Circuit",
+    blurb: "Bay Street Circuit is a night street race in 3D: set hot laps through three sectors against your own ghost, or free-roam the paddock, where each pavilion opens one of Neil's projects and six trophies are hidden.",
+    test: /\b(bay street( circuit)?|street circuit|circuit|street race|night race|hot laps?|f1 game|island drive|drive|driving game)\b/i,
   },
   {
     id: "shutter",
     title: "Shutter",
-    blurb: "Shutter is a concert-photo timing game: wait for the light, then fire at the right moment. 📸",
+    blurb: "Shutter is a concert-photo timing game: wait for the light, then fire at the right moment.",
     test: /\bshutter\b(?! speed)/i,
   },
   {
@@ -104,7 +103,7 @@ export interface Trivia {
   near: string;
 }
 
-const onAurora = (band: string) => `${band} performed on Day 2 of Aurora Music Festival 2026 at Clark Global City — Neil shot the set from the front barrier. 🎸`;
+const onAurora = (band: string) => `${band} performed on Day 2 of Aurora Music Festival 2026 at Clark Global City — Neil shot the set from the front barrier.`;
 
 /** Outside places, people and things NeilAI can explain in a line, with a vetted link chip. */
 export const TRIVIA: Trivia[] = [
@@ -113,7 +112,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(central luzon state university|clsu)\b/i,
     kind: "place",
     prompt: "Where is CLSU?",
-    line: `CLSU is where Neil studies — ${site.year.toLowerCase()} of ${site.program.replace(" — ", ", majoring in ")}. It's in the Science City of Muñoz, Nueva Ecija. 🎓`,
+    line: `CLSU is where Neil studies — ${site.year.toLowerCase()} of ${site.program.replace(" — ", ", majoring in ")}. It's in the Science City of Muñoz, Nueva Ecija.`,
     near: "about:education",
   },
   {
@@ -121,7 +120,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bsan jose( city)?\b/i,
     kind: "place",
     prompt: "Where's San Jose City?",
-    line: `San Jose City is Neil's home base, up in Nueva Ecija, Central Luzon, ${site.country}. Shoots outside the city are quoted by distance. 📍`,
+    line: `San Jose City is Neil's home base, up in Nueva Ecija, Central Luzon, ${site.country}. Shoots outside the city are quoted by distance.`,
     near: "booking:travel",
   },
   {
@@ -129,7 +128,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bnueva ecija\b/i,
     kind: "place",
     prompt: "Where is Nueva Ecija?",
-    line: "Nueva Ecija is the Central Luzon province where Neil lives (San Jose City) and studies (CLSU, in the Science City of Muñoz). 🌾",
+    line: "Nueva Ecija is the Central Luzon province where Neil lives (San Jose City) and studies (CLSU, in the Science City of Muñoz).",
     near: "about:education",
   },
   {
@@ -137,7 +136,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bclark( global city)?\b/i,
     kind: "place",
     prompt: "Where is Clark Global City?",
-    line: "Clark Global City hosted Day 2 of Aurora Music Festival 2026 — Neil covered it from the front barrier for a little over twelve hours. 🎪",
+    line: "Clark Global City hosted Day 2 of Aurora Music Festival 2026 — Neil covered it from the front barrier for a little over twelve hours.",
     near: "project:aurora-fest-2026",
   },
   {
@@ -145,7 +144,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bvenice grand canal\b/i,
     kind: "place",
     prompt: "Where is Venice Grand Canal Mall?",
-    line: "Venice Grand Canal Mall is in Taguig — it's the spot behind “Grand Canal After Dark” in Neil's Natural Landscapes collection. 🌃",
+    line: "Venice Grand Canal Mall is in Taguig — it's the spot behind “Grand Canal After Dark” in Neil's Natural Landscapes collection.",
     near: "collection:landscapes",
   },
   {
@@ -153,7 +152,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(de la salle( university)?|dlsu|yuchengco hall)\b/i,
     kind: "place",
     prompt: "Where's Yuchengco Hall?",
-    line: "Yuchengco Hall is at De La Salle University in Manila, and it's one of the frames in Neil's Natural Landscapes collection. 🏛️",
+    line: "Yuchengco Hall is at De La Salle University in Manila, and it's one of the frames in Neil's Natural Landscapes collection.",
     near: "collection:landscapes",
   },
   {
@@ -161,7 +160,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(philmech|phil mech)\b/i,
     kind: "organization",
     prompt: "What's DA PhilMech?",
-    line: "DA PhilMech's Laboratory Services Division, in the Science City of Muñoz, is who PathoScan was built for — the team turned it over on September 28, 2026. 🔬",
+    line: "DA PhilMech's Laboratory Services Division, in the Science City of Muñoz, is who PathoScan was built for — the team turned it over on September 28, 2026.",
     near: "project:pathoscan",
   },
   {
@@ -169,7 +168,7 @@ export const TRIVIA: Trivia[] = [
     names: /\baurora (music )?fest(ival)?\b/i,
     kind: "event",
     prompt: "What's Aurora Music Festival?",
-    line: `Aurora Music Festival is where Neil spent Day 2 of 2026 at the front barrier, shooting ${auroraLineup || "six OPM acts"}. 🎶`,
+    line: `Aurora Music Festival is where Neil spent Day 2 of 2026 at the front barrier, shooting ${auroraLineup || "six OPM acts"}.`,
     near: "project:aurora-fest-2026",
   },
   { label: "Kamikazee", names: /\bkamikazee\b/i, kind: "band", prompt: "Who are Kamikazee?", line: onAurora("Kamikazee"), near: "collection:concerts" },
@@ -182,7 +181,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bben ?& ?ben\b|\bben and ben\b/i,
     kind: "band",
     prompt: "Who are Ben&Ben?",
-    line: "Ben&Ben turn up in Neil's Live Concerts & OPM collection, photographed at a street concert. 🎤",
+    line: "Ben&Ben turn up in Neil's Live Concerts & OPM collection, photographed at a street concert.",
     near: "collection:concerts",
   },
   {
@@ -190,7 +189,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bjillian( ward)?\b/i,
     kind: "person",
     prompt: "Who is Jillian Ward?",
-    line: "Jillian Ward is in Neil's Live Concerts & OPM collection, photographed at a street concert. ✨",
+    line: "Jillian Ward is in Neil's Live Concerts & OPM collection, photographed at a street concert.",
     near: "collection:concerts",
   },
   {
@@ -198,7 +197,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(opm|original pilipino music)\b/i,
     kind: "thing",
     prompt: "What's OPM?",
-    line: "OPM is Original Pilipino Music — and Neil's Live Concerts & OPM collection is full of it, from Aurora Music Festival to street stages. 🇵🇭",
+    line: "OPM is Original Pilipino Music — and Neil's Live Concerts & OPM collection is full of it, from Aurora Music Festival to street stages.",
     near: "collection:concerts",
   },
   {
@@ -206,7 +205,7 @@ export const TRIVIA: Trivia[] = [
     names: /\baspergillus\b/i,
     kind: "thing",
     prompt: "What's Aspergillus?",
-    line: "Aspergillus is the mould PathoScan identifies: five mycotoxin-producing species — A. flavus, A. terreus, A. fumigatus, A. tamarii and A. niger — that can contaminate grains, corn and peanuts. 🧫",
+    line: "Aspergillus is the mould PathoScan identifies: five mycotoxin-producing species — A. flavus, A. terreus, A. fumigatus, A. tamarii and A. niger — that can contaminate grains, corn and peanuts.",
     near: "project:pathoscan",
   },
   {
@@ -214,7 +213,7 @@ export const TRIVIA: Trivia[] = [
     names: /\btensorflow(\.js)?\b/i,
     kind: "thing",
     prompt: "What's TensorFlow.js?",
-    line: "TensorFlow.js is what runs PathoScan's MobileNetV2 model right inside the browser, so it works fully offline. 🧠",
+    line: "TensorFlow.js is what runs PathoScan's MobileNetV2 model right inside the browser, so it works fully offline.",
     near: "project:pathoscan",
   },
   {
@@ -222,7 +221,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bmobilenet(v2)?\b/i,
     kind: "thing",
     prompt: "What's MobileNetV2?",
-    line: "MobileNetV2 is the convolutional neural network behind PathoScan — Neil trained the model that names the Aspergillus species. 🧠",
+    line: "MobileNetV2 is the convolutional neural network behind PathoScan — Neil trained the model that names the Aspergillus species.",
     near: "project:pathoscan",
   },
   {
@@ -230,7 +229,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bandromeda\b|\bm31\b|\bmessier 31\b/i,
     kind: "thing",
     prompt: "What's the Andromeda Galaxy?",
-    line: `The Andromeda Galaxy (Messier 31) is one of the frames in Neil's Astrophotography collection, shot on the ${nikonUse ? `Nikon ${nikonUse}` : "Nikon"} — many frames stacked into one quiet image. 🌌`,
+    line: `The Andromeda Galaxy (Messier 31) is one of the frames in Neil's Astrophotography collection, shot on the ${nikonUse ? `Nikon ${nikonUse}` : "Nikon"} — many frames stacked into one quiet image.`,
     near: "collection:astro",
   },
   {
@@ -238,7 +237,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(lunar eclipse|blood moon|eclipse)\b/i,
     kind: "thing",
     prompt: "Did he shoot the blood moon?",
-    line: "Yes — “Blood Moon”, a total lunar eclipse shot on the Canon EOS 1500D, is in Neil's Astrophotography collection. 🌕",
+    line: "Yes — “Blood Moon”, a total lunar eclipse shot on the Canon EOS 1500D, is in Neil's Astrophotography collection.",
     near: "collection:astro",
   },
   {
@@ -246,7 +245,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bsequator\b/i,
     kind: "thing",
     prompt: "What's Sequator?",
-    line: "Sequator is the stacking app in Neil's astrophotography kit: many night-sky frames merged into one clean image. ✨",
+    line: "Sequator is the stacking app in Neil's astrophotography kit: many night-sky frames merged into one clean image.",
     near: "collection:astro",
   },
   {
@@ -254,7 +253,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bdict\b/i,
     kind: "organization",
     prompt: "What's the DICT?",
-    line: dictCert ? `${dictCert.issuer.replace(" — ", " ")} issued Neil's ${dictCert.title} certificate (${dictCert.date}). 📜` : "The DICT issued one of Neil's certificates. 📜",
+    line: dictCert ? `${dictCert.issuer.replace(" — ", " ")} issued Neil's ${dictCert.title} certificate (${dictCert.date}).` : "The DICT issued one of Neil's certificates.",
     near: "about:certificates",
   },
   {
@@ -262,7 +261,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(cisco networking academy|netacad)\b/i,
     kind: "organization",
     prompt: "What's Cisco NetAcad?",
-    line: ciscoCert ? `Neil earned Cisco Networking Academy's ${ciscoCert.title} certificate in ${ciscoCert.date}, and he's working towards CCNA next. 🛡️` : "Neil studies networking through Cisco Networking Academy. 🛡️",
+    line: ciscoCert ? `Neil earned Cisco Networking Academy's ${ciscoCert.title} certificate in ${ciscoCert.date}, and he's working towards CCNA next.` : "Neil studies networking through Cisco Networking Academy.",
     near: "about:certificates",
   },
   {
@@ -270,7 +269,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bsecurity\+|\bcomptia\b/i,
     kind: "thing",
     prompt: "Is he taking Security+?",
-    line: "CompTIA Security+ is on Neil's list — he's working towards it, alongside CCNA. 🔐",
+    line: "CompTIA Security+ is on Neil's list — he's working towards it, alongside CCNA.",
     near: "about:certificates",
   },
   {
@@ -278,7 +277,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bscrum\b/i,
     kind: "thing",
     prompt: "Does Neil know Scrum?",
-    line: `He does: PathoScan was built Agile-Scrum in sprints${agileCert ? `, and his ${agileCert.title} certificate (${agileCert.date}) covers the Scrum framework` : ""}. 🏃`,
+    line: `He does: PathoScan was built Agile-Scrum in sprints${agileCert ? `, and his ${agileCert.title} certificate (${agileCert.date}) covers the Scrum framework` : ""}.`,
     near: "about:certificates",
   },
   {
@@ -286,7 +285,7 @@ export const TRIVIA: Trivia[] = [
     names: /\b(formula 1|formula one|f1)\b/i,
     kind: "thing",
     prompt: "Is Neil an F1 fan?",
-    line: "Big time — he never misses a race weekend, and sim-races in F1 25 and Forza Horizon 5. 🏎️",
+    line: "Big time — he never misses a race weekend, and sim-races in F1 25 and Forza Horizon 5.",
     near: "fun:racing",
   },
   {
@@ -294,7 +293,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bforza( horizon)?\b/i,
     kind: "thing",
     prompt: "What's Forza Horizon?",
-    line: "Forza Horizon is the open-world racing game series behind Neil's new Photo Mode collection: virtual photography from Forza Horizon 4 and Forza Horizon 6, framed with the same eye for line and light as his real shoots. 📸",
+    line: "Forza Horizon is the open-world racing game series behind Neil's new Photo Mode collection: virtual photography from Forza Horizon 4 and Forza Horizon 6, framed with the same eye for line and light as his real shoots.",
     near: "collection:photo-mode",
   },
   {
@@ -302,7 +301,7 @@ export const TRIVIA: Trivia[] = [
     names: /\brstudio\b/i,
     kind: "thing",
     prompt: "What's RStudio?",
-    line: "RStudio is a workspace for analysing data with the R language. Neil earned a certificate of completion from “The Art of Becoming: RStudio for Data Analysis”, a Central Luzon State University webinar held August 28, 2026 via Google Meet. 📊",
+    line: "RStudio is a workspace for analysing data with the R language. Neil earned a certificate of completion from “The Art of Becoming: RStudio for Data Analysis”, a Central Luzon State University webinar held August 28, 2026 via Google Meet.",
     near: "about:certificates",
   },
   {
@@ -310,7 +309,7 @@ export const TRIVIA: Trivia[] = [
     names: /\bnext\.?js\b|\bsite built\b/i,
     kind: "thing",
     prompt: "What's this site built with?",
-    line: "This very site is built with Next.js and React, styled with Tailwind CSS — all in Neil's web toolkit. ⚡",
+    line: "This very site is built with Next.js and React, styled with Tailwind CSS — all in Neil's web toolkit.",
     near: "about:skills",
   },
 ];

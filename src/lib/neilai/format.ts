@@ -10,11 +10,15 @@ export interface Span {
 
 export type Block = { type: "p"; lines: Span[][] } | { type: "ul" | "ol"; items: Span[][] };
 
-/** Trims a model reply to the subset: no headings, links, URLs, code or tables; one bullet style. */
+/** Emoji and pictographs (flags, symbols, dingbats). The chat shows icons as SVG, never as emoji. */
+const EMOJI = /[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}][\u{FE0F}\u{200D}]*/gu;
+
+/** Trims a model reply to the subset: no headings, links, URLs, code, tables or emoji; one bullet style. */
 export function tidyReply(raw: string): string {
   return (
     raw
       .replace(/\r\n?/g, "\n")
+      .replace(EMOJI, "")
       // Code fences and inline code: keep the words.
       .replace(/```[a-z]*\n?/gi, "")
       .replace(/`([^`\n]*)`/g, "$1")

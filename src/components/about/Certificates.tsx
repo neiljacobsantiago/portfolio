@@ -25,14 +25,14 @@ export default function Certificates({ certs }: { certs: Certificate[] }) {
                   className="relative block aspect-[1.414] overflow-hidden rounded-[3px] bg-white shadow-[0_24px_44px_-26px_rgb(0_48_73/0.55)] ring-1 ring-ink/10 transition-transform duration-700 ease-[var(--ease-spring)] pointer-fine:group-hover:-translate-y-1 pointer-fine:group-hover:-rotate-[0.6deg]"
                 >
                   <Image src={c.image} alt="" fill sizes={lead ? "(min-width: 1024px) 46vw, (min-width: 640px) 90vw, 92vw" : "(min-width: 1024px) 22vw, (min-width: 640px) 45vw, 92vw"} className="object-cover" />
-                  <span className="label absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-ink/85 px-3 py-1.5 text-[0.6rem] text-paper opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <span className="label absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-ink/85 px-3 py-1.5 text-2xs text-paper opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
                     <Icon name="search" className="h-3.5 w-3.5" />
                     View
                   </span>
                 </span>
                 <span className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  {lead && <span className="label rounded-full bg-ember px-2.5 py-1 text-[0.58rem] text-paper">Newest</span>}
-                  <span className="label text-[0.64rem] text-ember">
+                  {lead && <span className="label rounded-full bg-ember px-2.5 py-1 text-3xs text-paper">Newest</span>}
+                  <span className="label text-2xs text-ember">
                     {c.issuer} · {c.date}
                   </span>
                 </span>
@@ -40,7 +40,7 @@ export default function Certificates({ certs }: { certs: Certificate[] }) {
                 {c.note && <span className="mt-1 block font-serif text-base leading-snug text-ink/75 italic">{c.note}</span>}
               </button>
               {c.verify && (
-                <a href={c.verify} target="_blank" rel="noopener noreferrer" className="label ulink mt-3 inline-flex items-center gap-1.5 text-[0.62rem] text-ink/80 hover:text-ember">
+                <a href={c.verify} target="_blank" rel="noopener noreferrer" className="label ulink mt-3 inline-flex items-center gap-1.5 text-2xs text-ink/80 hover:text-ember">
                   Verify certificate
                   <Icon name="arrow-up-right" className="h-3.5 w-3.5" />
                   <span className="sr-only">(opens in a new tab)</span>

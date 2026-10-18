@@ -72,9 +72,9 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
       <div className="flex flex-wrap items-center gap-2 rounded-[2px] bg-ink px-3 py-2.5 text-paper">
         <Icon name="clock" className="h-4 w-4 text-sky" />
         <span className="font-display text-2xl leading-none tabular-nums">{clock(now)}</span>
-        <span className="label mr-auto text-[0.5rem] text-paper/50">Lot clock</span>
+        <span className="label mr-auto text-3xs text-paper/70">Lot clock</span>
         {STEPS.map((s) => (
-          <button key={s.by} type="button" onClick={() => setNow((n) => n + s.by)} className="label press rounded-full bg-paper/10 px-2.5 py-1.5 text-[0.55rem] hover:bg-paper/20">
+          <button key={s.by} type="button" onClick={() => setNow((n) => n + s.by)} className="label press rounded-full bg-paper/10 px-2.5 py-1.5 text-3xs hover:bg-paper/20">
             {s.label}
           </button>
         ))}
@@ -84,11 +84,11 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
       <div className="space-y-2">
         {(["car", "motorcycle"] as const).map((kind) => (
           <div key={kind}>
-            <p className="label mb-1.5 flex justify-between text-[0.52rem] text-ink/50">
+            <p className="label mb-1.5 flex justify-between text-3xs text-ink/70">
               <span>{kind === "car" ? "Cars" : "Motorcycles"} · entrance on the left</span>
               <span>{freeSlots(lot, kind).length} free</span>
             </p>
-            <ul className={cn("grid gap-1.5", kind === "car" ? "grid-cols-4" : "grid-cols-4")}>
+            <ul className={cn("grid [&>*]:min-w-0 gap-1.5", kind === "car" ? "grid-cols-4" : "grid-cols-4")}>
               {SLOTS.filter((s) => s.type === kind).map((s) => {
                 const t = inside.find((x) => x.slot === s.id);
                 return (
@@ -101,14 +101,14 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
                       className={cn(
                         "flex w-full flex-col items-start rounded-[2px] border px-2 text-left transition-colors",
                         kind === "car" ? "h-16 py-1.5" : "h-12 py-1",
-                        t ? "press border-ink bg-ink text-paper hover:bg-wine aria-pressed:bg-ember aria-pressed:border-ember" : "border-dashed border-ink/25 text-ink/35",
+                        t ? "press border-ink bg-ink text-paper hover:bg-wine aria-pressed:bg-ember aria-pressed:border-ember" : "border-dashed border-ink/25 text-ink/70",
                       )}
                     >
-                      <span className="font-mono text-[0.6rem] opacity-70">{s.id}</span>
+                      <span className="font-mono text-2xs">{s.id}</span>
                       {t ? (
                         <>
                           <span className="w-full truncate font-mono text-[0.7rem] leading-tight font-bold">{showPlate(t.plate)}</span>
-                          {kind === "car" && <span className="font-mono text-[0.55rem] opacity-60">in {clock(t.inAt)}</span>}
+                          {kind === "car" && <span className="font-mono text-3xs opacity-80">in {clock(t.inAt)}</span>}
                         </>
                       ) : (
                         <span className="font-serif text-xs italic">free</span>
@@ -125,11 +125,11 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
       {/* Selected vehicle: update, delete, check out */}
       {sel ? (
         <div className="animate-pop-in space-y-3 rounded-[2px] p-3.5 ring-1 ring-ember/40">
-          <p className="label flex items-center justify-between text-[0.55rem] text-ink/55">
+          <p className="label flex items-center justify-between text-3xs text-ink/70">
             <span>
               Ticket #{sel.no} · slot {sel.slot}
             </span>
-            <button type="button" onClick={() => pick(null)} aria-label="Close" className="press -m-1 p-1 text-ink/50 hover:text-ink">
+            <button type="button" onClick={() => pick(null)} aria-label="Close" className="press -m-1 p-1 text-ink/70 hover:text-ink">
               <Icon name="close" />
             </button>
           </p>
@@ -143,7 +143,7 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
                 setLot(r.lot);
                 say(true, `Ticket #${sel.no} corrected to ${showPlate(r.ticket.plate)}. Slot and time in unchanged.`);
               }}
-              className="label press shrink-0 rounded-full border border-ink/20 px-3 text-[0.55rem] hover:border-ink"
+              className="label press shrink-0 rounded-full border border-ink/20 px-3 text-3xs hover:border-ink"
             >
               Save
             </button>
@@ -175,7 +175,7 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
                 pick(null);
                 say(true, `Entry #${sel.no} deleted as a mistake. No fee, no record.`);
               }}
-              className="label press text-[0.55rem] text-ember hover:text-ink"
+              className="label press text-3xs text-ember hover:text-ink"
             >
               Delete entry
             </button>
@@ -187,7 +187,7 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
             e.preventDefault();
             logIn();
           }}
-          className={cn("grid gap-3", !compact && "sm:grid-cols-[1fr_auto_auto] sm:items-end")}
+          className={cn("grid [&>*]:min-w-0 gap-3", !compact && "sm:grid-cols-[1fr_auto_auto] sm:items-end")}
         >
           <Field label="Plate number">
             <input value={plate} onChange={(e) => setPlate(e.target.value)} placeholder="ABC 1234" autoCapitalize="characters" className={cn(input, "uppercase")} />
@@ -220,7 +220,7 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
       {receipt && (
         <div className="animate-pop-in mx-auto max-w-sm rounded-[2px] bg-paper p-4 font-mono text-[0.7rem] text-ink shadow-[0_18px_40px_-24px_rgb(0_48_73/0.6)] ring-1 ring-ink/10">
           <p className="text-center font-display text-lg tracking-wide">ParkMate</p>
-          <p className="text-center text-[0.6rem] text-ink/50">Official receipt · PM-{String(receipt.ticket.no).padStart(5, "0")}</p>
+          <p className="text-center text-2xs text-ink/70">Official receipt · PM-{String(receipt.ticket.no).padStart(5, "0")}</p>
           <dl className="mt-3 space-y-0.5 border-y border-dashed border-ink/25 py-2">
             {[
               ["Plate", showPlate(receipt.ticket.plate)],
@@ -230,7 +230,7 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
               ["Stay", duration(receipt.minutes)],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between gap-3">
-                <dt className="text-ink/55">{k}</dt>
+                <dt className="text-ink/70">{k}</dt>
                 <dd>{v}</dd>
               </div>
             ))}
@@ -252,17 +252,17 @@ export default function ParkMateTool({ compact }: { compact?: boolean }) {
 
       {closed.length > 0 && (
         <div>
-          <p className="label mb-1.5 flex justify-between text-[0.52rem] text-ink/50">
+          <p className="label mb-1.5 flex justify-between text-3xs text-ink/70">
             <span>Records · checked out</span>
             <span>{peso(collected)} collected</span>
           </p>
-          <ul className="divide-y divide-ink/10 rounded-[2px] font-mono text-[0.65rem] ring-1 ring-ink/10">
+          <ul className="divide-y divide-ink/10 rounded-[2px] font-mono text-2xs ring-1 ring-ink/10">
             {closed
               .slice()
               .reverse()
               .map((t) => (
-                <li key={t.no} className="grid grid-cols-[auto_1fr_auto] gap-3 px-3 py-2">
-                  <span className="text-ink/45">#{t.no}</span>
+                <li key={t.no} className="grid [&>*]:min-w-0 grid-cols-[auto_1fr_auto] gap-3 px-3 py-2">
+                  <span className="text-ink/70">#{t.no}</span>
                   <span className="truncate">
                     {showPlate(t.plate)} · {t.slot} · {clock(t.inAt)}–{clock(t.outAt!)}
                   </span>

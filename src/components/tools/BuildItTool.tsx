@@ -47,14 +47,14 @@ export default function BuildItTool({ compact }: { compact?: boolean }) {
               haptic();
               setBuild(p.build);
             }}
-            className="label press shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-[0.55rem] whitespace-nowrap text-ink/65 hover:border-ink hover:text-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
+            className="label press shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-3xs whitespace-nowrap text-ink/75 hover:border-ink hover:text-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
           >
             {p.label}
           </button>
         ))}
       </div>
 
-      <div className={cn("grid gap-x-4 gap-y-3", !compact && "sm:grid-cols-2")}>
+      <div className={cn("grid [&>*]:min-w-0 gap-x-4 gap-y-3", !compact && "sm:grid-cols-2")}>
         {PARTS.map((p) => (
           <Field key={p.key} label={p.label}>
             <select value={build[p.key]} onChange={(e) => setBuild((b) => ({ ...b, [p.key]: e.target.value }))} className={cn(input, "cursor-pointer font-serif text-[0.95rem]")}>
@@ -64,7 +64,7 @@ export default function BuildItTool({ compact }: { compact?: boolean }) {
                 </option>
               ))}
             </select>
-            <span className="mt-1 block font-mono text-[0.6rem] text-ink/45">{p.spec(build[p.key])}</span>
+            <span className="mt-1 block font-mono text-2xs text-ink/70">{p.spec(build[p.key])}</span>
           </Field>
         ))}
       </div>
@@ -80,7 +80,7 @@ export default function BuildItTool({ compact }: { compact?: boolean }) {
             <div className="h-full rounded-full bg-current/80 transition-[width] duration-500 ease-[var(--ease-apple)]" style={{ width: `${meter * 100}%` }} />
             <span aria-hidden className="absolute inset-y-0 w-0.5 bg-current" style={{ left: `${COMFORT * 100}%` }} />
           </div>
-          <p className="mt-1.5 flex justify-between gap-3 font-mono text-[0.62rem] opacity-80">
+          <p className="mt-1.5 flex justify-between gap-3 font-mono text-2xs opacity-80">
             <span>~{r.draw} W of {PSUS.find((p) => p.id === build.psu)!.watts} W</span>
             <span>comfort line {Math.round(COMFORT * 100)}%</span>
           </p>
@@ -98,7 +98,7 @@ export default function BuildItTool({ compact }: { compact?: boolean }) {
                 <span className="sr-only">{c.level === "ok" ? "Pass: " : c.level === "warn" ? "Warning: " : "Problem: "}</span>
                 {c.title}
               </p>
-              <p className="mt-0.5 font-serif text-sm leading-snug text-ink/60">{c.detail}</p>
+              <p className="mt-0.5 font-serif text-sm leading-snug text-ink/75">{c.detail}</p>
             </div>
           </li>
         ))}

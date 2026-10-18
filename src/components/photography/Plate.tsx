@@ -21,7 +21,7 @@ export default function Plate({ index, title, className }: { index: number; titl
       </svg>
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
         <span className="font-display text-lg text-paper/90">{title}</span>
-        <span className="label text-[0.6rem] text-paper/70">Developing…</span>
+        <span className="label text-2xs text-paper/70">Developing…</span>
       </div>
     </div>
   );

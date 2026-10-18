@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ResolvedBooking } from "@/lib/booking-claim";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 import { bookingAnswerEmail, type AnswerDetails, type BookingAnswer } from "@/lib/mail";
 import { extrasRows, time12 } from "@/lib/tools/quote";
 import { cn } from "@/lib/utils";
 
-const FIELD = "w-full rounded-[2px] border border-ink/20 bg-paper/80 px-3 py-2.5 font-serif text-lg text-ink outline-none placeholder:text-ink/35 focus:border-ember focus:ring-1 focus:ring-ember";
+const FIELD = "w-full rounded-[2px] border border-ink/20 bg-paper/80 px-3 py-2.5 font-serif text-lg text-ink outline-none placeholder:text-ink/55 focus:border-ember focus:ring-1 focus:ring-ember";
 const SAVED = "booking-answer-defaults";
 
 const ACTIONS: { id: BookingAnswer; label: string; hint: string }[] = [
@@ -94,7 +95,7 @@ export default function BookingResponder({ token, booking, initialAction, canSen
         <div>
           <p className="label text-ember">Booking request</p>
           <h1 className="mt-3 font-display text-[clamp(2.5rem,5vw,4rem)] leading-[1.02]">
-            {booking.name || booking.email} <em className="block font-serif text-2xl text-ink/60">wants {booking.service.name.toLowerCase()}</em>
+            {booking.name || booking.email} <em className="block font-serif text-2xl text-ink/75">wants {booking.service.name.toLowerCase()}</em>
           </h1>
         </div>
         <dl className="divide-y divide-ink/10 border-y border-ink/10 font-serif text-lg">
@@ -107,7 +108,7 @@ export default function BookingResponder({ token, booking, initialAction, canSen
             ...extrasRows(booking.service, booking.pkg, booking.extras),
           ].map(([k, v]) => (
             <div key={k} className="flex gap-4 py-3">
-              <dt className="label w-24 shrink-0 pt-1.5 text-[0.58rem] text-ink/50">{k}</dt>
+              <dt className="label w-24 shrink-0 pt-1.5 text-3xs text-ink/70">{k}</dt>
               <dd className="min-w-0 break-words">
                 {k === "Mood board" ? (
                   <a href={v} target="_blank" rel="noopener noreferrer nofollow" className="ulink text-ember">
@@ -122,11 +123,11 @@ export default function BookingResponder({ token, booking, initialAction, canSen
         </dl>
         {booking.message && <p className="rounded-[2px] bg-paper-deep/60 p-4 font-serif text-lg whitespace-pre-line text-ink/80 italic">&ldquo;{booking.message}&rdquo;</p>}
         <div className="flex flex-wrap gap-2">
-          <a href={`mailto:${booking.email}`} className="label press rounded-full border border-ink/20 px-4 py-2.5 text-[0.58rem] hover:border-ink">Email</a>
+          <a href={`mailto:${booking.email}`} className="label press rounded-full border border-ink/20 px-4 py-2.5 text-3xs hover:border-ink">Email</a>
           {booking.phone && (
             <>
-              <a href={`tel:${booking.phone.replace(/\s+/g, "")}`} className="label press rounded-full border border-ink/20 px-4 py-2.5 text-[0.58rem] hover:border-ink">Call</a>
-              <a href={`sms:${booking.phone.replace(/\s+/g, "")}`} className="label press rounded-full border border-ink/20 px-4 py-2.5 text-[0.58rem] hover:border-ink">Text</a>
+              <a href={`tel:${booking.phone.replace(/\s+/g, "")}`} className="label press rounded-full border border-ink/20 px-4 py-2.5 text-3xs hover:border-ink">Call</a>
+              <a href={`sms:${booking.phone.replace(/\s+/g, "")}`} className="label press rounded-full border border-ink/20 px-4 py-2.5 text-3xs hover:border-ink">Text</a>
             </>
           )}
         </div>
@@ -147,7 +148,7 @@ export default function BookingResponder({ token, booking, initialAction, canSen
               className="press rounded-xl border border-ink/15 p-4 text-left transition-colors aria-checked:border-ink aria-checked:bg-ink aria-checked:text-paper"
             >
               <span className="block font-display text-xl">{a.label}</span>
-              <span className="mt-1 block font-serif text-sm opacity-70">{a.hint}</span>
+              <span className="mt-1 block font-serif text-sm opacity-80">{a.hint}</span>
             </button>
           ))}
         </div>
@@ -156,33 +157,33 @@ export default function BookingResponder({ token, booking, initialAction, canSen
           {action === "confirm" && (
             <>
               <label className="block">
-                <span className="label mb-1.5 block text-[0.58rem] text-ink/55">Call time</span>
+                <span className="label mb-1.5 block text-3xs text-ink/70">Call time</span>
                 <input value={d.time ?? ""} onChange={set("time")} placeholder="e.g. 3:30 PM" className={FIELD} />
               </label>
               <label className="block">
-                <span className="label mb-1.5 block text-[0.58rem] text-ink/55">Location</span>
+                <span className="label mb-1.5 block text-3xs text-ink/70">Location</span>
                 <input value={d.location ?? ""} onChange={set("location")} placeholder="e.g. CLSU Oval" className={FIELD} />
               </label>
               <label className="block sm:col-span-2">
-                <span className="label mb-1.5 block text-[0.58rem] text-ink/55">How to pay the downpayment</span>
+                <span className="label mb-1.5 block text-3xs text-ink/70">How to pay the downpayment</span>
                 <textarea value={d.payment ?? ""} onChange={set("payment")} rows={2} placeholder="e.g. GCash 09xx xxx xxxx — Neil Jacob S. Send a screenshot by reply." className={FIELD} />
               </label>
             </>
           )}
           {action === "reschedule" && (
             <label className="block sm:col-span-2">
-              <span className="label mb-1.5 block text-[0.58rem] text-ink/55">Dates you can do instead</span>
+              <span className="label mb-1.5 block text-3xs text-ink/70">Dates you can do instead</span>
               <input value={d.newDates ?? ""} onChange={set("newDates")} placeholder="e.g. Sat Nov 21 or Sun Nov 22" className={FIELD} />
             </label>
           )}
           <label className="block sm:col-span-2">
-            <span className="label mb-1.5 block text-[0.58rem] text-ink/55">{action === "decline" ? "A kind word (optional)" : "Anything else (optional)"}</span>
+            <span className="label mb-1.5 block text-3xs text-ink/70">{action === "decline" ? "A kind word (optional)" : "Anything else (optional)"}</span>
             <textarea value={d.note ?? ""} onChange={set("note")} rows={3} placeholder={action === "confirm" ? "What to bring, outfits, parking…" : ""} className={FIELD} />
           </label>
         </div>
 
         <div>
-          <p className="label mb-2 text-[0.58rem] text-ink/50">
+          <p className="label mb-2 text-3xs text-ink/70">
             Preview · to {booking.email} · <span className="text-ink/70 normal-case">{mail.subject}</span>
           </p>
           <iframe title="Email preview" srcDoc={mail.html} sandbox="" className="h-[30rem] w-full rounded-[2px] bg-paper ring-1 ring-ink/10" />
@@ -191,23 +192,35 @@ export default function BookingResponder({ token, booking, initialAction, canSen
         {canSend ? (
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={send} disabled={status.state === "sending"} className="btn bg-ember text-paper hover:bg-ink disabled:opacity-60">
-              {status.state === "sending" ? "Sending…" : `Send to ${first}`} <span className="arrow">→</span>
+              {status.state === "sending" ? "Sending…" : `Send to ${first}`} <Icon name="arrow-right" className="arrow" />
             </button>
-            <button type="button" onClick={copyStyled} className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
-              {copied ? "Copied ✓" : "Copy styled email"}
+            <button type="button" onClick={copyStyled} className="label ulink text-2xs text-ink/75 hover:text-ink">
+              {copied ? (
+                <>
+                  Copied <Icon name="check" />
+                </>
+              ) : (
+                "Copy styled email"
+              )}
             </button>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <button type="button" onClick={copyStyled} className="btn bg-ember text-paper hover:bg-ink">
-                {copied ? "Copied ✓" : "1 · Copy styled email"}
+                {copied ? (
+                  <>
+                    Copied <Icon name="check" />
+                  </>
+                ) : (
+                  "1 · Copy styled email"
+                )}
               </button>
               <a href={compose} target="_blank" rel="noopener noreferrer" onClick={remember} className={cn("btn border border-ink/25 hover:border-ink", copied && "bg-ink text-paper")}>
-                2 · Open Gmail &amp; paste <span className="arrow">↗</span>
+                2 · Open Gmail &amp; paste <Icon name="arrow-up-right" className="arrow" />
               </a>
             </div>
-            <p className="font-serif text-ink/65 italic">
+            <p className="font-serif text-ink/75 italic">
               In Gmail, click into the message body and paste (Ctrl+V, or ⌘V on a Mac): the designed email drops in, ready to send.{" "}
               <a href={gmail} target="_blank" rel="noopener noreferrer" onClick={remember} className="ulink not-italic">
                 Plain-text version

@@ -39,7 +39,6 @@ export interface Brief {
   button: string;
   /** How the emails name it, e.g. "Website project". */
   topic: string;
-  emoji: string;
   intro: string;
   steps: BriefStep[];
   message: { label: string; placeholder: string };
@@ -70,7 +69,6 @@ export const briefs: Brief[] = [
     id: "website",
     button: "A website",
     topic: "Website project",
-    emoji: "🖥️",
     intro: "A few details so Neil can scope the site, suggest the right approach and give you a fair quote on the first reply. Anything optional can wait for the call.",
     steps: [
       {
@@ -139,7 +137,6 @@ export const briefs: Brief[] = [
     id: "video",
     button: "Video & media",
     topic: "Video project",
-    emoji: "🎬",
     intro: "Event highlights, explainers, reels or a short film. These details help Neil plan the crew, the gear and the edit time before quoting.",
     steps: [
       {
@@ -193,7 +190,6 @@ export const briefs: Brief[] = [
     id: "network",
     button: "A network",
     topic: "Network project",
-    emoji: "🛜",
     intro: "Whether it's Wi-Fi that won't reach the back room or cabling a new office, these answers let Neil size the job before visiting.",
     steps: [
       {
@@ -264,7 +260,6 @@ export const briefs: Brief[] = [
     id: "security",
     button: "Security",
     topic: "Security check",
-    emoji: "🛡️",
     intro: "A plain-language check of what's exposed and what to fix first, or an awareness talk for your team. Testing only ever happens on systems you own or are allowed to have tested.",
     steps: [
       {
@@ -322,7 +317,6 @@ export const briefs: Brief[] = [
     id: "other",
     button: "Something else",
     topic: "Something else",
-    emoji: "✉️",
     intro: "",
     steps: [
       {

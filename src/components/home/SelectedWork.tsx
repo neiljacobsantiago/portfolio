@@ -70,26 +70,26 @@ export default function SelectedWork() {
                           <div className="flex items-center justify-between gap-3">
                             <span className="flex items-baseline gap-2">
                               <span className="font-display text-3xl leading-none md:text-4xl">{pad(i + 1)}</span>
-                              <span className="label text-[0.6rem] opacity-50">/ {pad(projects.length)}</span>
+                              <span className="label text-2xs opacity-75">/ {pad(projects.length)}</span>
                             </span>
                             <span className="flex min-w-0 flex-wrap justify-end gap-2">
-                              {p.privateRepo && <span className="label hidden rounded-full border border-current/30 px-3 py-1 text-[0.58rem] opacity-70 sm:inline-block">Private repo</span>}
-                              <span className="label rounded-full border border-current/30 px-3 py-1 text-[0.58rem]">{categories[p.category].label}</span>
+                              {p.privateRepo && <span className="label hidden rounded-full border border-current/30 px-3 py-1 text-3xs opacity-75 sm:inline-block">Private repo</span>}
+                              <span className="label rounded-full border border-current/30 px-3 py-1 text-3xs">{categories[p.category].label}</span>
                             </span>
                           </div>
                           <div>
-                            <p className="label text-[0.6rem] opacity-60">{p.context}</p>
+                            <p className="label text-2xs opacity-75">{p.context}</p>
                             <h3 className="mt-2 font-display text-[clamp(1.7rem,6.4vw,3rem)] leading-[1.08] md:mt-3">{p.title}</h3>
                             <p className="mt-2 line-clamp-3 font-serif text-[1.0625rem] leading-snug italic opacity-85 md:mt-4 md:line-clamp-none md:text-2xl">{p.plain}</p>
                           </div>
                           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-                            <span className={cn("label inline-flex items-center gap-3 rounded-full py-1.5 pr-1.5 pl-5 text-[0.68rem]", tone.cta)}>
+                            <span className={cn("label inline-flex items-center gap-3 rounded-full py-1.5 pr-1.5 pl-5 text-2xs", tone.cta)}>
                               View project
                               <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-current/15 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1">
                                 <Icon name="arrow-right" className="h-4 w-4" />
                               </span>
                             </span>
-                            <span className="label text-[0.58rem] opacity-60">{p.role}</span>
+                            <span className="label text-3xs opacity-75">{p.role}</span>
                           </div>
                         </div>
 

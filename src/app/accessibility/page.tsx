@@ -35,7 +35,7 @@ export default function AccessibilityPage() {
               <li>If your device asks for reduced motion, scroll scenes, page transitions and moving strips are switched off or made still.</li>
               <li>On budget phones and slow connections, heavy effects are skipped automatically and images are served in small, modern formats.</li>
               <li>Videos only load when you choose to play them.</li>
-              <li>Search everything with Ctrl/⌘ K, and NeilAI can answer questions in plain language.</li>
+              <li>Search everything with Ctrl/⌘ K, and NeilAI can answer questions in everyday language.</li>
             </ul>
           ),
         },
@@ -44,7 +44,7 @@ export default function AccessibilityPage() {
           title: "Known limits",
           body: (
             <ul>
-              <li>Island Drive is a 3D game and needs WebGL plus a keyboard, mouse or touch screen. Every stop on the island is also listed as plain links if the game can&apos;t run, and all of it is on the regular pages.</li>
+              <li>Bay Street Circuit is a 3D game and needs WebGL 2 plus a keyboard, mouse or touch screen. If it can&apos;t run, the project pavilions from its paddock are listed as plain links instead, and all of it is on the regular pages.</li>
               <li>The Shutter game relies on timing and visuals; it&apos;s an extra, not a way to reach any content.</li>
               <li>Videos hosted on YouTube and Facebook use those players&apos; own captions and controls.</li>
             </ul>

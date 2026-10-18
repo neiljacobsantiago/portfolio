@@ -262,7 +262,7 @@ export default function ContactSheet() {
                     <span className="flex flex-1 items-center justify-center text-sky/70">
                       <Icon name="camera" className="h-[32%] w-[32%]" />
                     </span>
-                    <span className="px-1.5 pb-1 text-right font-mono text-[0.55rem] leading-none text-[#ffd27a]/70 sm:text-[0.6rem]">{t.frame}</span>
+                    <span className="px-1.5 pb-1 text-right font-mono text-3xs leading-none text-[#ffd27a]/70 sm:text-2xs">{t.frame}</span>
                   </span>
                   {/* Front: the photograph */}
                   <span className={cn("absolute inset-0 overflow-hidden rounded-[3px] bg-ink [transform:rotateY(180deg)] backface-hidden", matched[i] && "ring-2 ring-[#7bd88f]")}>
@@ -282,16 +282,16 @@ export default function ContactSheet() {
         {status === "won" && result && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
             <div className="animate-pop-in pointer-events-auto w-full max-w-xs rounded-[2px] bg-paper p-5 text-center text-ink shadow-2xl ring-1 ring-ink/10">
-              <p className="label text-[0.55rem] text-ember">Sheet complete</p>
+              <p className="label text-3xs text-ember">Sheet complete</p>
               <p className="mt-2 font-display text-5xl leading-none">
                 {moves}
-                <span className="font-serif text-2xl text-ink/55"> moves</span>
+                <span className="font-serif text-2xl text-ink/70"> moves</span>
               </p>
               <p className="mt-2 font-serif text-ink/70 italic">
                 {clock(result.ms)} · {moves === cfg.pairs ? "a perfect sheet" : `perfect is ${cfg.pairs}`}
               </p>
               {result.newBest && (
-                <p className="label mt-2 flex items-center justify-center gap-1.5 text-[0.55rem] text-[#2e8b57]">
+                <p className="label mt-2 flex items-center justify-center gap-1.5 text-3xs text-[#2e8b57]">
                   <Icon name="trophy" className="h-3.5 w-3.5" /> New best
                 </p>
               )}
@@ -316,14 +316,14 @@ export default function ContactSheet() {
             ["Pairs", <span key="p" className="tabular-nums">{`${pairsFound}/${cfg.pairs}`}</span>],
           ].map(([k, v]) => (
             <div key={k as string} className="rounded-[2px] bg-paper-deep/60 px-3 py-2.5 ring-1 ring-ink/10 lg:flex lg:items-baseline lg:justify-between">
-              <dt className="label text-[0.52rem] text-ink/55">{k}</dt>
+              <dt className="label text-3xs text-ink/70">{k}</dt>
               <dd className="mt-1 font-display text-2xl leading-none lg:mt-0">{v}</dd>
             </div>
           ))}
         </dl>
 
         <div>
-          <p id="sheet-size" className="label text-[0.52rem] text-ink/55">
+          <p id="sheet-size" className="label text-3xs text-ink/70">
             Sheet size
           </p>
           <div role="radiogroup" aria-labelledby="sheet-size" className="mt-2 grid grid-cols-3 gap-1 rounded-full bg-ink/[0.06] p-1">
@@ -335,10 +335,10 @@ export default function ContactSheet() {
                 aria-checked={size === s}
                 aria-label={`${SIZES[s].label}: ${SIZES[s].pairs * 2} tiles`}
                 onClick={() => newGame(s)}
-                className={cn("label flex min-h-11 flex-col items-center justify-center rounded-full px-2 text-[0.55rem] leading-tight transition-colors", size === s ? "bg-ink text-paper" : "text-ink/70 pointer-fine:hover:text-ink")}
+                className={cn("label flex min-h-11 flex-col items-center justify-center rounded-full px-2 text-3xs leading-tight transition-colors", size === s ? "bg-ink text-paper" : "text-ink/70 pointer-fine:hover:text-ink")}
               >
                 {SIZES[s].label}
-                <span className="text-[0.48rem] opacity-70">{SIZES[s].pairs * 2} tiles</span>
+                <span className="text-3xs">{SIZES[s].pairs * 2} tiles</span>
               </button>
             ))}
           </div>

@@ -155,7 +155,7 @@ export default function ChatLauncher() {
           <button type="button" onClick={toggle} className="text-left font-serif text-base leading-snug text-ink">
             {teaser}
           </button>
-          <button type="button" onClick={() => setTeaser(null)} aria-label="Dismiss" className="-mt-1 -mr-1 p-1 text-base leading-none text-ink/40 hover:text-ink">
+          <button type="button" onClick={() => setTeaser(null)} aria-label="Dismiss" className="-mt-1 -mr-1 p-1 text-base leading-none text-ink/70 hover:text-ink">
             <Icon name="close" />
           </button>
         </div>

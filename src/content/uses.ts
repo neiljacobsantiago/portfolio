@@ -103,10 +103,10 @@ export interface ColophonItem {
 const colophon: ColophonItem[] = [
   { name: "Next.js 16 & React 19", role: "App Router, Server Components and static pages by default" },
   { name: "Tailwind CSS v4", role: "Every style, with the five-colour palette as theme tokens" },
-  { name: "Gloock, Newsreader & Courier Prime", role: "Display, text and labels, loaded through next/font" },
+  { name: "Gloock, Newsreader & IBM Plex Mono", role: "Display, text and labels, loaded through next/font" },
   { name: "Cloudinary", role: "Hosts the photo collections and serves signed image sizes" },
   { name: "Transformers.js + Whisper", role: "Speech-to-text in the Lab, running in your browser" },
-  { name: "three.js + cannon-es", role: "The 3D island and physics in Island Drive" },
+  { name: "three.js", role: "The floodlit street circuit in Bay Street Circuit" },
   { name: "Gemini", role: "Powers NeilAI, the site's assistant" },
   { name: "Nodemailer", role: "Sends contact and booking emails" },
   { name: "Lenis", role: "Smooth scrolling on desktop only; phones keep native scroll" },

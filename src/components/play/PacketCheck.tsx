@@ -449,14 +449,15 @@ export default function PacketCheck() {
     // Enter belongs to this game while focus is inside it, not to page-wide shortcuts
     <div className="flex flex-col overflow-hidden rounded-[2px] bg-ink text-paper" onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}>
       <div className="flex items-center justify-between gap-2 px-4 pt-3 sm:px-5 md:px-7 md:pt-4">
-        <p className="label min-w-0 truncate text-[0.58rem] text-sky">
+        {/* Narrow phones need the room for the score and lives while a round is on. */}
+        <p className={cn("label min-w-0 truncate text-3xs text-sky", state === "playing" && "max-[400px]:hidden")}>
           Packet Check
-          {state === "playing" && <span className="hidden text-paper/60 sm:inline"> · {modeInfo.label}</span>}
+          {state === "playing" && <span className="hidden text-paper/75 sm:inline"> · {modeInfo.label}</span>}
         </p>
-        <div className="flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1">
           {state === "playing" ? (
             <>
-              <p className="label text-[0.58rem] whitespace-nowrap text-paper/70 tabular-nums">
+              <p className="label text-3xs whitespace-nowrap text-paper/70 tabular-nums">
                 {Math.min(index + 1, ROUND_LENGTH)}/{ROUND_LENGTH} · {score} pts
               </p>
               <span className="ml-2 flex items-center gap-1" role="img" aria-label={`${lives} of ${LIVES} lives left`}>
@@ -466,7 +467,7 @@ export default function PacketCheck() {
               </span>
             </>
           ) : (
-            <p className="label text-[0.58rem] text-paper/70">{best[mode] ? `Best ${best[mode]} pts` : "No clock"}</p>
+            <p className="label text-3xs text-paper/70">{best[mode] ? `Best ${best[mode]} pts` : "No clock"}</p>
           )}
           <button type="button" onClick={toggleMute} aria-label={muted ? "Turn sound on" : "Turn sound off"} aria-pressed={!muted} className="press -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-paper/80 hover:text-paper">
             <Icon name={muted ? "mute" : "volume"} className="h-4.5 w-4.5" />
@@ -481,11 +482,11 @@ export default function PacketCheck() {
       <div className="flex flex-1 flex-col px-4 pt-3 pb-5 sm:px-5 md:px-7 md:pb-7">
         {state === "playing" && q ? (
           <div key={q.id} className="animate-pop-in flex flex-1 flex-col">
-            <p className="label text-[0.52rem] text-paper/45">
+            <p className="label text-3xs text-paper/70">
               {q.kind === "card" ? (q.category === "security" ? "Security" : "Networks") : "Subnetting"} · question {index + 1}
             </p>
             <h4 className="mt-1.5 font-display text-[clamp(1.3rem,3.2vw,1.85rem)] leading-tight text-balance">{q.prompt}</h4>
-            {q.hint && !feedback && <p className="mt-1 font-serif text-paper/60 italic">{q.hint}</p>}
+            {q.hint && !feedback && <p className="mt-1 font-serif text-paper/75 italic">{q.hint}</p>}
             <div className="mt-4 grid gap-2 sm:grid-cols-2" role="group" aria-label="Answers">
               {q.options.map((o, i) => {
                 const isAnswer = o === q.answer;
@@ -519,13 +520,13 @@ export default function PacketCheck() {
             <div aria-live="polite" className="mt-3">
               {feedback && (
                 <div className={cn("animate-pop-in rounded-xl p-4 ring-1", feedback.right ? "bg-[#2e8b57]/15 ring-[#2e8b57]/50" : "bg-[#ffd27a]/10 ring-[#ffd27a]/40")}>
-                  <p className={cn("label flex items-center gap-1.5 text-[0.55rem]", feedback.right ? "text-[#7bd88f]" : "text-[#ffd27a]")}>
+                  <p className={cn("label flex items-center gap-1.5 text-3xs", feedback.right ? "text-[#7bd88f]" : "text-[#ffd27a]")}>
                     <Icon name={feedback.right ? "check" : "info"} className="h-3.5 w-3.5" />
                     {feedback.right ? (feedback.regained ? "Correct · four in a row wins a life back" : streak > 2 ? `Correct · ${streak} in a row` : "Correct") : q.kind === "card" ? "Not quite · the right answer is in green" : `Not quite · it's ${q.answer}`}
                   </p>
                   <p className="mt-1.5 font-serif text-[1.02rem] leading-snug text-paper/85">{q.why}</p>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <p className="label text-[0.5rem] text-paper/40">{lives <= 0 ? "No lives left" : `${lives} ${lives === 1 ? "life" : "lives"} left`}</p>
+                    <p className="label text-3xs text-paper/70">{lives <= 0 ? "No lives left" : `${lives} ${lives === 1 ? "life" : "lives"} left`}</p>
                     <button ref={nextRef} type="button" onClick={next} className="btn min-h-11 bg-paper py-2.5 text-ink pointer-fine:hover:bg-sky">
                       {lives <= 0 || index + 1 >= round.length ? "See results" : "Next question"} <Icon name="arrow-right" className="arrow" />
                     </button>
@@ -533,21 +534,21 @@ export default function PacketCheck() {
                 </div>
               )}
             </div>
-            <p className="label mt-3 hidden text-[0.5rem] text-paper/40 md:block">Keys 1 to 4 or A to D answer · Enter for the next question</p>
+            <p className="label mt-3 hidden text-3xs text-paper/70 md:block">Keys 1 to 4 or A to D answer · Enter for the next question</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             {state === "over" && (
               <div className="animate-pop-in">
-                <p className="label text-[0.55rem] text-sky">{outOfLives ? "Connection dropped" : "Round complete"}</p>
+                <p className="label text-3xs text-sky">{outOfLives ? "Connection dropped" : "Round complete"}</p>
                 <p className="mt-2 font-display text-5xl leading-none">
-                  {score} <span className="font-serif text-2xl text-paper/60">pts</span>
+                  {score} <span className="font-serif text-2xl text-paper/75">pts</span>
                 </p>
                 <p className="mt-2 font-serif text-paper/75 italic">
                   {stats.right} of {stats.answered} right · {accuracy}% · best streak {stats.bestStreak}
                 </p>
                 {newBest && score > 0 && (
-                  <p className="label mt-2 flex items-center gap-1.5 text-[0.55rem] text-[#ffd27a]">
+                  <p className="label mt-2 flex items-center gap-1.5 text-3xs text-[#ffd27a]">
                     <Icon name="trophy" className="h-3.5 w-3.5" /> New best for {modeInfo.label}
                   </p>
                 )}
@@ -559,7 +560,7 @@ export default function PacketCheck() {
               </p>
             )}
             <div>
-              <p id="packet-mode" className="label text-[0.52rem] text-paper/50">
+              <p id="packet-mode" className="label text-3xs text-paper/70">
                 Pick a deck
               </p>
               <div role="radiogroup" aria-labelledby="packet-mode" className="mt-2 grid grid-cols-3 gap-1.5 rounded-full bg-paper/[0.06] p-1">
@@ -570,13 +571,13 @@ export default function PacketCheck() {
                     role="radio"
                     aria-checked={mode === m.id}
                     onClick={() => setMode(m.id)}
-                    className={cn("label min-h-11 rounded-full px-2 text-[0.58rem] transition-colors", mode === m.id ? "bg-paper text-ink" : "text-paper/75 pointer-fine:hover:text-paper")}
+                    className={cn("label min-h-11 rounded-full px-2 text-3xs transition-colors", mode === m.id ? "bg-paper text-ink" : "text-paper/75 pointer-fine:hover:text-paper")}
                   >
                     {m.label}
                   </button>
                 ))}
               </div>
-              <p className="mt-2 min-h-[3em] font-serif text-paper/65 italic">
+              <p className="mt-2 min-h-[3em] font-serif text-paper/75 italic">
                 {modeInfo.line}
                 {mode !== "networks" && (
                   <>

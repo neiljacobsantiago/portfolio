@@ -7,7 +7,7 @@ export type Category = "systems" | "web" | "media";
 
 export const categories: Record<Category, { label: string; blurb: string }> = {
   systems: { label: "Systems & AI", blurb: "Operating systems and applied AI" },
-  web: { label: "Web & Software", blurb: "Planned architecture, built fast" },
+  web: { label: "Web & Software", blurb: "Web apps, storefronts and the databases behind them" },
   media: { label: "Media & Production", blurb: "Directing, filming and coverage" },
 };
 
@@ -94,7 +94,7 @@ export const projects: Project[] = [
     title: "Student Information System",
     category: "web",
     featured: 2,
-    plain: "A registrar's student records app where every rule — who can edit, which section is full — is enforced by the server, not just hidden in the page.",
+    plain: "A registrar's records app where the server enforces every rule, from who may edit a student to when a section is full.",
     context: "INTECH 3112 · Final project",
     role: "Full-stack developer",
     status: "Final project · INTECH 3112",
@@ -119,7 +119,7 @@ export const projects: Project[] = [
     category: "web",
     featured: 3,
     plain: "Pick PC parts, check they fit together, and check out — all in one place.",
-    context: "COMSCI 1200 → INTECH 2100 → INTECH 2201",
+    context: "COMSCI 1200 · INTECH 2100 · INTECH 2201",
     role: "Lead UI/UX designer",
     status: "Shipped",
     body: [
@@ -155,12 +155,12 @@ export const projects: Project[] = [
     featured: 4,
     title: "Cyber Awareness Series",
     category: "media",
-    plain: "Six short videos that make data privacy make sense to everyone.",
+    plain: "Six short videos that explain data privacy to people who don't work in IT.",
     context: "CLSU Department of Information Technology",
     role: "Videographer & on-site director",
     status: "Published",
     body: [
-      "A six-part video series for the CLSU Department of Information Technology that explains data privacy and common security threats in short, plain-language episodes.",
+      "A six-part video series for the CLSU Department of Information Technology that explains data privacy and common security threats in short episodes anyone can follow.",
       "I directed on location and handled filming and audio for every episode.",
     ],
     stack: ["Direction", "Videography", "Audio capture"],
@@ -310,7 +310,7 @@ export const projects: Project[] = [
     tool: "whisper",
     title: "Whisper AI Transcription",
     category: "systems",
-    plain: "Taught a machine to turn hours of recorded speech into accurate text.",
+    plain: "Python pipelines that turn hours of recorded speech into clean, usable text.",
     context: "Applied AI",
     role: "Developer",
     status: "Model trained",
@@ -399,7 +399,7 @@ export const projects: Project[] = [
     status: "Released",
     body: [
       "A short experimental film for ARTS 1100 that sets conventional narrative aside and builds its meaning through image, sound and pacing instead.",
-      "It follows the small routines most people stop noticing — commutes, waiting, the same light at the same hour — and lets light and shadow carry the mood. I directed, produced and shot it; the team handled the concept, location filming and post-production ourselves.",
+      "It follows the small routines most people stop noticing — commutes, waiting, the same light at the same hour — and lets light and shadow carry the mood. I directed, produced and shot it; as a team, we handled the concept, location filming and post-production ourselves.",
     ],
     stack: ["Nikon D780", "iPhone 14 Pro Max", "DJI Osmo Mobile 7", "Premiere Pro", "After Effects", "DaVinci Resolve"],
     cover: "/projects/mundane.jpg",

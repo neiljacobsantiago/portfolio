@@ -20,6 +20,7 @@ import {
   type WorkerRequest,
   type WorkerResponse,
 } from "@/lib/tools/whisper";
+import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 import { Field, Note, Segmented, Stat } from "./ui";
 
@@ -339,23 +340,23 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
             <p className="font-mono text-2xl text-ink tabular-nums" role="timer" aria-live="off">
               {clock((now - rec.startedAt) / 1000)}
             </p>
-            <p className="label text-[0.55rem] text-ink/55">Recording…</p>
-            <button type="button" onClick={stopRecording} className="label press ml-auto rounded-full bg-ember px-5 py-2.5 text-[0.6rem] text-paper hover:bg-wine">
-              ■ Stop
+            <p className="label text-3xs text-ink/70">Recording…</p>
+            <button type="button" onClick={stopRecording} className="label press ml-auto inline-flex items-center gap-2 rounded-full bg-ember px-5 py-2.5 text-2xs text-paper hover:bg-wine">
+              <Icon name="stop" className="h-3 w-3" /> Stop
             </button>
           </div>
         ) : (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <p className="font-display text-xl leading-tight text-ink">{dragging ? "Drop it here" : "Drop an audio or video file"}</p>
-              <p className="mt-1 font-mono text-[0.65rem] text-ink/50">MP3 · M4A · WAV · OGG · WebM · MP4</p>
+              <p className="mt-1 font-mono text-2xs text-ink/70">MP3 · M4A · WAV · OGG · WebM · MP4</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => fileInput.current?.click()}
-                className="label press rounded-full bg-ink px-4 py-2.5 text-[0.6rem] text-paper hover:bg-ember disabled:opacity-40"
+                className="label press rounded-full bg-ink px-4 py-2.5 text-2xs text-paper hover:bg-ember disabled:opacity-40"
               >
                 Choose file
               </button>
@@ -363,7 +364,7 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
                 type="button"
                 disabled={busy}
                 onClick={startRecording}
-                className="label press inline-flex items-center gap-2 rounded-full border border-ink/25 px-4 py-2.5 text-[0.6rem] text-ink hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-40"
+                className="label press inline-flex items-center gap-2 rounded-full border border-ink/25 px-4 py-2.5 text-2xs text-ink hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-40"
               >
                 <span aria-hidden className="h-2 w-2 rounded-full bg-ember" />
                 Record
@@ -373,15 +374,15 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
         )}
         {source && !rec && (
           <p className="mt-3 flex min-w-0 items-center gap-2 border-t border-ink/10 pt-3 font-mono text-[0.7rem] text-ink/70">
-            <span aria-hidden>♪</span>
+            <Icon name="music" className="h-3.5 w-3.5 shrink-0" />
             <span className="min-w-0 truncate">{source.name}</span>
-            <span className="shrink-0 text-ink/45">· {clock(source.duration)}</span>
+            <span className="shrink-0 text-ink/70">· {clock(source.duration)}</span>
           </p>
         )}
       </div>
 
       {/* Options */}
-      <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
+      <div className={cn("grid gap-4 [&>*]:min-w-0", !compact && "sm:grid-cols-2")}>
         <Field label="Model">
           <Segmented
             label="Model"
@@ -405,12 +406,12 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
             onChange={setTask}
             options={[
               { value: "transcribe", label: "Same language" },
-              { value: "translate", label: "Translate → English" },
+              { value: "translate", label: "Translate to English" },
             ]}
           />
         </Field>
         <div>
-          <span id={timeId} className="label mb-1.5 block text-[0.58rem] text-ink/55">
+          <span id={timeId} className="label mb-1.5 block text-3xs text-ink/70">
             Timestamps
           </span>
           <button
@@ -427,7 +428,7 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
             <span className={cn("relative h-6 w-11 rounded-full transition-colors", timestamps ? "bg-ember" : "bg-ink/25")}>
               <span className={cn("absolute top-1 left-1 h-4 w-4 rounded-full bg-paper shadow transition-transform duration-300 ease-[var(--ease-spring)]", timestamps && "translate-x-5")} />
             </span>
-            <span className="label text-[0.58rem] text-ink/70">{timestamps ? "On · for subtitles" : "Off · plain text"}</span>
+            <span className="label text-3xs text-ink/70">{timestamps ? "On · for subtitles" : "Off · plain text"}</span>
           </button>
         </div>
       </div>
@@ -440,12 +441,12 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
           </button>
         ) : (
           <button type="button" disabled={!source || busy || !!rec} onClick={run} className="btn bg-ink text-paper hover:bg-ember disabled:pointer-events-none disabled:opacity-40">
-            {hasResult ? "Transcribe again" : "Transcribe"} <span className="arrow">→</span>
+            {hasResult ? "Transcribe again" : "Transcribe"} <Icon name="arrow-right" className="arrow" />
           </button>
         )}
         {source && !busy && (
-          <p className="font-serif text-sm text-ink/60 italic">
-            ≈ {duration(guess)} for {clock(source.duration)} of audio{phone ? " on a phone" : ""}, after the model is downloaded.
+          <p className="font-serif text-[0.95rem] text-ink/75">
+            About {duration(guess)} for {clock(source.duration)} of audio{phone ? " on a phone" : ""}, after the model is downloaded.
           </p>
         )}
       </div>
@@ -463,8 +464,8 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
         {phase.kind === "loading" && (
           <div className="space-y-2">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="label text-[0.58rem] text-ink/60">{phase.total ? "Downloading the model" : "Loading the model"}</p>
-              <p className="font-mono text-[0.7rem] text-ink/55 tabular-nums">{phase.total ? `${mb(phase.loaded)} / ${mb(phase.total)}` : "…"}</p>
+              <p className="label text-3xs text-ink/75">{phase.total ? "Downloading the model" : "Loading the model"}</p>
+              <p className="font-mono text-[0.7rem] text-ink/70 tabular-nums">{phase.total ? `${mb(phase.loaded)} / ${mb(phase.total)}` : "…"}</p>
             </div>
             <Bar value={phase.total ? phase.progress / 100 : null} label="Model download" />
             <Note>
@@ -476,16 +477,16 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
         {running && (
           <div className="space-y-3">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="label text-[0.58rem] text-ink/60">
+              <p className="label text-3xs text-ink/75">
                 Listening · part {Math.min(running.done + 1, running.total || totalChunks)} of {running.total || totalChunks}
               </p>
-              <p className="font-mono text-[0.7rem] text-ink/55 tabular-nums">
+              <p className="font-mono text-[0.7rem] text-ink/70 tabular-nums">
                 {clock(elapsed)} · ~{clock(left)} left
               </p>
             </div>
             <Bar value={(running.total || totalChunks) > 1 ? running.done / (running.total || totalChunks) : null} label="Transcription progress" />
             {running.partial && (
-              <pre ref={preview} className="max-h-40 overflow-y-auto rounded-[2px] bg-ink/[0.04] p-3 font-mono text-[0.75rem] leading-relaxed whitespace-pre-wrap text-ink/60">
+              <pre ref={preview} className="max-h-40 overflow-y-auto rounded-[2px] bg-ink/[0.04] p-3 font-mono text-[0.75rem] leading-relaxed whitespace-pre-wrap text-ink/75">
                 {running.partial}
               </pre>
             )}
@@ -498,14 +499,14 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
             <p className="font-display text-lg leading-tight text-wine">{phase.title}</p>
             <p className="font-serif text-[0.95rem] leading-snug text-ink/80">{phase.body}</p>
             {phase.detail && (
-              <details className="font-mono text-[0.65rem] text-ink/50">
+              <details className="font-mono text-2xs text-ink/70">
                 <summary className="cursor-pointer">Details</summary>
                 <p className="mt-1 break-words">{phase.detail}</p>
               </details>
             )}
             {phase.retry && source && (
-              <button type="button" onClick={run} className="label press mt-1 rounded-full bg-ink px-4 py-2 text-[0.6rem] text-paper hover:bg-ember">
-                ↻ Try again
+              <button type="button" onClick={run} className="label press mt-1 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-2xs text-paper hover:bg-ember">
+                <Icon name="refresh" /> Try again
               </button>
             )}
           </div>
@@ -515,13 +516,13 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
       {/* Result */}
       {hasResult && (
         <div className="animate-pop-in space-y-4 border-t border-ink/15 pt-5">
-          <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-[2px] bg-ink/10 ring-1 ring-ink/10">
+          <dl className="grid [&>*]:min-w-0 grid-cols-3 gap-px overflow-hidden rounded-[2px] bg-ink/10 ring-1 ring-ink/10">
             <Stat compact={compact} label="Audio" value={clock(source?.duration ?? 0)} />
             <Stat compact={compact} label="Took" value={phase.kind === "done" ? clock(phase.seconds) : "—"} tone="ember" />
             <Stat compact={compact} label={plain !== null ? "Words" : "Segments"} value={plain !== null ? (plain.match(/\S+/g)?.length ?? 0) : segments.length} />
           </dl>
 
-          <p className="label text-[0.55rem] text-ink/50">Transcript · tap any line to fix it</p>
+          <p className="label text-3xs text-ink/70">Transcript · tap any line to fix it</p>
           {plain !== null ? (
             <textarea
               value={plain}
@@ -534,8 +535,8 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
             <ol className="max-h-[32rem] divide-y divide-ink/10 overflow-y-auto rounded-[2px] ring-1 ring-ink/10">
               {segments.map((s, i) => (
                 <li key={i} className="flex flex-col gap-1 bg-paper/70 px-3 py-2 sm:flex-row sm:gap-3">
-                  <span className="shrink-0 pt-1 font-mono text-[0.65rem] text-ember tabular-nums sm:w-28">
-                    {timecode(s.start, ".").replace(/^00:/, "").slice(0, -4)} → {timecode(s.end, ".").replace(/^00:/, "").slice(0, -4)}
+                  <span className="shrink-0 pt-1 font-mono text-2xs text-ember tabular-nums sm:w-28">
+                    {timecode(s.start, ".").replace(/^00:/, "").slice(0, -4)} – {timecode(s.end, ".").replace(/^00:/, "").slice(0, -4)}
                   </span>
                   <textarea
                     value={s.text}
@@ -553,8 +554,14 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
           )}
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={copy} className="label press rounded-full bg-ink px-4 py-2.5 text-[0.6rem] text-paper hover:bg-ember">
-              {copied ? "✓ Copied" : "Copy text"}
+            <button type="button" onClick={copy} className="label press inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-2xs text-paper hover:bg-ember">
+              {copied ? (
+                <>
+                  <Icon name="check" /> Copied
+                </>
+              ) : (
+                "Copy text"
+              )}
             </button>
             <ExportButton onClick={() => download(`${base}.txt`, transcriptText + "\n", "text/plain")}>.txt</ExportButton>
             <ExportButton disabled={!segments.length} onClick={() => download(`${base}.srt`, toSrt(segments), "application/x-subrip")}>
@@ -568,10 +575,10 @@ export default function WhisperTool({ compact }: { compact?: boolean }) {
         </div>
       )}
 
-      <p className="border-t border-ink/10 pt-4 font-serif text-sm leading-snug text-ink/60">
+      <p className="border-t border-ink/10 pt-4 font-serif text-sm leading-snug text-ink/75">
         <span className="font-semibold text-ink/80">Your audio never leaves this device.</span> Whisper runs right here in your browser; only the model itself is downloaded, once.{" "}
         <a href="https://github.com/openai/whisper" target="_blank" rel="noreferrer" className="ulink text-ember hover:text-ink">
-          Based on OpenAI Whisper (MIT licence) ↗
+          Based on OpenAI Whisper (MIT licence) <Icon name="arrow-up-right" />
         </a>
       </p>
     </div>
@@ -606,9 +613,9 @@ function ExportButton({ children, onClick, disabled }: { children: React.ReactNo
         haptic();
         onClick();
       }}
-      className="label press rounded-full border border-ink/25 px-4 py-2.5 text-[0.6rem] text-ink hover:border-ink hover:bg-ink hover:text-paper disabled:pointer-events-none disabled:opacity-35"
+      className="label press inline-flex items-center gap-1.5 rounded-full border border-ink/25 px-4 py-2.5 text-2xs text-ink hover:border-ink hover:bg-ink hover:text-paper disabled:pointer-events-none disabled:opacity-35"
     >
-      ↓ {children}
+      <Icon name="download" /> {children}
     </button>
   );
 }

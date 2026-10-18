@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { openPalette } from "@/components/search/PaletteHost";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 
 /** "g" then a letter jumps to a page, like Gmail and Linear. */
@@ -86,8 +87,8 @@ export default function Shortcuts() {
   return (
     <>
       {pending && (
-        <p aria-hidden className="animate-blob-in label pointer-events-none fixed bottom-6 left-1/2 z-[96] -translate-x-1/2 rounded-full bg-ink px-4 py-2.5 text-[0.58rem] text-paper shadow-xl">
-          g → {JUMPS.map((j) => j.key).join(" ")}
+        <p aria-hidden className="animate-blob-in label pointer-events-none fixed bottom-6 left-1/2 z-[96] -translate-x-1/2 rounded-full bg-ink px-4 py-2.5 text-3xs text-paper shadow-xl">
+          g <Icon name="arrow-right" className="mx-1" /> {JUMPS.map((j) => j.key).join(" ")}
         </p>
       )}
       {open && (
@@ -101,11 +102,11 @@ export default function Shortcuts() {
           >
             <div className="flex items-baseline justify-between gap-4">
               <p className="font-display text-3xl">Shortcuts</p>
-              <button type="button" onClick={() => setOpen(false)} className="label press rounded-full px-3 py-1.5 text-[0.55rem] text-ink/60 hover:bg-ink/5 hover:text-ink">
+              <button type="button" onClick={() => setOpen(false)} className="label press rounded-full px-3 py-1.5 text-3xs text-ink/75 hover:bg-ink/5 hover:text-ink">
                 Esc
               </button>
             </div>
-            <p className="label mt-6 mb-3 text-[0.55rem] text-ember">Jump to a page: press g, then</p>
+            <p className="label mt-6 mb-3 text-3xs text-ember">Jump to a page: press g, then</p>
             <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5">
               {JUMPS.map((j) => (
                 <li key={j.key} className="flex items-center gap-3 font-serif">
@@ -113,7 +114,7 @@ export default function Shortcuts() {
                 </li>
               ))}
             </ul>
-            <p className="label mt-7 mb-3 text-[0.55rem] text-ember">Everywhere</p>
+            <p className="label mt-7 mb-3 text-3xs text-ember">Everywhere</p>
             <ul className="space-y-2.5">
               {OTHER.map(([keys, label]) => (
                 <li key={label} className="flex items-center gap-3 font-serif">

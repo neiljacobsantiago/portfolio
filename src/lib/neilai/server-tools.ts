@@ -322,7 +322,7 @@ export async function runTool(name: string | undefined, args: Args = {}, ctx: To
       return {
         result: {
           algorithm: ALGORITHMS[algorithm].label,
-          placements: r.placements.map((p) => `P${p.process} (${p.size}K) → ${p.block === null ? "must wait" : `block of ${blocks[p.block]}K`}`),
+          placements: r.placements.map((p) => `P${p.process} (${p.size}K): ${p.block === null ? "must wait" : `block of ${blocks[p.block]}K`}`),
           freeLeft: r.freeLeft,
           largestHole: r.largestHole,
           externalFragmentation: r.externalFragmentation,

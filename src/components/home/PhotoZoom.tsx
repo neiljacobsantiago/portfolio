@@ -63,12 +63,12 @@ export default function PhotoZoom({ panels, collections }: { panels: Panel[]; co
 
           <li className="pz-cell pz-title-cell [grid-area:t]">
             <div className="sx pz-title relative flex h-full flex-col justify-center gap-[0.6em] p-[clamp(0.75rem,3cqmin,2rem)]">
-              <p className="label w-max max-w-full truncate bg-ember px-2 py-1 text-[clamp(0.5rem,1.6cqmin,0.68rem)] text-paper">Neil Jacob Santiago · Photographs</p>
+              <p className="label w-max max-w-full truncate bg-ember px-2 py-1 text-[clamp(0.6875rem,1.6cqmin,0.75rem)] text-paper">Neil Jacob Santiago · Photographs</p>
               <h2 id="sheet-title" className={cn(poster.className, "text-[clamp(2rem,15cqmin,6.5rem)] leading-[0.92] tracking-[0.005em] uppercase")}>
                 <span className="block text-paper">{count} worlds.</span>
                 <span className="block text-sky">One shutter.</span>
               </h2>
-              <p className="max-w-[34ch] font-serif text-[clamp(0.8rem,2.6cqmin,1.125rem)] leading-snug text-paper/80 italic">
+              <p className="max-w-[34ch] font-serif text-[clamp(0.8rem,2.6cqmin,1.125rem)] leading-snug text-paper/85">
                 Concert pits, studio sets, campus stages, open roads, the night sky, and a few virtual ones.
               </p>
             </div>
@@ -87,12 +87,12 @@ export default function PhotoZoom({ panels, collections }: { panels: Panel[]; co
 
         {/* Scene only: the opening frame's caption and a nudge to scroll */}
         <div aria-hidden className="sx pz-intro pointer-events-none absolute inset-x-0 bottom-0 hidden items-end justify-between gap-4 bg-gradient-to-t from-ink/85 to-transparent px-5 pt-24 pb-6 scene:flex md:px-10 md:pb-10">
-          <p className="label min-w-0 truncate text-[0.62rem] text-paper/85">
+          <p className="label min-w-0 truncate text-2xs text-paper/85">
             <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-ember align-middle" />
             {hero.photo.alt}
-            {hero.photo.note && <span className="hidden text-paper/55 sm:inline"> · {hero.photo.note}</span>}
+            {hero.photo.note && <span className="hidden text-paper/70 sm:inline"> · {hero.photo.note}</span>}
           </p>
-          <p className="label inline-flex shrink-0 items-center gap-1.5 text-[0.62rem] text-paper/60">
+          <p className="label inline-flex shrink-0 items-center gap-1.5 text-2xs text-paper/75">
             Step back <Icon name="arrow-down" />
           </p>
         </div>
@@ -122,7 +122,7 @@ function PanelLink({ panel, index, hero, sizes, className }: { panel: Panel; ind
       <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" />
       <span className="pz-cap-wrap absolute bottom-[clamp(0.35rem,2.5cqmin,1rem)] left-[clamp(0.35rem,2.5cqmin,1rem)] max-w-[calc(100%-0.7rem)]">
         <span className="sx pz-cap block" style={{ "--i": index } as CSSProperties}>
-          <span className="label mb-1 hidden w-max bg-paper px-1.5 py-0.5 text-[0.5rem] text-ink sm:block">{panel.title}</span>
+          <span className="label mb-1 hidden w-max bg-paper px-1.5 py-0.5 text-3xs text-ink sm:block">{panel.title}</span>
           <span className={cn(className, "pz-cap-text block bg-ink px-[0.45em] py-[0.2em] leading-[1] text-paper uppercase", hero && "bg-ember")}>{caption}</span>
         </span>
       </span>

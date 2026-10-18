@@ -75,7 +75,7 @@ export default function ContributionGraph({ weeks, byWeekday }: { weeks: (Day | 
           <span />
           <div className={`relative h-5 ${COLUMNS}`} style={cols}>
             {months.map((m) => (
-              <span key={m.col} className="label text-[0.55rem] whitespace-nowrap text-paper/45" style={{ gridColumn: `${m.col + 1} / span 3`, gridRow: 1 }}>
+              <span key={m.col} className="label text-3xs whitespace-nowrap text-paper/70" style={{ gridColumn: `${m.col + 1} / span 3`, gridRow: 1 }}>
                 {m.label}
               </span>
             ))}
@@ -86,7 +86,7 @@ export default function ContributionGraph({ weeks, byWeekday }: { weeks: (Day | 
             {WEEKDAYS.map((d, i) => (
               <span
                 key={d}
-                className={cn("label flex items-center text-[0.55rem] transition-colors", tip && new Date(`${tip.day.date}T00:00:00Z`).getUTCDay() === i ? "text-ember" : "text-paper/40", i % 2 === 0 && "max-lg:invisible")}
+                className={cn("label flex items-center text-3xs transition-colors", tip && new Date(`${tip.day.date}T00:00:00Z`).getUTCDay() === i ? "text-ember" : "text-paper/70", i % 2 === 0 && "max-lg:invisible")}
               >
                 {d}
               </span>
@@ -143,7 +143,7 @@ export default function ContributionGraph({ weeks, byWeekday }: { weeks: (Day | 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         {/* Legend: hover a level to isolate it */}
         <div className="flex items-center gap-2" onPointerLeave={() => setLevel(null)}>
-          <span className="label text-[0.55rem] text-paper/45">Less</span>
+          <span className="label text-3xs text-paper/70">Less</span>
           {LEVEL_CLASS.map((c, i) => (
             <button
               key={c}
@@ -157,12 +157,12 @@ export default function ContributionGraph({ weeks, byWeekday }: { weeks: (Day | 
               className={cn("press h-3.5 w-3.5 rounded-[3px] transition-transform duration-300 ease-[var(--ease-spring)] hover:scale-125 aria-pressed:scale-125 aria-pressed:ring-2 aria-pressed:ring-paper", c)}
             />
           ))}
-          <span className="label text-[0.55rem] text-paper/45">More</span>
+          <span className="label text-3xs text-paper/70">More</span>
         </div>
 
         {/* Weekly rhythm */}
         <div className="flex items-end gap-3" aria-label="Contributions by weekday">
-          <span className="label mr-1 self-center text-[0.55rem] text-paper/45">Rhythm</span>
+          <span className="label mr-1 self-center text-3xs text-paper/70">Rhythm</span>
           {byWeekday.map((n, i) => (
             <div key={WEEKDAYS[i]} className="group flex flex-col items-center gap-1.5" title={`${n} on ${WEEKDAYS[i]}s`}>
               <div className="flex h-12 w-3 items-end overflow-hidden rounded-full bg-paper/[0.07]">
@@ -171,7 +171,7 @@ export default function ContributionGraph({ weeks, byWeekday }: { weeks: (Day | 
                   style={{ height: shown ? `${Math.max(8, (n / maxWeekday) * 100)}%` : "0%", transitionDelay: `${300 + i * 60}ms` }}
                 />
               </div>
-              <span className="label text-[0.5rem] text-paper/45">{WEEKDAYS[i][0]}</span>
+              <span className="label text-3xs text-paper/70">{WEEKDAYS[i][0]}</span>
             </div>
           ))}
         </div>

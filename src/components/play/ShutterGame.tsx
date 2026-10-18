@@ -644,11 +644,11 @@ export default function ShutterGame() {
           <>
             <div className="pointer-events-none absolute inset-x-2 top-2 flex items-start justify-between gap-2 sm:inset-x-3 sm:top-3">
               <div className="min-w-0 space-y-1.5" aria-live="polite">
-                <p className="label w-fit rounded-full bg-paper/90 px-3 py-1.5 text-[0.52rem] text-ink">
+                <p className="label w-fit rounded-full bg-paper/90 px-3 py-1.5 text-3xs text-ink">
                   {ROLL - shots.length} left<span className="hidden sm:inline"> · aim, then click or Space</span>
                 </p>
                 {lastShot && (
-                  <p key={shots.length} className={cn("animate-pop-in label w-fit max-w-full truncate rounded-full px-3 py-1.5 text-[0.5rem]", lastShot.verdict === "Keeper" ? "bg-[#2e8b57] text-paper" : "bg-ink/80 text-paper")}>
+                  <p key={shots.length} className={cn("animate-pop-in label w-fit max-w-full truncate rounded-full px-3 py-1.5 text-3xs", lastShot.verdict === "Keeper" ? "bg-[#2e8b57] text-paper" : "bg-ink/80 text-paper")}>
                     {lastShot.verdict} {lastShot.score} · {lastShot.why}
                   </p>
                 )}
@@ -658,7 +658,7 @@ export default function ShutterGame() {
                   type="button"
                   onClick={() => setLens((l) => (l === "35" ? "85" : "35"))}
                   aria-label={`Lens: ${lens}mm${lens === "85" ? ", scores 15% more" : ""}. Switch lens`}
-                  className="label press flex h-11 items-center rounded-full bg-paper/90 px-3 text-[0.52rem] text-ink"
+                  className="label press flex h-11 items-center rounded-full bg-paper/90 px-3 text-3xs text-ink"
                 >
                   {lens}mm{lens === "85" ? " +15%" : ""}
                 </button>
@@ -690,7 +690,7 @@ export default function ShutterGame() {
                 <p className="label text-sky">Roll complete · {rollMode === "easy" ? "Easy" : "Pro"}</p>
                 <p className="font-display text-5xl leading-none">
                   {total}
-                  <span className="font-serif text-2xl text-paper/60">/{ROLL * 100}</span>
+                  <span className="font-serif text-2xl text-paper/75">/{ROLL * 100}</span>
                 </p>
                 <p className="font-serif text-paper/75 italic">
                   {keepers} {keepers === 1 ? "keeper" : "keepers"}
@@ -701,10 +701,10 @@ export default function ShutterGame() {
                     {/* eslint-disable-next-line @next/next/no-img-element -- generated in the browser */}
                     <img src={bestShot.thumb} alt="Your best frame" className="h-16 w-12 rounded-sm object-cover sm:h-20 sm:w-15" />
                     <div className="space-y-1">
-                      <p className="label text-[0.5rem] text-sky">Best frame · {bestShot.score}</p>
+                      <p className="label text-3xs text-sky">Best frame · {bestShot.score}</p>
                       {(["sharp", "lit", "framed"] as const).map((k) => (
                         <div key={k} className="flex items-center gap-2">
-                          <span className="label w-12 text-[0.48rem] text-paper/60">{k}</span>
+                          <span className="label w-12 text-3xs text-paper/75">{k}</span>
                           <span className="h-1.5 w-20 overflow-hidden rounded-full bg-paper/15">
                             <span className="block h-full rounded-full bg-sky" style={{ width: `${Math.round(bestShot.parts[k] * 100)}%` }} />
                           </span>
@@ -730,13 +730,13 @@ export default function ShutterGame() {
                   role="radio"
                   aria-checked={mode === m}
                   onClick={() => setMode(m)}
-                  className={cn("label min-h-11 rounded-full px-3 text-[0.56rem] transition-colors", mode === m ? "bg-paper text-ink" : "text-paper/75 pointer-fine:hover:text-paper")}
+                  className={cn("label min-h-11 rounded-full px-3 text-3xs transition-colors", mode === m ? "bg-paper text-ink" : "text-paper/75 pointer-fine:hover:text-paper")}
                 >
                   {m === "easy" ? "Easy" : "Pro"}
                 </button>
               ))}
             </div>
-            <p className="max-w-xs font-serif text-sm text-paper/65 italic">
+            <p className="max-w-xs font-serif text-sm text-paper/75 italic">
               {mode === "easy" ? "Slow warm-up, wide timing, a strobe at the top of most jumps." : "Random strobes, tight timing, and the band speeds up."}
             </p>
             <button type="button" onClick={startRoll} className="btn bg-paper py-3 text-ink pointer-fine:hover:bg-sky">
@@ -756,8 +756,8 @@ export default function ShutterGame() {
                 {/* eslint-disable-next-line @next/next/no-img-element -- generated in the browser */}
                 {s?.thumb && <img src={s.thumb} alt={`Shot ${i + 1}: ${s.verdict}`} className="h-full w-full object-cover" />}
               </div>
-              <p className={cn("label mt-1 truncate text-center text-[0.44rem]", s?.verdict === "Keeper" ? "text-[#2e8b57]" : s?.verdict === "Almost" ? "text-[#b8860b]" : "text-ember")}>{s ? `${s.verdict} ${s.score}` : `${i + 1}`}</p>
-              {s && <p className="hidden truncate text-center font-serif text-[0.58rem] text-ink/55 italic sm:block">{s.why}</p>}
+              <p className={cn("label mt-1 truncate text-center text-3xs", s?.verdict === "Keeper" ? "text-[#2e8b57]" : s?.verdict === "Almost" ? "text-[#b8860b]" : "text-ember")}>{s ? `${s.verdict} ${s.score}` : `${i + 1}`}</p>
+              {s && <p className="hidden truncate text-center font-serif text-3xs text-ink/70 italic sm:block">{s.why}</p>}
             </li>
           );
         })}

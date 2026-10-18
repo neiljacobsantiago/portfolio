@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { availabilityDot, type ResolvedAvailability } from "@/content/availability";
+import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,9 +23,7 @@ export default function AvailabilityBadge({ availability, href = "/now", tone = 
         <span className={cn("relative h-2 w-2 rounded-full", dot)} />
       </span>
       <span className="min-w-0">{availability.headline}</span>
-      <span aria-hidden className="not-italic opacity-50 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-0.5">
-        →
-      </span>
+      <Icon name="arrow-right" className="text-[0.85em] opacity-70 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-0.5" />
     </Link>
   );
 }

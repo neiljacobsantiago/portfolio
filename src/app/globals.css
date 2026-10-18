@@ -43,6 +43,21 @@
   --ease-settle: linear(0, 0.05, 0.166, 0.312, 0.462, 0.601, 0.72, 0.817, 0.891, 0.946, 0.983, 1.007, 1.021, 1.027, 1.028, 1.026, 1.023, 1.019, 1.015, 1.011, 1.007, 1.005, 1.003, 1.001, 1, 1, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 1);
 }
 
+/* The two smallest steps of the type scale, for mono captions and meta lines.
+   They are the floor: nothing that has to be read goes smaller than text-3xs
+   (11px on phones). Not inlined, so the media query below can nudge them up
+   on larger screens. */
+@theme {
+  --text-3xs: 0.6875rem;
+  --text-2xs: 0.72rem;
+}
+@media (min-width: 48rem) {
+  :root {
+    --text-3xs: 0.7rem;
+    --text-2xs: 0.75rem;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

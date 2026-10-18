@@ -10,6 +10,7 @@ import { haptic } from "@/lib/haptics";
 import { askNeilAI } from "@/lib/neilai-events";
 import { allRoutes } from "@/lib/site";
 import { chatTools, starterCard, tools } from "@/lib/tools";
+import Icon, { type IconName } from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -23,7 +24,7 @@ type Item = {
   run?: () => void;
 };
 
-const ICON: Record<Item["group"], string> = { Ask: "✦", Pages: "◎", Services: "✳", Tools: "🧪", Projects: "▣", Photography: "◐", Actions: "→" };
+const ICON: Record<Item["group"], IconName> = { Ask: "sparkle", Pages: "file", Services: "briefcase", Tools: "tools", Projects: "grid", Photography: "image", Actions: "arrow-right" };
 
 const BASE: Item[] = [
   ...allRoutes.map((r) => ({ id: `page:${r.href}`, group: "Pages" as const, title: r.label, hint: r.description, keywords: r.href, href: r.href })),
@@ -141,7 +142,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         className="animate-blob-in flex max-h-[70vh] w-full max-w-xl origin-top flex-col overflow-hidden rounded-[20px] bg-paper shadow-[0_40px_100px_-30px_rgb(0_48_73/0.7)] ring-1 ring-ink/15"
       >
         <div className="flex items-center gap-3 border-b border-ink/10 px-5">
-          <span aria-hidden className="font-display text-xl text-ember">⌕</span>
+          <Icon name="search" className="h-5 w-5 text-ember" />
           <input
             ref={inputRef}
             value={query}
@@ -161,33 +162,31 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
             aria-controls="palette-results"
             aria-activedescendant={results[active] ? `palette-${results[active].id}` : undefined}
             placeholder="Search projects, tools, photos — or ask NeilAI…"
-            className="h-14 min-w-0 flex-1 bg-transparent font-serif text-lg text-ink outline-none placeholder:text-ink/40"
+            className="h-14 min-w-0 flex-1 bg-transparent font-serif text-lg text-ink outline-none placeholder:text-ink/55"
           />
-          <kbd className="label hidden rounded border border-ink/20 px-1.5 py-0.5 text-[0.55rem] text-ink/50 sm:block">Esc</kbd>
+          <kbd className="label hidden rounded border border-ink/20 px-1.5 py-0.5 text-3xs text-ink/70 sm:block">Esc</kbd>
         </div>
 
         <ul ref={listRef} id="palette-results" role="listbox" className="thin-scrollbar overflow-y-auto overscroll-contain p-2" data-lenis-prevent>
-          {results.length === 0 && <li className="p-6 text-center font-serif text-ink/55 italic">Nothing here yet — try another word.</li>}
+          {results.length === 0 && <li className="p-6 text-center font-serif text-ink/75 italic">No matches. Try another word.</li>}
           {results.map((item, index) => {
             const header = index === 0 || results[index - 1].group !== item.group ? item.group : null;
             const body = (
               <>
-                <span aria-hidden className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm", item.group === "Ask" ? "bg-ember text-paper" : "bg-ink/[0.06]")}>
-                  {ICON[item.group]}
+                <span aria-hidden className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", item.group === "Ask" ? "bg-ember text-paper" : "bg-ink/[0.06]")}>
+                  <Icon name={ICON[item.group]} className="h-4 w-4" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-serif text-[1.05rem] leading-tight">{item.title}</span>
-                  <span className="block truncate font-serif text-sm text-ink/55 italic">{item.hint}</span>
+                  <span className="block truncate font-serif text-sm text-ink/75">{item.hint}</span>
                 </span>
-                <span aria-hidden className={cn("label text-[0.55rem] text-ink/40", index !== active && "invisible")}>
-                  ↵
-                </span>
+                <Icon name="enter" className={cn("h-4 w-4 text-ink/75", index !== active && "invisible")} />
               </>
             );
             const rowClass = cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors", index === active ? "bg-ink text-paper [&_span]:text-paper/90" : "text-ink");
             return (
               <li key={item.id} data-index={index} id={`palette-${item.id}`} role="option" aria-selected={index === active} onMouseMove={() => setActive(index)}>
-                {header && <p className="label px-3 pt-3 pb-1.5 text-[0.55rem] text-ink/45">{header}</p>}
+                {header && <p className="label px-3 pt-3 pb-1.5 text-3xs text-ink/70">{header}</p>}
                 {item.href ? (
                   <Link href={item.href} onClick={() => onClose()} className={rowClass} tabIndex={-1}>
                     {body}
@@ -202,8 +201,11 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
           })}
         </ul>
 
-        <p className="label flex justify-between border-t border-ink/10 px-5 py-2.5 text-[0.52rem] text-ink/45">
-          <span>↑↓ to move · ↵ to open</span>
+        <p className="label flex justify-between border-t border-ink/10 px-5 py-2.5 text-3xs text-ink/70">
+          <span className="inline-flex items-center gap-1">
+            <Icon name="arrow-up" />
+            <Icon name="arrow-down" /> to move · <Icon name="enter" /> to open
+          </span>
           <span>{results.length} results</span>
         </p>
       </div>

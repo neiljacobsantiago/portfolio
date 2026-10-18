@@ -20,7 +20,7 @@ export default async function KindWords({ project, offer, compact = false, class
   return (
     <section aria-labelledby="kind-words-title" className={className}>
       {compact ? (
-        <h2 id="kind-words-title" className="label mb-4 text-ink/50">
+        <h2 id="kind-words-title" className="label mb-4 text-ink/70">
           Kind words
         </h2>
       ) : (
@@ -44,9 +44,9 @@ export default async function KindWords({ project, offer, compact = false, class
                 <figcaption className="mt-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <span>
                     <span className="block font-display text-lg">{t.name}</span>
-                    {t.role && <span className="block font-serif text-base text-ink/60 italic">{t.role}</span>}
+                    {t.role && <span className="block font-serif text-base text-ink/75 italic">{t.role}</span>}
                   </span>
-                  <span className="label text-[0.58rem] text-ink/45">
+                  <span className="label text-3xs text-ink/70">
                     {work && !project && (
                       <>
                         <Link href={`/work/${work.slug}`} className="ulink hover:text-ink">

@@ -18,7 +18,7 @@ export default function TermsPage() {
           The fine print, <em className="font-serif text-ember">kept short.</em>
         </>
       }
-      lead="By using this site or booking a shoot through it, you agree to the terms below."
+      lead="Short, readable terms for using this site and booking a shoot through it. Using either means you agree to them."
       updated={LEGAL_UPDATED}
       sections={[
         {

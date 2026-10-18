@@ -67,14 +67,14 @@ export default function ScrollShot({ src, alt, host }: { src: string; alt: strin
             <span className="h-2.5 w-2.5 rounded-full bg-[#e5b84b]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#5bb974]" />
           </span>
-          <span className="mx-auto min-w-0 truncate rounded-full bg-paper px-4 py-1 font-mono text-[0.7rem] text-ink/60">{host}</span>
+          <span className="mx-auto min-w-0 truncate rounded-full bg-paper px-4 py-1 font-mono text-[0.7rem] text-ink/75">{host}</span>
           <button
             type="button"
             onClick={() => {
               haptic();
               setExpanded(true);
             }}
-            className="label press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[0.58rem] text-ink/60 hover:bg-ink hover:text-paper"
+            className="label press inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-3xs text-ink/75 hover:bg-ink hover:text-paper"
           >
             Expand <Icon name="plus" className="h-3.5 w-3.5" />
           </button>
@@ -101,7 +101,7 @@ export default function ScrollShot({ src, alt, host }: { src: string; alt: strin
           </span>
           <span
             aria-hidden
-            className={`label pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-ink/85 px-4 py-2 text-[0.58rem] whitespace-nowrap text-paper backdrop-blur transition-opacity duration-500 ${touched ? "opacity-0" : "opacity-100"}`}
+            className={`label pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-ink/85 px-4 py-2 text-3xs whitespace-nowrap text-paper backdrop-blur transition-opacity duration-500 ${touched ? "opacity-0" : "opacity-100"}`}
           >
             <span className="pointer-fine:hidden">Swipe inside to scroll</span>
             <span className="hidden pointer-fine:inline">Hover to glide · scroll to explore</span>

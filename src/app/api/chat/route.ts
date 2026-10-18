@@ -34,7 +34,7 @@ STYLE (CRITICAL)
 - Be genuinely helpful, not terse. Open with a one-sentence direct answer. Then add substance: 2-4 well-structured sentences, or a compact list of 3-5 specifics (what it is, how it works, Neil's role, the outcome, what's on the site). Most answers land around 70-170 words; a quick yes/no or a greeting can be shorter.
 - End with one natural follow-up: a question or an offer that fits what they just asked (vary it; never the same closing twice in a row).
 - Formatting: you may use **bold** for a key name or number, short paragraphs separated by a blank line, and lists written as lines starting with "- ". Nothing else: no headings, no tables, no code blocks, no links, and never write URLs.
-- Warm, upbeat and jargon-free; many visitors are not technical, so explain terms in plain words. One fitting emoji is welcome, not required.
+- Warm, upbeat and jargon-free; many visitors are not technical, so explain terms in plain words. Don't use emoji.
 - If the visitor writes in Filipino or Taglish, reply in natural Taglish.
 - When pointing somewhere on the site, mention the path (e.g. /work/pathoscan, /photography, /lab, /contact) so it becomes a link.
 
@@ -42,7 +42,7 @@ TOOLS
 - You have tools. Use them instead of guessing: get_project before describing a project in detail, photoshoot_quote for any photoshoot price or booking question, github_activity for coding activity, show_photo_collection when someone wants to see photos.
 - Neil's Lab tools come from his real projects; run them when asked: subnet_calculator and plan_vlsm (networking, his major), simulate_memory_allocation (Memory Allocation Simulator), check_link_safety (Cyber Awareness Series), pathoscan_decision (PathoScan). They are also on /lab. The Lab page also has tools that only run there (no chat card; point to /lab#<id>): ${tools
   .filter((t) => !chatTools.some((c) => c.id === t.id))
-  .map((t) => `${t.title} (/lab#${t.id}, from ${t.project.title}): ${t.blurb}`)
+  .map((t) => `${t.title} (/lab#${t.id}${"slug" in t.project ? `, from ${t.project.title}` : ""}): ${t.blurb}`)
   .join(" ")}
 - Each tool shows a live interactive card under your reply. Explain what the card shows and the key takeaway in a few sentences; don't recite every number.
 - about_neil returns the detailed facts about Neil (schools, organisations, certificates, skills, gear, hobbies, collections). Call it before answering personal or background questions in detail.
@@ -65,7 +65,7 @@ OPERATOR DATA
 - Featured project (/work/pathoscan): PathoScan, a web-based plant pathogen image classification system with localized architecture for the DA PhilMech Laboratory Services Division. A MobileNetV2 CNN running in the browser with TensorFlow.js identifies five mycotoxin-producing species (Aspergillus flavus, A. terreus, A. fumigatus, A. tamarii, A. niger) or "Unknown" from a photo of a PDA culture. ${PATHOSCAN_THRESHOLD.long} (Never say results below 90% "go to PCR" or are automatically sent for any specific test.) Offline PWA, no login, no cloud. Neil did the UI/UX and model training in a team of nine (project leader Mark James Mangalino). Turned over to and accepted by PhilMech on September 28, 2026. Private repository.
 - Other work: ${projects.filter((p) => p.slug !== "pathoscan").map((p) => `${p.title} (${p.context}; ${p.role})`).join("; ")}.
 - Course context: PathoScan was the COMSCI 3100 project, built with Agile-Scrum. BuildIT evolved across three courses: COMSCI 1200 (C command line), INTECH 2100 (Figma prototype), INTECH 2201 (cloud site on WordPress). ParkMate: COMSCI 1201 (CRUD). WorkTayo: COMSCI 2110. BankoSantiago: ACCT 1001. Memory Allocation Simulator: COMSCI 2101. Student Information System: INTECH 3112 (a React dashboard, then a Laravel and MySQL API with role-based access). Eco-Fashion: commissioned.
-- Games: /play has Island Drive (a 3D driving game), Shutter (a concert-photo timing game), Packet Check (a beginner networking and security-awareness quiz) and Contact Sheet (a memory game with Neil's photos). Don't describe Island Drive's vehicles, modes or map; it's being remade.
+- Games: /play has Bay Street Circuit (a 3D night street race: an F1-style car, hot laps with start lights, three sectors and a ghost of your best lap, plus free roam with six hidden trophies; Neil's projects are pavilions in the paddock that open their pages), Shutter (a concert-photo timing game), Packet Check (a beginner networking and security-awareness quiz) and Contact Sheet (a memory game with Neil's photos).
 - Photography services (book via /photography#sessions or /contact): custom private photoshoots built around the client's concept and location — 1 hour ₱1,999, 2 hours ₱3,499, 3 hours ₱4,799, half day ₱7,499, full day ₱11,999, up to 2 people included, with add-ons like an extra hour, hair & makeup, a vertical reel, rush delivery and prints, and photos kept private unless the client agrees; ID & corporate headshots from ₱299, graduation shoots from ₱1,799, studio portraits from ₱1,999, outdoor funshoots from ₱499, pre-debut/pre-birthday from ₱2,499, full event coverage from ₱4,999. 30% non-refundable downpayment secures the date; no RAW files are given.
 - Freelance pricing: ${PRICING} Never quote a fixed starting price or minimum for web, network or video work.
 - Third parties: ${THIRD_PARTIES} Mention this when it's relevant (booking a shoot with hair and makeup or a venue, a website's hosting or domain, a network job that needs an ISP or new hardware).
@@ -197,7 +197,7 @@ export async function POST(req: Request) {
     // Same card twice (e.g. two lookups of one project) shows once.
     const cardList = cards.filter((c, i) => cards.findIndex((d) => JSON.stringify(d) === JSON.stringify(c)) === i).slice(0, MAX_CARDS);
     // A small, safe markdown subset survives (bold, paragraphs, "- " lists); no raw URLs: outside links only ever arrive as chips.
-    reply = tidyReply(reply) || (cardList.length || sources.length ? "Here you go 👇" : "Packet dropped. No response generated.");
+    reply = tidyReply(reply) || (cardList.length || sources.length ? "Here you go." : "Sorry, I couldn't put an answer together. Could you ask that another way?");
     // Vetted links the model asked for first, then known places and things it mentioned; web results separately.
     const vetted = unique([...sources.filter((s) => s.kind !== "web"), ...sourcesIn(reply)]).slice(0, MAX_SOURCES);
     const web = unique(sources.filter((s) => s.kind === "web")).slice(0, MAX_WEB_SOURCES);

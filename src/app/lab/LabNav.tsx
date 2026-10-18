@@ -39,12 +39,12 @@ export default function LabNav({ groups }: { groups: LabGroup[] }) {
               href={`#${g.anchor}`}
               aria-current={active === g.anchor ? "location" : undefined}
               className={cn(
-                "label press flex items-center gap-2 rounded-full px-3.5 py-2 text-[0.58rem] whitespace-nowrap transition-colors",
-                active === g.anchor ? "bg-ink text-paper" : "text-ink/65 hover:bg-ink/[0.06] hover:text-ink",
+                "label press flex items-center gap-2 rounded-full px-3.5 py-2 text-3xs whitespace-nowrap transition-colors",
+                active === g.anchor ? "bg-ink text-paper" : "text-ink/75 hover:bg-ink/[0.06] hover:text-ink",
               )}
             >
               {g.label}
-              <span className={cn("font-mono text-[0.55rem] tabular-nums", active === g.anchor ? "text-paper/60" : "text-ink/40")}>{g.count}</span>
+              <span className={cn("font-mono text-3xs tabular-nums", active === g.anchor ? "text-paper/75" : "text-ink/70")}>{g.count}</span>
             </a>
           </li>
         ))}

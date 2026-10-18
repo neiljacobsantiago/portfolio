@@ -3,13 +3,14 @@ import { getAvailability } from "@/content/availability";
 import { seriesList } from "@/content/series";
 import { featuredProjects } from "@/content/work";
 import { legalRoutes, mainNav, moreRoutes, site, socials } from "@/lib/site";
+import Icon from "@/components/ui/Icon";
 import AvailabilityBadge from "./AvailabilityBadge";
 import BackToTop from "./BackToTop";
 
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="label mb-4 text-paper/40">{title}</p>
+      <p className="label mb-4 text-paper/70">{title}</p>
       <ul className="space-y-2 font-serif text-lg">{children}</ul>
     </div>
   );
@@ -41,10 +42,10 @@ export default async function Footer() {
               {site.name} — networks, web systems and photography from {site.location}, {site.country}.
             </p>
             <AvailabilityBadge availability={availability} className="mt-5 -ml-1" />
-            <Link href="/contact" className="label mt-6 inline-flex rounded-full border border-paper/25 px-4 py-2.5 text-[0.6rem] transition-colors hover:border-paper hover:bg-paper hover:text-ink">
-              Start a conversation →
+            <Link href="/contact" className="label mt-6 inline-flex items-center gap-2 rounded-full border border-paper/25 px-4 py-2.5 text-2xs transition-colors hover:border-paper hover:bg-paper hover:text-ink">
+              Write to {site.firstName} <Icon name="arrow-right" />
             </Link>
-            <p className="label mt-6 text-paper/40">{site.coordinates}</p>
+            <p className="label mt-6 text-paper/70">{site.coordinates}</p>
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:col-span-2 sm:grid-cols-3 lg:col-span-8 lg:grid-cols-5">
@@ -77,7 +78,7 @@ export default async function Footer() {
                   </li>
                 ))}
                 <li>
-                  <Link href="/work" className={`${item} text-paper/60`}>All projects →</Link>
+                  <Link href="/work" className={`${item} text-paper/75`}>All projects <Icon name="arrow-right" className="text-[0.8em]" /></Link>
                 </li>
               </Column>
             </div>
@@ -90,7 +91,7 @@ export default async function Footer() {
                 ))}
                 {site.photographySite.url && (
                   <li>
-                    <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className={item}>Photo archive ↗</a>
+                    <a href={site.photographySite.url} target="_blank" rel="noopener noreferrer" className={item}>Photo archive <Icon name="arrow-up-right" className="text-[0.8em]" /></a>
                   </li>
                 )}
               </Column>
@@ -101,11 +102,11 @@ export default async function Footer() {
                   <li key={s.name}>
                     {s.url ? (
                       <a href={s.url} target="_blank" rel="noopener noreferrer me" className={item}>
-                        {s.name} ↗
+                        {s.name} <Icon name="arrow-up-right" className="text-[0.8em]" />
                       </a>
                     ) : (
-                      <span className="text-paper/35">
-                        {s.name} <span className="label text-[0.6rem]">soon</span>
+                      <span className="text-paper/70">
+                        {s.name} <span className="label text-2xs">soon</span>
                       </span>
                     )}
                   </li>
@@ -115,10 +116,10 @@ export default async function Footer() {
           </nav>
         </div>
 
-        <div className="mt-16 grid gap-6 border-t border-paper/15 pt-6 text-paper/50 md:grid-cols-12 md:items-center">
+        <div className="mt-16 grid gap-6 border-t border-paper/15 pt-6 text-paper/70 md:grid-cols-12 md:items-center">
           <div className="space-y-1 md:col-span-5">
             <p className="label">© {year} {site.name}. All rights reserved.</p>
-            <p className="font-serif text-sm italic">Photographs may not be reused without permission.</p>
+            <p className="font-serif text-sm">Photographs may not be reused without permission.</p>
           </div>
           <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2 md:col-span-4">
             {legalRoutes.map((r) => (
@@ -134,14 +135,14 @@ export default async function Footer() {
             </Link>
           </div>
         </div>
-        <p className="mt-6 font-serif text-sm text-paper/35 italic">Designed and built by {site.firstName} with Next.js · Set in Gloock, Newsreader &amp; Courier Prime · Tool icons by{" "}
-          <a href="https://icons8.com" target="_blank" rel="noopener noreferrer" className="underline decoration-paper/20 underline-offset-2 hover:text-paper/70">
+        <p className="mt-6 font-serif text-sm text-paper/70">Designed and built by {site.firstName} with Next.js · Set in Gloock, Newsreader &amp; IBM Plex Mono · Tool icons by{" "}
+          <a href="https://icons8.com" target="_blank" rel="noopener noreferrer" className="underline decoration-paper/40 underline-offset-2 hover:text-paper">
             Icons8
           </a>{" "}
           · Hosted on Vercel.
           <span className="hidden pointer-fine:inline">
             {" "}
-            · Press <kbd className="rounded bg-paper/10 px-1.5 font-mono text-[0.75rem] not-italic">?</kbd> for keyboard shortcuts.
+            · Press <kbd className="rounded bg-paper/10 px-1.5 font-mono text-[0.75rem]">?</kbd> for keyboard shortcuts.
           </span>
         </p>
       </div>

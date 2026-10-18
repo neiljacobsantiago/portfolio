@@ -191,7 +191,7 @@ const LINKS: [string, string][] = [
   ["about:who", "about:education"],
   ["about:who", "fun:hobbies"],
   ["fun:hobbies", "fun:fact"],
-  ["fun:racing", "game:island-drive"],
+  ["fun:racing", "game:bay-street-circuit"],
   ["fun:hardware", "fun:collecting"],
   ...projects.filter((p) => p.tool).map((p): [string, string] => [`project:${p.slug}`, `tool:${p.tool}`]),
   ...TRIVIA.map((t): [string, string] => [`local:${t.label}`, t.near]),

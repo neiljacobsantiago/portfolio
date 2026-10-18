@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader, { Container } from "@/components/layout/PageHeader";
+import Icon from "@/components/ui/Icon";
 import { getAvailability } from "@/content/availability";
 import { getNow } from "@/content/now";
 import { getGitHubActivity } from "@/lib/github";
@@ -30,7 +31,7 @@ export default async function NowPage() {
         }
         lead={now.intro}
         aside={
-          <p className="label text-[0.6rem] leading-relaxed text-ink/50">
+          <p className="label text-2xs leading-relaxed text-ink/70">
             Last updated · <time dateTime={now.updated}>{longDate(now.updated)}</time>
             <br />
             From {now.place}
@@ -41,13 +42,13 @@ export default async function NowPage() {
       <Container className="pb-24 md:pb-32">
         <div {...reveal("up")} className="grid gap-6 rounded-[2px] bg-ink p-7 text-paper md:grid-cols-12 md:items-center md:p-10">
           <div className="md:col-span-8">
-            <p className="label text-[0.6rem] text-sky">Availability</p>
+            <p className="label text-2xs text-sky">Availability</p>
             <p className="mt-3 font-display text-[clamp(1.75rem,4vw,2.75rem)] leading-tight">{availability.headline}</p>
             <p className="mt-2 font-serif text-lg text-paper/70">{availability.detail}</p>
           </div>
           <div className="flex flex-wrap gap-3 md:col-span-4 md:justify-end">
             <Link href="/services" className="btn bg-paper py-3 text-ink hover:bg-ember hover:text-paper">
-              Services <span className="arrow">→</span>
+              Services <Icon name="arrow-right" className="arrow" />
             </Link>
             <Link href="/contact" className="btn border border-paper/30 py-3 text-paper hover:border-paper">
               Say hello
@@ -59,15 +60,15 @@ export default async function NowPage() {
           {now.entries.map((e, i) => (
             <li key={e.label} {...reveal("up", (i % 3) * 60)} className="grid gap-3 border-t border-ink/15 py-9 md:grid-cols-12 md:gap-8 md:py-12">
               <p className="label pt-1 text-ember md:col-span-3">
-                <span className="mr-2 text-ink/35">{String(i + 1).padStart(2, "0")}</span>
+                <span className="mr-2 text-ink/70">{String(i + 1).padStart(2, "0")}</span>
                 {e.label}
               </p>
               <div className="min-w-0 md:col-span-9">
                 <h2 className="font-display text-[clamp(1.75rem,3.5vw,2.75rem)] leading-[1.08]">{e.title}</h2>
                 {e.detail && <p className="mt-3 max-w-3xl font-serif text-xl leading-relaxed text-ink/75">{e.detail}</p>}
                 {e.link && (
-                  <Link href={e.link.href} className="label ulink mt-4 inline-block text-[0.62rem] text-ink/60 hover:text-ink">
-                    {e.link.label} →
+                  <Link href={e.link.href} className="label ulink mt-4 inline-flex items-center gap-1.5 text-2xs text-ink/75 hover:text-ink">
+                    {e.link.label} <Icon name="arrow-right" />
                   </Link>
                 )}
               </div>
@@ -77,35 +78,35 @@ export default async function NowPage() {
 
         <section aria-label="Live from San Jose City" className="grid gap-px overflow-hidden rounded-[2px] border border-ink/10 bg-ink/10 md:grid-cols-2">
           <div className="bg-sky/25 p-7 md:p-9">
-            <p className="label mb-3 text-[0.6rem] text-ink/60">Outside the window · {site.location}</p>
+            <p className="label mb-3 text-2xs text-ink/80">Outside the window · {site.location}</p>
             {weather ? (
               <p className="font-serif text-xl text-ink/80">
                 <span className="mr-2 font-display text-4xl text-ink">{weather.temperature}°</span>
                 {weather.sky}.
               </p>
             ) : (
-              <p className="font-serif text-xl text-ink/70 italic">The weather station is quiet right now.</p>
+              <p className="font-serif text-xl text-ink/80 italic">No reading from the weather station just now.</p>
             )}
           </div>
           <div className="min-w-0 bg-paper p-7 md:p-9">
-            <p className="label mb-3 text-[0.6rem] text-ink/60">Latest code pushed</p>
+            <p className="label mb-3 text-2xs text-ink/75">Latest code pushed</p>
             {repo ? (
               <a href={repo.url} target="_blank" rel="noopener noreferrer" className="group block min-w-0">
-                <span className="font-display text-2xl break-words group-hover:text-ember">{repo.name} ↗</span>
-                <span className="label mt-2 block text-[0.58rem] text-ink/50">
+                <span className="font-display text-2xl break-words group-hover:text-ember">{repo.name} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" /></span>
+                <span className="label mt-2 block text-3xs text-ink/70">
                   {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeZone: site.timeZone }).format(new Date(repo.pushedAt))}
                 </span>
               </a>
             ) : (
               <a href={`https://github.com/${site.githubUser}`} target="_blank" rel="noopener noreferrer" className="font-display text-2xl break-all hover:text-ember">
-                github.com/{site.githubUser} ↗
+                github.com/{site.githubUser} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" />
               </a>
             )}
           </div>
         </section>
 
         <div className="mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-ink/15 pt-8">
-          <p className="max-w-xl font-serif text-lg text-ink/60 italic">
+          <p className="max-w-xl font-serif text-lg text-ink/75 italic">
             This is a{" "}
             <a href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" className="ulink text-ink/80 hover:text-ink">
               now page
@@ -116,8 +117,8 @@ export default async function NowPage() {
             </Link>
             .
           </p>
-          <Link href="/uses" className="label ulink text-[0.62rem] text-ink/60 hover:text-ink">
-            Gear & tools →
+          <Link href="/uses" className="label ulink inline-flex items-center gap-1.5 text-2xs text-ink/75 hover:text-ink">
+            Gear & tools <Icon name="arrow-right" />
           </Link>
         </div>
       </Container>

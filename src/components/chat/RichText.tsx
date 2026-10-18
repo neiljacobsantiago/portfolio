@@ -38,7 +38,7 @@ export default function RichText({ text, cursor }: { text: string; cursor?: Reac
         }
         const List = b.type === "ul" ? "ul" : "ol";
         return (
-          <List key={i} className={b.type === "ul" ? "space-y-1 pl-1" : "list-decimal space-y-1 pl-5 marker:text-ink/50"}>
+          <List key={i} className={b.type === "ul" ? "space-y-1 pl-1" : "list-decimal space-y-1 pl-5 marker:text-ink/60"}>
             {b.items.map((item, j) => (
               <li key={j} className={b.type === "ul" ? "relative pl-4" : "pl-0.5"}>
                 {b.type === "ul" && <span aria-hidden className="absolute top-[0.6em] left-0.5 h-1.5 w-1.5 rounded-full bg-ember/70" />}

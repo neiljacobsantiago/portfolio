@@ -61,17 +61,17 @@ function MemoryArt({ className }: { className?: string }) {
   return (
     <div className={cn("relative flex flex-col justify-center gap-[5%] overflow-hidden bg-ink p-[7%] text-paper", className)} aria-hidden>
       <div className="absolute -right-20 -bottom-24 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgb(102_155_188/0.35),transparent)]" />
-      <p className="label relative text-[0.55rem] text-sky">memsim · 128K · 4 processes</p>
+      <p className="label relative text-3xs text-sky">memsim · 128K · 4 processes</p>
       {rows.map((r, i) => (
         <div key={r.label} className="relative">
-          <p className="mb-1.5 font-mono text-[0.6rem] text-paper/60">{r.label}</p>
+          <p className="mb-1.5 font-mono text-2xs text-paper/75">{r.label}</p>
           <div className="flex h-7 gap-[3px] md:h-8">
             {r.blocks.map(([w, pid], j) => (
               <span
                 key={j}
                 style={{ width: `${w}%`, transitionDelay: `${i * 80 + j * 40}ms` }}
                 className={cn(
-                  "flex min-w-0 items-center justify-center overflow-hidden rounded-[3px] font-mono text-[0.55rem] text-ink transition-transform duration-700 ease-[var(--ease-spring)] group-hover:-translate-y-0.5",
+                  "flex min-w-0 items-center justify-center overflow-hidden rounded-[3px] font-mono text-3xs text-ink transition-transform duration-700 ease-[var(--ease-spring)] group-hover:-translate-y-0.5",
                   pid ? colors[pid] : "border border-dashed border-paper/25 text-paper/30",
                 )}
               >
@@ -101,15 +101,15 @@ function RegistrarArt({ className }: { className?: string }) {
         <div className="mt-2 h-px bg-[#e4e1d8]" />
         {rows.map(([id, name, sec]) => (
           <div key={id} className="mt-2 flex items-center gap-2 border-t-2 border-[#f2b705] bg-white px-2 py-1.5 shadow-sm">
-            <span className="font-mono text-[0.45rem] text-[#2e7d32] md:text-[0.5rem]">{id}</span>
-            <span className="min-w-0 flex-1 truncate text-[0.55rem] md:text-[0.6rem]">{name}</span>
-            <span className="hidden font-mono text-[0.45rem] text-[#8b7355] sm:inline">{sec}</span>
+            <span className="font-mono text-3xs text-[#2e7d32] md:text-3xs">{id}</span>
+            <span className="min-w-0 flex-1 truncate text-3xs md:text-2xs">{name}</span>
+            <span className="hidden font-mono text-3xs text-[#8b7355] sm:inline">{sec}</span>
           </div>
         ))}
-        <span className="mt-2.5 inline-block rounded-full bg-[#1b5e20] px-2.5 py-1 font-mono text-[0.45rem] text-white">+ New record</span>
+        <span className="mt-2.5 inline-block rounded-full bg-[#1b5e20] px-2.5 py-1 font-mono text-3xs text-white">+ New record</span>
       </div>
       {/* The Laravel API answering */}
-      <div className="relative min-w-0 flex-1 space-y-2 font-mono text-[0.5rem] leading-relaxed md:text-[0.58rem]">
+      <div className="relative min-w-0 flex-1 space-y-2 font-mono text-3xs leading-relaxed md:text-3xs">
         <p className="truncate text-[#8fcb9b]">POST /api/registrar/students</p>
         <div className="rounded-md bg-black/30 p-2 ring-1 ring-white/10 transition-transform delay-75 duration-700 ease-[var(--ease-spring)] group-hover:translate-x-1">
           <p>
@@ -122,7 +122,7 @@ function RegistrarArt({ className }: { className?: string }) {
             <span className="rounded bg-[#c1121f] px-1">403</span> <span className="text-white/60">StudentPolicy@delete</span>
           </p>
         </div>
-        <p className="label pt-1 text-[0.45rem] text-white/50">laravel · sanctum · mysql</p>
+        <p className="label pt-1 text-3xs text-white/50">laravel · sanctum · mysql</p>
       </div>
     </div>
   );
@@ -145,13 +145,13 @@ function WhisperArt({ className }: { className?: string }) {
       </div>
       <div className="space-y-1.5 rounded-xl bg-ink/30 p-[4%] ring-1 ring-paper/15">
         {lines.map(([t, text]) => (
-          <p key={t} className="truncate font-mono text-[0.6rem] md:text-[0.65rem]">
+          <p key={t} className="truncate font-mono text-2xs md:text-2xs">
             <span className="mr-2 text-[#ffd27a]">{t}</span>
             {text}
           </p>
         ))}
       </div>
-      <p className="label text-[0.5rem] text-paper/70">whisper · transcribe · en</p>
+      <p className="label text-3xs text-paper/70">whisper · transcribe · en</p>
     </div>
   );
 }
@@ -170,14 +170,14 @@ function PathoScanArt({ className, priority }: { className?: string; priority?: 
           <Image src="/projects/pathoscan-logo.png" alt="" fill sizes="200px" loading={priority ? "eager" : undefined} className="object-contain drop-shadow-[0_20px_30px_rgb(0_0_0/0.35)] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:rotate-[8deg]" />
         </div>
         <div className="w-[50%] rounded-xl bg-paper/10 p-[4%] ring-1 ring-paper/15 backdrop-blur-sm">
-          <p className="label text-[0.55rem] text-paper/70">Top match · on-device</p>
+          <p className="label text-3xs text-paper/70">Top match · on-device</p>
           <p className="mt-1 font-display text-[clamp(0.9rem,2vw,1.6rem)] leading-tight italic">Aspergillus tamarii</p>
-          <p className="label mt-1 text-[0.5rem] text-[#7bd88f]">Above the 90% bar · screening</p>
+          <p className="label mt-1 text-3xs text-[#7bd88f]">Above the 90% bar · screening</p>
           {/* Small covers (phone cards) keep the top match only, so the panel never outgrows its frame */}
           <div className="mt-2 space-y-2 @md:mt-3">
             {bars.map((b, i) => (
               <div key={b.label} className={i > 0 ? "hidden @md:block" : undefined}>
-                <div className="flex justify-between font-mono text-[0.55rem] text-paper/70">
+                <div className="flex justify-between font-mono text-3xs text-paper/70">
                   <span>{b.label}</span>
                   <span>{b.value}%</span>
                 </div>
@@ -187,7 +187,7 @@ function PathoScanArt({ className, priority }: { className?: string; priority?: 
               </div>
             ))}
           </div>
-          <p className="mt-3 hidden font-mono text-[0.5rem] text-paper/50 @md:block">PathoScan · on-device · offline</p>
+          <p className="mt-3 hidden font-mono text-3xs text-paper/70 @md:block">PathoScan · on-device · offline</p>
         </div>
       </div>
     </div>

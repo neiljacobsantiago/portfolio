@@ -327,7 +327,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
           <BlobAvatar className="h-10 w-10" mood={isTyping ? "thinking" : "idle"} />
           <div className="min-w-0">
             <p className="font-display text-xl leading-none">NeilAI</p>
-            <p className="label mt-1 flex items-center gap-1.5 truncate text-[0.58rem] text-sky">
+            <p className="label mt-1 flex items-center gap-1.5 truncate text-3xs text-sky">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#7bd88f]" /> {isTyping ? "thinking…" : "online · runs Neil's tools"}
             </p>
           </div>
@@ -406,7 +406,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
               {done && msg.links && msg.links.length > 0 && (
                 <div className="animate-pop-in mt-2 flex flex-wrap gap-1.5">
                   {msg.links.map((l) => (
-                    <Link key={l.href} href={l.href} onClick={onClose} className="label press inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-[0.6rem] text-paper hover:bg-ember">
+                    <Link key={l.href} href={l.href} onClick={onClose} className="label press inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-2xs text-paper hover:bg-ember">
                       {l.label} <Icon name="arrow-right" />
                     </Link>
                   ))}
@@ -442,7 +442,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
             onClick={surpriseMe}
             aria-label="Surprise me: pick something at random"
             title="Pick something at random"
-            className="animate-pop-in label press inline-flex shrink-0 items-center gap-1.5 rounded-full border border-dashed border-ember/60 px-3 py-2 text-[0.6rem] text-ember hover:border-ember hover:bg-ember hover:text-paper"
+            className="animate-pop-in label press inline-flex shrink-0 items-center gap-1.5 rounded-full border border-dashed border-ember/60 px-3 py-2 text-2xs text-ember hover:border-ember hover:bg-ember hover:text-paper"
           >
             <Icon name="dice" className="text-[0.85rem]" />
             {SURPRISE}
@@ -454,7 +454,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
               onClick={() => send(s.text)}
               data-topic={s.topic}
               data-template={s.template}
-              className="animate-pop-in label press shrink-0 rounded-full border border-ink/20 px-3 py-2 text-[0.6rem] hover:border-ink hover:bg-ink hover:text-paper"
+              className="animate-pop-in label press shrink-0 rounded-full border border-ink/20 px-3 py-2 text-2xs hover:border-ink hover:bg-ink hover:text-paper"
               style={{ animationDelay: `${(i + 1) * 70}ms` }}
             >
               {s.text}
@@ -479,7 +479,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
           aria-label="Your question"
           maxLength={1000}
           enterKeyHint="send"
-          className="h-11 min-w-0 flex-1 rounded-full bg-paper-deep/70 px-4 font-serif text-ink outline-none placeholder:text-ink/40 focus:ring-1 focus:ring-ember"
+          className="h-11 min-w-0 flex-1 rounded-full bg-paper-deep/70 px-4 font-serif text-ink outline-none placeholder:text-ink/55 focus:ring-1 focus:ring-ember"
         />
         <button
           type="submit"
@@ -502,10 +502,10 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
             onClick={(e) => e.stopPropagation()}
             className="animate-blob-in w-full origin-bottom rounded-[20px] bg-paper p-5 shadow-[0_30px_60px_-20px_rgb(0_48_73/0.6)] ring-1 ring-ink/10"
           >
-            <p className="label text-[0.55rem] text-ember">Leaving Neil&apos;s site{leaving.kind === "web" && " · web result"}</p>
+            <p className="label text-3xs text-ember">Leaving Neil&apos;s site{leaving.kind === "web" && " · web result"}</p>
             <p id="leave-title" className="mt-2 font-display text-[1.7rem] leading-[1.05] break-words text-ink">{leaving.host}</p>
             <p className="mt-1 font-serif text-ink/70 italic">{leaving.label}</p>
-            <p className="mt-3 rounded-xl bg-paper-deep/80 px-3 py-2 font-mono text-[0.68rem] leading-snug break-all text-ink/70">{leaving.href}</p>
+            <p className="mt-3 rounded-xl bg-paper-deep/80 px-3 py-2 font-mono text-2xs leading-snug break-all text-ink/70">{leaving.href}</p>
             <p id="leave-desc" className="mt-3 font-serif text-[0.95rem] leading-snug text-ink/75">
               {leaving.kind === "web" && leaving.href.startsWith("https://www.google.com/search?")
                 ? "This opens a Google search for your question in a new tab. The results aren't checked by Neil, so browse with the usual care."
@@ -514,7 +514,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
                 : "This opens another website in a new tab. Neil doesn't run it, so browse with the usual care."}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button ref={stayRef} type="button" onClick={() => setLeaving(null)} className="label press rounded-full border border-ink/20 py-3 text-[0.58rem] hover:border-ink">
+              <button ref={stayRef} type="button" onClick={() => setLeaving(null)} className="label press rounded-full border border-ink/20 py-3 text-3xs hover:border-ink">
                 Stay here
               </button>
               <a
@@ -526,7 +526,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
                   haptic();
                   setLeaving(null);
                 }}
-                className="label press flex items-center justify-center gap-1.5 rounded-full bg-ink py-3 text-[0.58rem] text-paper hover:bg-ember"
+                className="label press flex items-center justify-center gap-1.5 rounded-full bg-ink py-3 text-3xs text-paper hover:bg-ember"
               >
                 Open link <Icon name="arrow-up-right" />
               </a>
@@ -542,7 +542,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
 function SourceChips({ sources, title, icon }: { sources: Source[]; title: string; icon: IconName }) {
   return (
     <div className="animate-pop-in mt-2 w-full max-w-[88%]" style={{ animationDelay: "90ms" }}>
-      <p className="label mb-1.5 text-[0.5rem] text-ink/40">{title}</p>
+      <p className="label mb-1.5 text-3xs text-ink/70">{title}</p>
       <div className="flex flex-wrap gap-1.5">
         {sources.map((src) => (
           <a
@@ -559,7 +559,7 @@ function SourceChips({ sources, title, icon }: { sources: Source[]; title: strin
             </span>
             <span className="min-w-0 text-left">
               <span className="block truncate font-serif text-[0.92rem] leading-tight text-ink">{src.label}</span>
-              <span className="label block truncate text-[0.46rem] text-ink/45">{src.host}</span>
+              <span className="label block truncate text-3xs text-ink/70">{src.host}</span>
             </span>
           </a>
         ))}

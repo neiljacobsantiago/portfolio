@@ -39,7 +39,7 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
       {/* Desk */}
       <div className="space-y-3">
         <Segmented label="Session" value={session} onChange={(s) => (setSession(s), setMsg(null))} options={desk.sessions.map((s) => ({ value: s.id, label: short(s.title) }))} />
-        <p className="font-serif text-sm text-ink/60">
+        <p className="font-serif text-sm text-ink/75">
           {current.session.title} · {current.session.time}
           {!current.session.open && ` · ${seatsTaken(desk, session)} of ${current.session.capacity} seats registered`}
         </p>
@@ -57,12 +57,12 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
         </form>
         {current.missing.length > 0 && (
           <div>
-            <p className="label mb-1.5 text-[0.52rem] text-ink/50">Still expected · tap to check in</p>
+            <p className="label mb-1.5 text-3xs text-ink/70">Still expected · tap to check in</p>
             <ul className="flex flex-wrap gap-1.5">
               {current.missing.slice(0, compact ? 4 : 8).map((p) => (
                 <li key={p.id}>
                   <button type="button" onClick={() => doCheckIn(p.code)} className="press rounded-full border border-ink/15 px-3 py-1.5 font-serif text-sm hover:border-ink">
-                    {p.name} <span className="font-mono text-[0.6rem] text-ink/45">{p.code}</span>
+                    {p.name} <span className="font-mono text-2xs text-ink/70">{p.code}</span>
                   </button>
                 </li>
               ))}
@@ -80,17 +80,17 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
         )}
       </div>
 
-      <div className={cn("grid gap-5", !compact && "md:grid-cols-[1.15fr_1fr]")}>
+      <div className={cn("grid [&>*]:min-w-0 gap-5", !compact && "md:grid-cols-[1.15fr_1fr]")}>
         {/* Live board */}
         <div>
-          <p className="label mb-2 text-[0.55rem] text-ink/55">Live attendance</p>
+          <p className="label mb-2 text-3xs text-ink/70">Live attendance</p>
           <ul className="space-y-3">
             {stats.map((s) => (
               <li key={s.session.id}>
                 <button type="button" onClick={() => setSession(s.session.id)} className="block w-full text-left">
                   <span className="flex items-baseline justify-between gap-3">
-                    <span className={cn("truncate font-serif text-[0.95rem]", s.session.id === session ? "text-ink" : "text-ink/65")}>{short(s.session.title)}</span>
-                    <span className="shrink-0 font-mono text-[0.65rem] text-ink/55 tabular-nums">
+                    <span className={cn("truncate font-serif text-[0.95rem]", s.session.id === session ? "text-ink" : "text-ink/75")}>{short(s.session.title)}</span>
+                    <span className="shrink-0 font-mono text-2xs text-ink/70 tabular-nums">
                       {s.present}/{s.expected} · {Math.round(s.rate * 100)}%
                     </span>
                   </span>
@@ -108,13 +108,13 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
 
         {/* Recent check-ins */}
         <div>
-          <p className="label mb-2 text-[0.55rem] text-ink/55">Latest check-ins</p>
+          <p className="label mb-2 text-3xs text-ink/70">Latest check-ins</p>
           <ol className="divide-y divide-ink/10 rounded-[2px] ring-1 ring-ink/10">
             {recent.map((a) => (
               <li key={`${a.participantId}-${a.sessionId}`} className="flex items-center gap-3 px-3 py-2">
-                <span className="font-mono text-[0.62rem] text-ink/45 tabular-nums">{time(a.at)}</span>
+                <span className="font-mono text-2xs text-ink/70 tabular-nums">{time(a.at)}</span>
                 <span className="min-w-0 flex-1 truncate font-serif text-sm">
-                  {nameOf(a.participantId).name} <span className="text-ink/45">· {short(desk.sessions.find((s) => s.id === a.sessionId)!.title)}</span>
+                  {nameOf(a.participantId).name} <span className="text-ink/70">· {short(desk.sessions.find((s) => s.id === a.sessionId)!.title)}</span>
                 </span>
                 <button
                   type="button"
@@ -122,7 +122,7 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
                     setDesk(undo(desk, a.participantId, a.sessionId));
                     say(true, `Removed ${nameOf(a.participantId).name}'s check-in. The attendance row is gone; the registration stays.`);
                   }}
-                  className="label press shrink-0 text-[0.5rem] text-ink/45 hover:text-ember"
+                  className="label press shrink-0 text-3xs text-ink/70 hover:text-ember"
                 >
                   Undo
                 </button>
@@ -135,8 +135,8 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
       {/* Walk-in registration */}
       <div className="rounded-[2px] ring-1 ring-ink/10">
         <button type="button" aria-expanded={showForm} onClick={() => setShowForm((v) => !v)} className="flex w-full items-center justify-between px-3.5 py-3 text-left">
-          <span className="label text-[0.58rem] text-ink/70">Register a walk-in</span>
-          <Icon name={showForm ? "minus" : "plus"} className="text-ink/50" />
+          <span className="label text-3xs text-ink/70">Register a walk-in</span>
+          <Icon name={showForm ? "minus" : "plus"} className="text-ink/70" />
         </button>
         {showForm && (
           <form
@@ -149,7 +149,7 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
               setQuery(r.participant.code);
               say(true, `${r.note} Their code is ready in the check-in box.`);
             }}
-            className={cn("grid gap-3 border-t border-ink/10 p-3.5", !compact && "sm:grid-cols-2")}
+            className={cn("grid [&>*]:min-w-0 gap-3 border-t border-ink/10 p-3.5", !compact && "sm:grid-cols-2")}
           >
             <Field label="Full name">
               <input value={walkIn.name} onChange={(e) => setWalkIn((w) => ({ ...w, name: e.target.value }))} className={input} placeholder="Juan Dela Cruz" />
@@ -179,7 +179,7 @@ export default function WorkTayoTool({ compact }: { compact?: boolean }) {
         )}
       </div>
 
-      <p className="flex flex-wrap gap-1.5 font-mono text-[0.6rem] text-ink/55">
+      <p className="flex flex-wrap gap-1.5 font-mono text-2xs text-ink/70">
         {(
           [
             ["participants", desk.participants.length],
