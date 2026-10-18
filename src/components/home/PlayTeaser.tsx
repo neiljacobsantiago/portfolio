@@ -3,11 +3,13 @@ import Link from "next/link";
 import Magnetic from "@/components/ui/Magnetic";
 import Tilt from "@/components/ui/Tilt";
 import { reveal } from "@/lib/reveal";
+import Icon from "@/components/ui/Icon";
 
 const GAMES = [
   { title: "Island Drive", line: "Drift, jump and take the driver's seat — every project is a landmark." },
   { title: "Shutter", line: "Follow the band; shoot the jump under the strobe." },
-  { title: "Subnet Sprint", line: "Be the router: sixty seconds of network maths." },
+  { title: "Packet Check", line: "Twelve questions on networks and staying safe online." },
+  { title: "Contact Sheet", line: "Match pairs of photographs from the archive." },
 ];
 
 /** Home-page invitation into /play, with a real render of the island. */
@@ -17,7 +19,9 @@ export default function PlayTeaser() {
       <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-5">
           <p className="label flex items-center gap-2 text-ember">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-ember text-[0.45rem] text-paper">▶</span>
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-ember text-paper">
+              <Icon name="play" className="ml-px h-2 w-2" />
+            </span>
             Play
           </p>
           <h2 id="play-title" className="mt-5 font-display text-[clamp(2.75rem,6vw,5.5rem)] leading-[1]">
@@ -38,7 +42,7 @@ export default function PlayTeaser() {
           <div className="mt-10">
             <Magnetic>
               <Link href="/play" className="btn bg-ink text-paper hover:bg-ember">
-                Start the engine <span className="arrow">→</span>
+                Start the engine <Icon name="arrow-right" className="arrow" />
               </Link>
             </Magnetic>
           </div>
@@ -57,8 +61,8 @@ export default function PlayTeaser() {
               />
               <span className="absolute inset-0 bg-gradient-to-t from-ink/40 via-transparent to-transparent" />
               <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-paper/95 text-2xl text-ink shadow-2xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 md:h-24 md:w-24">
-                  ▶
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-paper/95 text-ink shadow-2xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 md:h-24 md:w-24">
+                  <Icon name="play" className="ml-1 h-8 w-8 md:h-9 md:w-9" />
                 </span>
               </span>
               <span className="label absolute bottom-4 left-4 rounded-full bg-paper/90 px-3 py-1.5 text-[0.55rem] text-ink">WASD · arrows · or a thumb on your phone</span>

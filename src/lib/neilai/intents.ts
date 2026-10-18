@@ -2,6 +2,7 @@ import { projects } from "@/content/work";
 import type { ChatCard } from "@/lib/tools";
 import type { Algorithm } from "@/lib/tools/memory";
 import { findService } from "@/lib/tools/quote";
+import { PATHOSCAN_THRESHOLD } from "./facts";
 
 // Reads a visitor's message and decides which Lab tools or project cards
 // answer it. Runs in the browser, so NeilAI's tools work even when the AI
@@ -123,13 +124,15 @@ export function introFor(card: ChatCard, rng: () => number = Math.random): strin
       return card.url
         ? one(rng, "Checked the address — here's what stands out 👇 (I never open the link.)", "Here are the red flags I can see in that address 👇 I only read it, never open it.", "Looked it over without clicking 👇 Here's the verdict.")
         : one(rng, "Paste the link here and I'll point out any red flags 👇", "Got a suspicious link? Drop it in 👇 I'll read it without opening it.", "Paste any link below and I'll check it for phishing signs 👇");
-    case "pathoscan":
-      return one(
+    case "pathoscan": {
+      const verdict = card.confidence >= 90 ? PATHOSCAN_THRESHOLD.above(card.confidence) : PATHOSCAN_THRESHOLD.below(card.confidence);
+      return `**${card.species}** — ${verdict}\n\n${one(
         rng,
-        "This is PathoScan's decision rule in action 👇 Slide the confidence to see when a result clears.",
-        `${card.species} at ${card.confidence}% — here's what PathoScan would do 👇 Move the slider to test the 90% bar.`,
-        "PathoScan clears a result at 90% or higher; anything lower goes to PCR 👇 Try it with the slider.",
-      );
+        "Slide the confidence below to see where the line falls 👇",
+        "Try other values with the slider 👇",
+        "Move the slider to test the 90% line yourself 👇",
+      )}`;
+    }
     case "quote":
       return one(
         rng,

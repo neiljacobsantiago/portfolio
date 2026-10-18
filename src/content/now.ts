@@ -26,7 +26,8 @@ export interface Now {
 }
 
 const org = organizations[0];
-const latestCert = certificates[0];
+// The Learning line is about Agile, so name that certificate rather than whichever is newest.
+const latestCert = certificates.find((c) => c.title === "Google Agile Essentials") ?? certificates[0];
 const pathoscan = projectBySlug("pathoscan");
 const stratcom = projectBySlug("img-stratcom");
 

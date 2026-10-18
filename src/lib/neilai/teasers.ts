@@ -3,12 +3,12 @@
 
 const BY_PAGE: [RegExp, string[]][] = [
   [/^\/work\/./, ["Want this project explained simply? Ask me 👀", "Ask me who worked on this one 👥", "Liked this? I'll find you a similar project 🔎"]],
-  [/^\/work/, ["Not sure where to start? I'll pick a project for you 🎲", "Ask me what any of these actually do 🔬", "Want the story behind one of these? 👀"]],
-  [/^\/photography/, ["Want the price of a grad shoot? I know the list 📸", "Ask me which bands Neil has shot 🎸", "Curious what's in his camera bag? 🎒", "Ask me about the night-sky shots 🌌"]],
+  [/^\/work/, ["Not sure where to start? I'll pick a project for you ✨", "Ask me what any of these actually do 🔬", "Want the story behind one of these? 👀"]],
+  [/^\/photography/, ["Want the price of a grad shoot? I know the list 📸", "Ask me which bands Neil has shot 🎸", "Curious what's in his camera bag? 🎒", "Ask me about the night-sky shots 🌌", "Seen the new Photo Mode shots? Ask me 🏎️"]],
   [/^\/lab/, ["Every tool here runs in my chat too 🧪", "Paste a sketchy link — I'll check it 🛡️", "I can plan your VLANs in one message 🌐"]],
-  [/^\/play/, ["Stuck on Subnet Sprint? I can subnet for you 🌐", "Want the story behind Island Drive? 🚙"]],
+  [/^\/play/, ["Stuck on Packet Check? I can explain any answer", "Ask me how the games came about 🕹️"]],
   [/^\/(about|resume)/, ["Ask me about Neil's orgs or certificates 🎓", "Want the 30-second version of Neil? 👋", "Ask what Neil does off the clock 🏎️"]],
-  [/^\/(contact|bookings)/, ["Not sure what to book? I can quote it first 💬", "Ask me how fast Neil replies ⏱️"]],
+  [/^\/(contact|bookings|services)/, ["Not sure what to book? I can quote a shoot first 💬", "Ask me how fast Neil replies ⏱️", "Ask me how web work is priced 💻"]],
 ];
 
 const ANYWHERE = [
@@ -16,9 +16,9 @@ const ANYWHERE = [
   "Ask me what PathoScan does 🔬",
   "Need a photoshoot? I know the rates 📸",
   "Curious who Neil is? Ask me! 👋",
-  "Tap me and hit 🎲 for something random",
+  "Tap me, then Surprise me, for something random ✨",
   "I can check a suspicious link for you 🛡️",
-  "Want to drive a jeepney around Neil's projects? 🚙",
+  "Ask me anything — even things beyond this site 🔎",
 ];
 
 function byHour(hour: number): string[] {

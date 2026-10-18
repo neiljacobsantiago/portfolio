@@ -118,7 +118,7 @@ function RegistrarArt({ className }: { className?: string }) {
           <p className="truncate text-white/80">&quot;BSIT 1-1 is at its capacity of 40.&quot;</p>
         </div>
         <div className="rounded-md bg-black/30 p-2 ring-1 ring-white/10 transition-transform delay-150 duration-700 ease-[var(--ease-spring)] group-hover:translate-x-1">
-          <p>
+          <p className="truncate">
             <span className="rounded bg-[#c1121f] px-1">403</span> <span className="text-white/60">StudentPolicy@delete</span>
           </p>
         </div>
@@ -163,7 +163,7 @@ function PathoScanArt({ className, priority }: { className?: string; priority?: 
     { label: "A. terreus", value: 1 },
   ];
   return (
-    <div className={cn("relative overflow-hidden bg-[#0f3d2e] text-paper", className)} aria-hidden>
+    <div className={cn("@container relative overflow-hidden bg-[#0f3d2e] text-paper", className)} aria-hidden>
       <div className="absolute -top-16 -right-16 h-72 w-72 rounded-full bg-[radial-gradient(closest-side,rgb(102_187_106/0.45),transparent)]" />
       <div className="absolute inset-0 flex items-center justify-center gap-[6%] p-[6%]">
         <div className="relative aspect-square w-[34%] shrink-0">
@@ -173,9 +173,10 @@ function PathoScanArt({ className, priority }: { className?: string; priority?: 
           <p className="label text-[0.55rem] text-paper/70">Top match · on-device</p>
           <p className="mt-1 font-display text-[clamp(0.9rem,2vw,1.6rem)] leading-tight italic">Aspergillus tamarii</p>
           <p className="label mt-1 text-[0.5rem] text-[#7bd88f]">Above the 90% bar · screening</p>
-          <div className="mt-3 space-y-2">
-            {bars.map((b) => (
-              <div key={b.label}>
+          {/* Small covers (phone cards) keep the top match only, so the panel never outgrows its frame */}
+          <div className="mt-2 space-y-2 @md:mt-3">
+            {bars.map((b, i) => (
+              <div key={b.label} className={i > 0 ? "hidden @md:block" : undefined}>
                 <div className="flex justify-between font-mono text-[0.55rem] text-paper/70">
                   <span>{b.label}</span>
                   <span>{b.value}%</span>
@@ -186,7 +187,7 @@ function PathoScanArt({ className, priority }: { className?: string; priority?: 
               </div>
             ))}
           </div>
-          <p className="mt-3 font-mono text-[0.5rem] text-paper/50">PathoScan · on-device · offline</p>
+          <p className="mt-3 hidden font-mono text-[0.5rem] text-paper/50 @md:block">PathoScan · on-device · offline</p>
         </div>
       </div>
     </div>

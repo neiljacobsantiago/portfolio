@@ -3,6 +3,7 @@ import { getGitHubActivity } from "@/lib/github";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
 import ContributionGraph from "./ContributionGraph";
+import Icon from "@/components/ui/Icon";
 
 const LANGUAGE_COLORS = ["bg-ember", "bg-sky", "bg-paper", "bg-wine", "bg-paper/40"];
 
@@ -52,7 +53,7 @@ export default async function CommitLog() {
             </h2>
           </div>
           <a href={profile} target="_blank" rel="noopener noreferrer" className="btn border border-paper/30 text-paper hover:border-paper hover:bg-paper hover:text-ink">
-            Open GitHub <span className="arrow">↗</span>
+            Open GitHub <Icon name="arrow-up-right" className="arrow" />
           </a>
         </div>
 
@@ -132,7 +133,13 @@ export default async function CommitLog() {
                         </div>
                         <p className="flex items-center justify-between font-mono text-xs text-paper/55 transition-colors group-hover:text-ink/60">
                           <span>{r.language ?? "—"}</span>
-                          <span>{r.stars > 0 ? `★ ${r.stars}` : "↗"}</span>
+                          {r.stars > 0 ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Icon name="star" title="Stars" /> {r.stars}
+                            </span>
+                          ) : (
+                            <Icon name="arrow-up-right" />
+                          )}
                         </p>
                       </a>
                     </li>

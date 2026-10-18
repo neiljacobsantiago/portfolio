@@ -7,6 +7,7 @@ import { categories, projects } from "@/content/work";
 import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import ProjectCover from "./ProjectCover";
+import Icon from "@/components/ui/Icon";
 
 const KEY = "work-view";
 
@@ -75,7 +76,16 @@ export default function WorkViews({ children }: { children: ReactNode }) {
               onClick={() => choose(v)}
               className="label press flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.58rem] text-ink/60 aria-checked:bg-ink aria-checked:text-paper"
             >
-              <span aria-hidden>{v === "grid" ? "▦" : "☰"}</span>
+              {v === "grid" ? (
+                <span aria-hidden className="grid h-2.5 w-2.5 grid-cols-2 gap-[2px]">
+                  <i className="rounded-[1px] bg-current" />
+                  <i className="rounded-[1px] bg-current" />
+                  <i className="rounded-[1px] bg-current" />
+                  <i className="rounded-[1px] bg-current" />
+                </span>
+              ) : (
+                <Icon name="menu" className="h-3.5 w-3.5" />
+              )}
               {v === "grid" ? "Grid" : "List"}
             </button>
           ))}
@@ -110,9 +120,7 @@ export default function WorkViews({ children }: { children: ReactNode }) {
                   <span className="label block text-[0.58rem] text-ember">{categories[p.category].label}</span>
                   <span className="mt-1 block truncate font-serif text-ink/60 italic">{p.context}</span>
                 </span>
-                <span aria-hidden className="text-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:-rotate-45">
-                  →
-                </span>
+                <Icon name="arrow-right" className="h-5 w-5 transition-transform duration-500 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:-rotate-45" />
               </Link>
             </li>
           ))}

@@ -17,11 +17,13 @@ const COLLECTION_SAYS: Record<string, string> = {
   concerts: "concert shots",
   everyday: "everyday photos",
   astro: "night-sky shots",
+  "photo-mode": "Photo Mode shots",
 };
 export const collectionSays = (slug: string) => COLLECTION_SAYS[slug] ?? seriesList.find((s) => s.slug === slug)?.title.toLowerCase() ?? slug;
 
 /** Words in a question that point at a collection. */
 export const COLLECTION_WORDS: Record<string, RegExp> = {
+  "photo-mode": /\b(photo ?mode|forza|virtual photography|in-game photo\w*)\b/i,
   events: /\b(school events?|event photos|campus events?)\b/i,
   portraits: /\b(fashion portraits?|portrait photos|portraits)\b/i,
   landscapes: /\b(landscapes?|sunsets?|coastlines?|scenery)\b/i,
@@ -55,8 +57,9 @@ export const GAMES: Game[] = [
   {
     id: "island-drive",
     title: "Island Drive",
-    blurb: "Island Drive puts you behind the wheel of a jeepney on a 3D island built from Neil's projects. 🚙",
-    test: /\b(island drive|jeepney|drive)\b/i,
+    // Being remade (as a night street circuit); described neutrally until it lands.
+    blurb: "Island Drive is a 3D driving game you can play right in the browser. 🏎️",
+    test: /\b(island drive|jeepney|drive|driving game)\b/i,
   },
   {
     id: "shutter",
@@ -65,10 +68,16 @@ export const GAMES: Game[] = [
     test: /\bshutter\b(?! speed)/i,
   },
   {
-    id: "subnet-sprint",
-    title: "Subnet Sprint",
-    blurb: "Subnet Sprint is a networking quiz: answer as many subnetting questions as you can against the clock. 🌐",
-    test: /\bsubnet sprint\b|\bsprint\b/i,
+    id: "packet-check",
+    title: "Packet Check",
+    blurb: "Packet Check is a beginner-friendly quiz on networking and security awareness: twelve questions, three lives, and a short explanation after every answer.",
+    test: /\bpacket check\b|\bsubnet sprint\b|\bquiz\b/i,
+  },
+  {
+    id: "contact-sheet",
+    title: "Contact Sheet",
+    blurb: "Contact Sheet is a memory game: flip tiles of Neil's own photographs and match the pairs in as few moves as you can.",
+    test: /\bcontact sheet\b|\bmemory (game|tiles?)\b|\bpairs\b/i,
   },
 ];
 
@@ -278,7 +287,23 @@ export const TRIVIA: Trivia[] = [
     kind: "thing",
     prompt: "Is Neil an F1 fan?",
     line: "Big time — he never misses a race weekend, and sim-races in F1 25 and Forza Horizon 5. 🏎️",
-    near: "fun:hobbies",
+    near: "fun:racing",
+  },
+  {
+    label: "Forza Horizon",
+    names: /\bforza( horizon)?\b/i,
+    kind: "thing",
+    prompt: "What's Forza Horizon?",
+    line: "Forza Horizon is the open-world racing game series behind Neil's new Photo Mode collection: virtual photography from Forza Horizon 4 and Forza Horizon 6, framed with the same eye for line and light as his real shoots. 📸",
+    near: "collection:photo-mode",
+  },
+  {
+    label: "RStudio",
+    names: /\brstudio\b/i,
+    kind: "thing",
+    prompt: "What's RStudio?",
+    line: "RStudio is a workspace for analysing data with the R language. Neil earned a certificate of completion from “The Art of Becoming: RStudio for Data Analysis”, a Central Luzon State University webinar held August 28, 2026 via Google Meet. 📊",
+    near: "about:certificates",
   },
   {
     label: "Next.js",

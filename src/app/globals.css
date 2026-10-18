@@ -353,28 +353,6 @@ html.low-power {
     }
   }
 }
-/* Work cards: the card underneath sinks back and dims while the next one slides over it */
-@supports (animation-timeline: view()) and (timeline-scope: none) {
-  @media (prefers-reduced-motion: no-preference) {
-    html:not(.low-power) .work-stack {
-      timeline-scope: --c1, --c2, --c3, --c4, --c5, --c6;
-    }
-    html:not(.low-power) .work-card {
-      view-timeline-name: var(--self);
-      view-timeline-inset: 0px;
-    }
-    html:not(.low-power) .work-depth {
-      animation: card-recede linear both;
-      animation-timeline: var(--next);
-      animation-range: cover 0% cover calc(100svh - 7rem);
-    }
-    html:not(.low-power) .work-shade {
-      animation: card-shade linear both;
-      animation-timeline: var(--next);
-      animation-range: cover 0% cover calc(100svh - 7rem);
-    }
-  }
-}
 /* JS fallback (desktop browsers without scroll timelines): --p is the scene's
    progress; a paused animation with a negative delay shows that frame. */
 html:not(.low-power) [data-scene-js] .sx {
@@ -406,17 +384,6 @@ html:not(.low-power) [data-scene-js] .sx {
   .st-line-b { --kf: st-b-x; --b: 1; }
   .st-scrim { --a: 0.6; --b: 0.85; }
   .st-copy { --a: 0.58; --b: 0.86; }
-}
-
-/* Photo zoom (components/home/PhotoZoom): the camera pulls back from one
-   frame to the whole contact sheet, then the lines arrive one by one. */
-.pz-grid { --kf: pz-zoom; --a: 0; --b: 0.6; --pz-scale: 4.6; }
-.pz-cell { --kf: pz-cell; --a: 0.08; --b: 0.52; }
-.pz-intro { --kf: sc-fade-out; --a: 0; --b: 0.14; }
-.pz-scrim { --kf: sc-fade-in; --a: 0.56; --b: 0.7; }
-.pz-line { --kf: sc-rise; --a: calc(0.6 + var(--i) * 0.08); --b: calc(0.7 + var(--i) * 0.08); }
-@media (min-width: 1024px) {
-  .pz-grid { --pz-scale: 5.45; }
 }
 
 @keyframes sc-fade-in {
@@ -457,24 +424,12 @@ html:not(.low-power) [data-scene-js] .sx {
 @keyframes st-cap-in {
   from { opacity: 0; transform: translate3d(0, 8px, 0); }
 }
-@keyframes pz-zoom {
-  from { transform: scale(var(--pz-scale)); animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1); }
-}
-@keyframes pz-cell {
-  from { opacity: 0.2; }
-}
 @keyframes wr-fill {
   from { opacity: 0.16; }
 }
 @keyframes work-parallax {
   from { transform: translate3d(0, -6%, 0); }
   to { transform: translate3d(0, 5%, 0); }
-}
-@keyframes card-recede {
-  to { transform: scale(0.92); }
-}
-@keyframes card-shade {
-  to { opacity: 0.5; }
 }
 
 /* Shared-element zoom for the lightbox (View Transitions API) */
@@ -653,6 +608,41 @@ html[data-shield] .shield-badge {
     border: 1px solid currentColor;
     font: 12px/1.4 var(--font-mono);
   }
+
+  /* Résumé (app/resume): prints as a plain document on its own named page.
+     It carries no photographs, so the photo notice never applies, and the
+     page-transition wrapper must not leave it faded or shifted. */
+  @page resume {
+    margin: 12mm 14mm 11mm;
+  }
+  .resume-sheet {
+    page: resume;
+    width: auto !important;
+    max-width: none !important;
+    color: #003049 !important;
+    background: #fff !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    orphans: 3;
+    widows: 3;
+  }
+  .resume-sheet svg {
+    visibility: visible !important;
+  }
+  .resume-sheet a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+  body:has(.resume-sheet)::before {
+    content: none !important;
+    display: none !important;
+  }
+  main:has(.resume-sheet) * {
+    animation: none !important;
+  }
 }
 
 /* ---------- Lenis smooth scrolling (desktop only) ---------- */
@@ -755,5 +745,268 @@ html.lenis body {
   to {
     scale: 0.9;
     translate: 0 6svh;
+  }
+}
+
+/* ==========================================================================
+   Home: Selected Work stack (components/home/SelectedWork)
+   Cards pin one peek lower than the last, like a vertical app switcher. As
+   the next card slides up, the one it covers eases back, lifts and dims; it
+   recedes a little further when the card after that arrives. Each card is a
+   named view timeline (--ws1, --ws2, ...) that the cards above it listen to.
+   Transform and opacity only. Without scroll timelines, with reduced motion
+   or on low-power devices the pile simply holds still.
+   ========================================================================== */
+.ws-stack {
+  --ws-top: calc(5.25rem + env(safe-area-inset-top));
+  --ws-peek: 10px;
+  --ws-r: 24px;
+}
+@media (min-width: 768px) {
+  .ws-stack {
+    --ws-top: 6.75rem;
+    --ws-peek: 16px;
+    --ws-r: 32px;
+  }
+}
+@media (min-width: 1280px) {
+  .ws-stack {
+    --ws-r: 36px;
+  }
+}
+/* Continuous (squircle) corners where the browser can draw them; they read
+   smaller than a circular arc of the same radius, so the radius grows. */
+@supports (corner-shape: squircle) {
+  .ws-stack {
+    --ws-r: 40px;
+  }
+  .ws-radius,
+  .ws-tile {
+    corner-shape: squircle;
+  }
+  @media (min-width: 768px) {
+    .ws-stack {
+      --ws-r: 54px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .ws-stack {
+      --ws-r: 60px;
+    }
+  }
+}
+.ws-card {
+  top: calc(var(--ws-top) + var(--i) * var(--ws-peek));
+}
+.ws-radius {
+  border-radius: var(--ws-r);
+}
+.ws-tile {
+  border-radius: var(--ws-r);
+  box-shadow:
+    0 0 0 1px rgb(0 48 73 / 0.07),
+    0 -1px 2px rgb(0 48 73 / 0.05),
+    0 -12px 30px -16px rgb(0 48 73 / 0.3),
+    0 28px 60px -32px rgb(0 48 73 / 0.4);
+}
+@supports (animation-timeline: view()) and (timeline-scope: none) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.low-power) .ws-stack {
+      timeline-scope: --ws1, --ws2, --ws3, --ws4, --ws5, --ws6, --ws7, --ws8;
+    }
+    html:not(.low-power) .ws-card {
+      view-timeline-name: var(--self);
+      view-timeline-inset: 0px;
+      /* How far the next card travels from the bottom of the screen to its pinned spot */
+      --ws-run: calc(100svh - var(--ws-top) - (var(--i) + 1) * var(--ws-peek));
+    }
+    /* The arriving card grows to full size as it rises into view */
+    html:not(.low-power) .ws-arrive {
+      transform-origin: 50% 0;
+      animation: ws-arrive cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-timeline: view(block 0px);
+      animation-range: entry 0% entry 100%;
+    }
+    html:not(.low-power) .ws-recede,
+    html:not(.low-power) .ws-shade {
+      transform-origin: 50% 0;
+      animation: ws-recede cubic-bezier(0.45, 0, 0.25, 1) both;
+      animation-timeline: var(--next);
+      animation-range: cover calc(var(--ws-run) * 0.15) cover var(--ws-run);
+    }
+    html:not(.low-power) .ws-shade {
+      animation-name: ws-dim;
+    }
+    html:not(.low-power) .ws-recede-2,
+    html:not(.low-power) .ws-shade-2 {
+      transform-origin: 50% 0;
+      animation: ws-recede-2 cubic-bezier(0.45, 0, 0.25, 1) both;
+      animation-timeline: var(--next2);
+      animation-range: cover calc(var(--ws-run) * 0.15) cover calc(var(--ws-run) - var(--ws-peek));
+    }
+    html:not(.low-power) .ws-shade-2 {
+      animation-name: ws-dim-2;
+    }
+  }
+}
+@keyframes ws-arrive {
+  from { transform: scale(0.94); }
+}
+@keyframes ws-recede {
+  to { transform: translate3d(0, calc(var(--ws-peek) * -0.9), 0) scale(0.93); }
+}
+@keyframes ws-recede-2 {
+  to { transform: translate3d(0, calc(var(--ws-peek) * -0.6), 0) scale(0.955); }
+}
+@keyframes ws-dim {
+  to { opacity: 0.24; }
+}
+@keyframes ws-dim-2 {
+  to { opacity: 0.3; }
+}
+
+/* ==========================================================================
+   Home: photography cover-art grid (components/home/PhotoZoom)
+   Uneven photo panels with thick paper gutters and ink keylines, one hero
+   panel and a title block, laid out with grid areas per screen shape. In the
+   scroll scene the grid starts zoomed in on the hero (--pz-ox/--pz-oy are the
+   hero's centre, --pz-s the zoom that fills the screen with it) and pulls
+   back; panels drop in with a tilt that settles; the title block stamps in;
+   captions slide out. Transform and opacity only.
+   ========================================================================== */
+.pz-mosaic {
+  --pz-gut: 6px;
+  --pz-ox: 37.5%;
+  --pz-oy: 18.75%;
+  --pz-s: 2.85;
+  display: grid;
+  gap: var(--pz-gut);
+  padding: var(--pz-gut);
+  background: var(--color-paper);
+  aspect-ratio: 9 / 16;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  grid-template-areas:
+    "h h h a"
+    "h h h a"
+    "h h h c"
+    "t t t t"
+    "t t t t"
+    "b b d d"
+    "b b d d"
+    "e e f f";
+}
+@media (min-width: 640px) {
+  .pz-mosaic {
+    --pz-gut: 8px;
+    --pz-ox: 33.33%;
+    aspect-ratio: 3 / 4;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      "h h h h a a"
+      "h h h h a a"
+      "h h h h c c"
+      "b b t t t t"
+      "b b t t t t"
+      "d d t t t t"
+      "e e e f f f"
+      "e e e f f f";
+  }
+}
+/* Landscape screens: desktops, tablets on their side and phones turned sideways */
+@media (min-width: 1024px), (orientation: landscape) and (min-width: 640px) {
+  .pz-mosaic {
+    --pz-gut: 10px;
+    --pz-ox: 45.83%;
+    --pz-oy: 33.33%;
+    --pz-s: 2.55;
+    aspect-ratio: 16 / 9;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      "a a a h h h h h b b b b"
+      "a a a h h h h h b b b b"
+      "c c c h h h h h b b b b"
+      "c c c h h h h h t t t t"
+      "d d e e e f f f t t t t"
+      "d d e e e f f f t t t t";
+  }
+}
+.pz-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  container-type: size;
+  background: #0b0d10;
+  /* Comic keyline inside the paper gutter */
+  box-shadow: inset 0 0 0 3px #0b0d10;
+}
+.pz-cell > a {
+  outline-offset: -4px;
+}
+.pz-title-cell {
+  background:
+    radial-gradient(circle, rgb(253 240 213 / 0.14) 0.9px, transparent 1.3px) 0 0 / 7px 7px,
+    linear-gradient(150deg, var(--color-ember), var(--color-wine) 70%);
+}
+.pz-title {
+  rotate: -1.5deg;
+}
+.pz-cap-wrap {
+  overflow: clip;
+  padding: 0 6px 6px 0;
+}
+.pz-cap {
+  rotate: -2deg;
+  transform-origin: 0 100%;
+}
+.pz-cap-text {
+  width: max-content;
+  max-width: 100%;
+  font-size: clamp(0.72rem, 8cqmin, 1.5rem);
+  letter-spacing: 0.01em;
+  box-shadow: 3px 3px 0 #0b0d10;
+}
+.pz-cell:first-child .pz-cap-text {
+  font-size: clamp(0.9rem, 6.5cqmin, 2.4rem);
+}
+
+/* Scene timing (lib/scene.ts runs these on the scene's scroll range, 0 → 1) */
+.pz-mosaic.sx { --kf: pz-pull; --a: 0; --b: 0.5; transform-origin: var(--pz-ox) var(--pz-oy); }
+.pz-hero-img { --kf: pz-hero-img; --a: 0; --b: 0.5; }
+.pz-panel { --kf: pz-drop; --a: calc(0.12 + var(--i) * 0.045); --b: calc(0.4 + var(--i) * 0.045); }
+.pz-title { --kf: pz-stamp; --a: 0.5; --b: 0.66; }
+.pz-cap { --kf: pz-cap; --a: calc(0.58 + var(--i) * 0.025); --b: calc(0.68 + var(--i) * 0.025); }
+.pz-intro { --kf: sc-fade-out; --a: 0; --b: 0.12; }
+
+@keyframes pz-pull {
+  from {
+    transform: translate(calc(50% - var(--pz-ox)), calc(50% - var(--pz-oy))) scale(var(--pz-s));
+    animation-timing-function: cubic-bezier(0.5, 0, 0.15, 1);
+  }
+}
+@keyframes pz-hero-img {
+  from { transform: scale(1.18); animation-timing-function: cubic-bezier(0.5, 0, 0.15, 1); }
+}
+/* Drops in tilted, overshoots a hair the other way, settles flat */
+@keyframes pz-drop {
+  0% { opacity: 0; transform: translate3d(0, 14%, 0) rotate(var(--pz-rot)) scale(0.84); }
+  45% { opacity: 1; }
+  75% { transform: translate3d(0, -1%, 0) rotate(calc(var(--pz-rot) * -0.18)) scale(1.012); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes pz-stamp {
+  0% { opacity: 0; transform: scale(1.35) rotate(-5deg); }
+  55% { opacity: 1; transform: scale(0.96) rotate(0.6deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes pz-cap {
+  from { transform: translate3d(-110%, 0, 0); }
+}
+/* Panels too narrow for a legible line (phone side column) go without a caption */
+@container (max-width: 7.5rem) {
+  .pz-cap-wrap {
+    display: none;
   }
 }

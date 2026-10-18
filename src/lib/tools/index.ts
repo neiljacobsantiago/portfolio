@@ -93,7 +93,7 @@ export const tools: ToolMeta[] = [
     kind: "systems",
     title: "Subnet & VLAN planner",
     blurb: "Break any IPv4 network into hosts, masks and ranges — or plan VLAN subnets for a whole building.",
-    project: { href: "/play", title: "Practise it in Subnet Sprint" },
+    project: { href: "/play", title: "Practise it in Packet Check" },
     keywords: "subnet cidr ip mask vlsm vlan network calculator",
   },
   {

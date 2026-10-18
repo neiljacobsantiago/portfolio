@@ -1,10 +1,11 @@
-import { certificates, education, gear, interests, organizations, toolkit } from "@/content/about";
+import { education, interests, organizations, toolkit } from "@/content/about";
 import { seriesList } from "@/content/series";
 import { services } from "@/content/sessions";
 import { projectBySlug, projects, type Project } from "@/content/work";
 import { site } from "@/lib/site";
 import { chatTools, type ChatCard, type ChatToolId } from "@/lib/tools";
 import { collectionSays, GAMES, TRIVIA } from "./catalog";
+import { certificateFacts, fixFacts, gearList } from "./facts";
 import { pick, sample, seeded, shuffle, type Rng } from "./random";
 import { resolveTopic, type Source } from "./sources";
 
@@ -28,7 +29,7 @@ const MEMORY_SETS: { blocks: number[]; processes: number[] }[] = [
 const SAMPLE_LINKS = ["", "", "gcash-verify-account.xyz", "bit.ly/3promo", "paypa1-secure-login.com", "lazada-promo-freebies.top/claim"];
 const ALGOS = ["first", "best", "worst", "next"] as const;
 
-/** A tool card on a different example every time it's opened from the 🧰 drawer. */
+/** A tool card on a different example every time it's opened from the Tools drawer. */
 export function starterFor(id: ChatToolId, rng: Rng = Math.random): ChatCard {
   switch (id) {
     case "subnet":
@@ -69,7 +70,7 @@ export function greeting(path: string, hour: number, rng: Rng = Math.random): [s
   const project = slug ? projectBySlug(slug) : undefined;
   const others = sample(projects.filter((p) => p !== project), 2, rng).map((p) => p.title);
   const shots = collectionSays(pick(seriesList, rng).slug);
-  const dice = rng() < 0.5 ? " Or tap 🎲 and I'll pick something for you." : "";
+  const dice = rng() < 0.5 ? " Or tap Surprise me and I'll pick something for you." : "";
   const page = `/${path.split(/[/?#]/)[1] ?? ""}`;
 
   let second: string;
@@ -84,7 +85,7 @@ export function greeting(path: string, hour: number, rng: Rng = Math.random): [s
   } else if (page === "/photography") {
     second = pick([`Ask about any collection — the ${shots} are a good start — or get a quote for a shoot. 📸`, `Want a price for a shoot, or the story behind the ${shots}? Just ask.`], rng);
   } else if (page === "/lab") {
-    second = pick(["Every tool here also runs inside this chat — tap 🧰, or just paste a link or an IP. 🧪", "Paste a suspicious link, an IP or a memory layout and I'll run the right tool. 🧪"], rng);
+    second = pick(["Every tool here also runs inside this chat — open Tools up top, or just paste a link or an IP. 🧪", "Paste a suspicious link, an IP or a memory layout and I'll run the right tool. 🧪"], rng);
   } else if (page === "/play") {
     second = pick([`Between rounds, ask me about ${others[0]} — or let me plan a subnet for you. 🕹️`, "Ask me how the games came about, or let me do the subnetting for you. 🕹️"], rng);
   } else if (page === "/about" || page === "/resume") {
@@ -94,7 +95,7 @@ export function greeting(path: string, hour: number, rng: Rng = Math.random): [s
   } else {
     second = pick(
       [
-        `Ask about ${others[0]}, the ${shots} or a shoot quote — or tap 🧰 to run his tools.`,
+        `Ask about ${others[0]}, the ${shots} or a shoot quote — or open Tools up top to run his tools.`,
         `Try asking about ${others[0]} or ${others[1]}, or what's in his camera bag.`,
         `I can show you the ${shots}, explain ${others[0]}, or quote a photoshoot.`,
       ],
@@ -116,10 +117,10 @@ export interface Surprise {
   sources?: Source[];
 }
 
-const lead = (rng: Rng) => pick(["🎲 Here's one:", "🎲 Rolled the dice —", "🎲 Ooh, good pick:", "🎲 How about this:", "🎲 Random draw:", "🎲 You might not have seen this:"], rng);
+const lead = (rng: Rng) => pick(["Here's one:", "Rolled the dice —", "Ooh, good pick:", "How about this:", "Random draw:", "You might not have seen this:", "Fresh from the pile:", "Picked just for you:"], rng);
 
 const projectSurprise = (p: Project, rng: Rng): Surprise => ({
-  text: `${lead(rng)} ${p.title}. ${p.plain} ${pick([`Neil's role: ${p.role}.`, `(${p.context} · ${p.status})`], rng)}`,
+  text: `${lead(rng)} ${p.title}. ${fixFacts(p.plain)} ${pick([`Neil's role: ${p.role}.`, `(${p.context} · ${p.status})`], rng)}`,
   topic: `project:${p.slug}`,
   cards: [{ kind: "project", slug: p.slug }],
 });
@@ -127,7 +128,7 @@ const projectSurprise = (p: Project, rng: Rng): Surprise => ({
 function buildSurprises(rng: Rng): Surprise[][] {
   const facts: Surprise[] = [
     ...interests.map((i) => ({ text: `${lead(rng)} off the clock — ${i.title}. In Neil's words: “${i.text}”`, topic: "fun:hobbies", links: [{ label: "More about Neil", href: "/about" }] })),
-    ...certificates.map((c) => ({
+    ...certificateFacts.map((c) => ({
       text: `${lead(rng)} Neil earned “${c.title}” from ${c.issuer} in ${c.date}.${c.note ? ` ${c.note}.` : ""}`,
       topic: "about:certificates",
       links: [{ label: "Credentials", href: "/about#credentials" }],
@@ -136,7 +137,7 @@ function buildSurprises(rng: Rng): Surprise[][] {
       .filter((o) => o.role !== "Student")
       .map((o) => ({ text: `${lead(rng)} Neil is part of the ${o.name} (${o.short}) — role: ${o.role}. ${o.detail}`, topic: "about:orgs", links: [{ label: "Organizations", href: "/about" }] })),
     ...education.map((e) => ({ text: `${lead(rng)} ${e.school}, ${e.years}: ${e.level}. ${e.detail}`, topic: "about:education", links: [{ label: "The full story", href: "/about" }] })),
-    ...gear.map((g) => ({ text: `${lead(rng)} from Neil's camera bag — ${g.brand}: ${g.items.join(", ")}. 📸`, topic: "about:gear", links: [{ label: "See the gear", href: "/about#gear" }] })),
+    ...gearList.map((g) => ({ text: `${lead(rng)} from Neil's camera bag — ${g.brand}: ${g.items.join(", ")}. 📸`, topic: "about:gear", links: [{ label: "See the gear", href: "/about#gear" }] })),
     ...toolkit.map((g) => ({ text: `${lead(rng)} Neil's ${g.group.toLowerCase()} toolkit: ${g.tools.map((t) => t.name).join(", ")}.`, topic: "about:skills", links: [{ label: "About", href: "/about" }] })),
     { text: `${lead(rng)} this site's motto is “${site.tagline}”`, topic: "about:who", links: [{ label: "About", href: "/about" }] },
     { text: `${lead(rng)} there's a back room. /terminal is a small shell where this site started — type help, ls, or cd photography. ⌨️`, topic: "fun:secret", links: [{ label: "Terminal", href: "/terminal" }] },
@@ -153,7 +154,7 @@ function buildSurprises(rng: Rng): Surprise[][] {
       links: [{ label: s.title, href: `/photography#${s.slug}` }],
     })),
     chatTools.map((t) => ({
-      text: `${lead(rng)} try ${t.title}. ${t.blurb}`,
+      text: `${lead(rng)} try ${t.title}. ${fixFacts(t.blurb)}`,
       topic: t.id === "quote" ? "booking:how" : `tool:${t.id}`,
       cards: [starterFor(t.id, rng)],
     })),
@@ -195,7 +196,7 @@ export function spotlight(seed: number): string[] {
   const t = pick(chatTools, rng);
   const g = pick(GAMES, rng);
   return [
-    ...ps.map((p) => `${p.title} (/work/${p.slug}): ${p.plain}`),
+    ...ps.map((p) => `${p.title} (/work/${p.slug}): ${fixFacts(p.plain)}`),
     `The ${s.title} photo collection (/photography#${s.slug})`,
     `The ${t.title} in /lab`,
     `${g.title} in /play`,
