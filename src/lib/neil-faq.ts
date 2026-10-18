@@ -185,9 +185,9 @@ function gameAnswer(q: string, ctx: Ctx): FaqAnswer {
       text: `${named.blurb}\n\nFind it on /play, free to play. ${others.length ? `When you're done, there's also ${list(others.map((g) => `**${g.title}**`))}.` : ""}`,
       links: [{ label: "Let's play", href: "/play" }],
     };
-  const [a, b, c] = shuffle(GAMES, ctx.rng);
+  const [a, b, c, d] = shuffle(GAMES, ctx.rng);
   return {
-    text: `${one(ctx, "Oh, you want to play? 🕹️ There are three games on /play:", "Three to pick from on /play:")}\n\n${bullets([a, b, c].map((g) => `**${g.title}**: ${g.blurb.replace(new RegExp(`^${g.title} is (a |an )?`), "").replace(/\s*\p{Extended_Pictographic}+$/u, "")}`))}\n\n${one(ctx, `I'd start with ${a.title} today.`, `Subnet Sprint is the one that sneaks in some networking practice.`)}`,
+    text: `${one(ctx, "Up for a game? There are four on /play:", "Four to pick from on /play:")}\n\n${bullets([a, b, c, d].map((g) => `**${g.title}**: ${g.blurb.replace(new RegExp(`^${g.title} is (a |an )?`), "").replace(/\s*\p{Extended_Pictographic}+$/u, "")}`))}\n\n${one(ctx, `I'd start with ${a.title} today.`, `Packet Check is the one that sneaks in some networking and security practice.`)}`,
     links: [{ label: "Let's play", href: "/play" }],
   };
 }
@@ -535,7 +535,7 @@ const RULES: Rule[] = [
     },
   },
   {
-    test: /\b(play|game|games|drive|jeepney|arcade|bored|shutter|sprint)\b/i,
+    test: /\b(play|game|games|drive|jeepney|arcade|bored|shutter|sprint|packet check|contact sheet|memory game|quiz)\b/i,
     answer: gameAnswer,
   },
   {

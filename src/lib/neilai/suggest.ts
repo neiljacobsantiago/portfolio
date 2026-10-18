@@ -173,7 +173,7 @@ const LINKS: [string, string][] = [
   ["project:student-information-system", "about:skills"],
   ["project:eco-fashion", "booking:web"],
   ["booking:web", "booking:hosting"],
-  ["tool:subnet", "game:subnet-sprint"],
+  ["tool:subnet", "game:packet-check"],
   ["tool:subnet", "about:certificates"],
   ["collection:concerts", "game:shutter"],
   ["collection:concerts", "photo:bands"],

@@ -6,7 +6,7 @@ const BY_PAGE: [RegExp, string[]][] = [
   [/^\/work/, ["Not sure where to start? I'll pick a project for you ✨", "Ask me what any of these actually do 🔬", "Want the story behind one of these? 👀"]],
   [/^\/photography/, ["Want the price of a grad shoot? I know the list 📸", "Ask me which bands Neil has shot 🎸", "Curious what's in his camera bag? 🎒", "Ask me about the night-sky shots 🌌", "Seen the new Photo Mode shots? Ask me 🏎️"]],
   [/^\/lab/, ["Every tool here runs in my chat too 🧪", "Paste a sketchy link — I'll check it 🛡️", "I can plan your VLANs in one message 🌐"]],
-  [/^\/play/, ["Stuck on Subnet Sprint? I can subnet for you 🌐", "Ask me how the games came about 🕹️"]],
+  [/^\/play/, ["Stuck on Packet Check? I can explain any answer", "Ask me how the games came about 🕹️"]],
   [/^\/(about|resume)/, ["Ask me about Neil's orgs or certificates 🎓", "Want the 30-second version of Neil? 👋", "Ask what Neil does off the clock 🏎️"]],
   [/^\/(contact|bookings|services)/, ["Not sure what to book? I can quote a shoot first 💬", "Ask me how fast Neil replies ⏱️", "Ask me how web work is priced 💻"]],
 ];

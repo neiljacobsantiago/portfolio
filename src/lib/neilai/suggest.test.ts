@@ -220,7 +220,8 @@ test("follow-ups vary: tapping the lead chip ten times doesn't drill into one to
 });
 
 test("shown chips decay: a chip shown long ago can return, one shown just now is held back", () => {
-  const deal = pickSuggestions({ seed: 5, round: 0, path: "/" });
+  // Several remembered deals, so the measurement doesn't hinge on one seed's chips.
+  const deal = [0, 1, 2, 3, 4, 5].flatMap((seed) => pickSuggestions({ seed, round: 0, path: "/" }));
   const memory = rememberDeal(emptyMemory(0), deal, 0);
   const share = (now: number) => {
     let hits = 0;
@@ -230,7 +231,8 @@ test("shown chips decay: a chip shown long ago can return, one shown just now is
     }
     return hits;
   };
-  assert.ok(share(60_000) < share(30 * 24 * 3_600_000), "an old showing weighs less than a fresh one");
+  const fresh = share(60_000), old = share(30 * 24 * 3_600_000);
+  assert.ok(fresh < old, `an old showing weighs less than a fresh one (${fresh} vs ${old})`);
 });
 
 test("chip memory survives a reload and shrugs off junk", () => {

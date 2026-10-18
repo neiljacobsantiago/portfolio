@@ -68,10 +68,16 @@ export const GAMES: Game[] = [
     test: /\bshutter\b(?! speed)/i,
   },
   {
-    id: "subnet-sprint",
-    title: "Subnet Sprint",
-    blurb: "Subnet Sprint is a networking quiz: answer as many subnetting questions as you can against the clock. 🌐",
-    test: /\bsubnet sprint\b|\bsprint\b/i,
+    id: "packet-check",
+    title: "Packet Check",
+    blurb: "Packet Check is a beginner-friendly quiz on networking and security awareness: twelve questions, three lives, and a short explanation after every answer.",
+    test: /\bpacket check\b|\bsubnet sprint\b|\bquiz\b/i,
+  },
+  {
+    id: "contact-sheet",
+    title: "Contact Sheet",
+    blurb: "Contact Sheet is a memory game: flip tiles of Neil's own photographs and match the pairs in as few moves as you can.",
+    test: /\bcontact sheet\b|\bmemory (game|tiles?)\b|\bpairs\b/i,
   },
 ];
 

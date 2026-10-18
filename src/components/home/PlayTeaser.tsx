@@ -8,7 +8,8 @@ import Icon from "@/components/ui/Icon";
 const GAMES = [
   { title: "Island Drive", line: "Drift, jump and take the driver's seat — every project is a landmark." },
   { title: "Shutter", line: "Follow the band; shoot the jump under the strobe." },
-  { title: "Subnet Sprint", line: "Be the router: sixty seconds of network maths." },
+  { title: "Packet Check", line: "Twelve questions on networks and staying safe online." },
+  { title: "Contact Sheet", line: "Match pairs of photographs from the archive." },
 ];
 
 /** Home-page invitation into /play, with a real render of the island. */
