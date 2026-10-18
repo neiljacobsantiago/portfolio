@@ -31,7 +31,7 @@
 
   --font-display: var(--font-gloock), "Iowan Old Style", Georgia, serif;
   --font-serif: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
-  --font-mono: var(--font-courier-prime), "Courier New", monospace;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   /* Apple's sheet/drawer curve, and a gentle overshoot for "pop" moments */
@@ -92,7 +92,8 @@
 @utility label {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 

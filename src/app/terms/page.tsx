@@ -92,7 +92,7 @@ export default function TermsPage() {
           title: "Web & network projects",
           body: (
             <p>
-              Freelance web and network projects start at {site.rate}. Scope, timeline and price are agreed in writing before work begins; nothing on this site is a binding quote on its
+              Freelance web, network, security and video work is priced to its scope. Scope, timeline and price are agreed in writing before work begins; nothing on this site is a binding quote on its
               own.
             </p>
           ),

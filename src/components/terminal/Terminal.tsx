@@ -70,7 +70,7 @@ export default function Terminal() {
       case "skills":
         return "Networking (VLANs, subnetting, routing), Linux, Next.js & React, Python, Java, multimedia direction.";
       case "rates":
-        return <span className="font-bold text-paper">Freelance retainer starts at {site.rate}. Connection refused for lower bids.</span>;
+        return <span className="font-bold text-paper">Rates are quoted per job. Send a brief: /contact</span>;
       case "ls":
         return (
           <div className="flex flex-wrap gap-x-6 gap-y-1">

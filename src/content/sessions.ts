@@ -129,7 +129,7 @@ export interface AddOn {
 
 export const addOns: AddOn[] = [
   { id: "extra_hour", name: "Extra hour", amount: 1299, detail: "Keep shooting past your package" },
-  { id: "hmua", name: "Hair & makeup artist", amount: 1500, detail: "Booked with a partner artist, ready before call time" },
+  { id: "hmua", name: "Hair & makeup artist", amount: 1500, detail: "A partner artist, subject to their availability on your date" },
   { id: "reel", name: "60-second vertical reel", amount: 1999, detail: "Edited for Reels and TikTok" },
   { id: "retouch10", name: "10 more retouches", amount: 800, detail: "On top of your package" },
   { id: "rush", name: "Rush delivery", amount: 1000, detail: "Gallery in 3 days instead of 7–10" },
@@ -160,6 +160,7 @@ export const privateTerms = [
 
 export const bookingTerms = [
   "A 30% non-refundable downpayment secures the shoot date.",
+  "Partners such as hair and makeup artists, studios and venues are independent; if one can't make the date, you'll be told early and offered an alternative or a refund for that add-on.",
   "Strictly no RAW files — every delivered image is edited to the studio's standard.",
 ];
 

@@ -549,6 +549,12 @@ function BriefForm({ brief, answers, onChange, summary }: { brief: Brief; answer
   return (
     <div className={cn("animate-pop-in space-y-12", !light && "rounded-[2px] bg-paper-deep/60 p-5 sm:p-8")}>
       {brief.intro && <p className="max-w-xl font-serif text-lg leading-snug text-ink/75 italic">{brief.intro}</p>}
+      {brief.partners && (
+        <p className="max-w-xl border-l-2 border-sky pl-4 font-serif text-base leading-snug text-ink/75">
+          <span className="label mb-1 block text-[0.62rem] text-ink/60">Outside partners</span>
+          {brief.partners}
+        </p>
+      )}
       {brief.steps.map((st, i) => (
         <Step key={st.title} n={i + 1} title={st.title} hint={st.hint} id={`${brief.id}-${i}`}>
           {st.fields.map((f) => (
