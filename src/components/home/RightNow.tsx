@@ -3,6 +3,7 @@ import { getWeather } from "@/lib/now";
 import { reveal } from "@/lib/reveal";
 import { site } from "@/lib/site";
 import LocalClock from "./LocalClock";
+import Icon from "@/components/ui/Icon";
 
 /** A friendly "live" panel: local time, weather and what's being built. */
 export default async function RightNow() {
@@ -54,7 +55,7 @@ export default async function RightNow() {
           <p className="label mb-4 text-ink/70">Latest code pushed</p>
           {repo ? (
             <a href={repo.url} target="_blank" rel="noopener noreferrer" className="group block">
-              <span className="font-display text-3xl break-words group-hover:text-ember">{repo.name} ↗</span>
+              <span className="font-display text-3xl break-words group-hover:text-ember">{repo.name} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" /></span>
               {repo.description && <span className="mt-2 block font-serif text-lg text-ink/75">{repo.description}</span>}
               <span className="label mt-3 block text-[0.65rem] text-ink/50">
                 {new Intl.DateTimeFormat("en-PH", { dateStyle: "medium", timeZone: site.timeZone }).format(new Date(repo.pushedAt))}
@@ -62,7 +63,7 @@ export default async function RightNow() {
             </a>
           ) : (
             <a href={`https://github.com/${site.githubUser}`} target="_blank" rel="noopener noreferrer" className="font-display text-[clamp(1.5rem,6vw,1.875rem)] break-all hover:text-ember">
-              github.com/{site.githubUser} ↗
+              github.com/<span className="whitespace-nowrap">{site.githubUser} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" /></span>
             </a>
           )}
         </div>

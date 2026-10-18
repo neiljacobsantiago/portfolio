@@ -9,6 +9,7 @@ import { projects } from "@/content/work";
 import type { Photo as PhotoT } from "@/lib/photos";
 import { site } from "@/lib/site";
 import Darkroom from "./Darkroom";
+import Icon from "@/components/ui/Icon";
 
 const lines = ["I build web systems,", "design networks", "& frame light."];
 
@@ -79,7 +80,7 @@ export default async function Hero({ prints = [], collections }: { prints?: Phot
             <Magnetic className="!block sm:!inline-block">
               <Link href="/photography" className="btn w-full justify-center border border-ink/30 px-4 hover:border-ink sm:w-auto sm:px-7">
                 <span className="sm:hidden">Photographs</span>
-                <span className="hidden sm:inline">Browse photographs</span> <span className="arrow">→</span>
+                <span className="hidden sm:inline">Browse photographs</span> <Icon name="arrow-right" className="arrow" />
               </Link>
             </Magnetic>
           </div>
