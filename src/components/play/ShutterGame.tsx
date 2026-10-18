@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Icon from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 import { useImmersive } from "@/lib/immersive";
 import { cn } from "@/lib/utils";
@@ -9,14 +10,94 @@ import { useArcadeSound } from "./arcade-sound";
 // Shutter: concert photography as a timing game. The band plays to a beat;
 // strobes hit on the beat, the performer jumps on the downbeat, and pyro goes
 // off at the drop. Pan the viewfinder to follow them and shoot. A keeper is
-// sharp (top of a jump), lit (a strobe is firing) and framed (centred).
+// sharp (top of a jump), lit (a light is firing) and framed (centred).
+//
+// Two modes. Easy (the default) teaches: the performer moves slowly, the
+// lighting tech hits a strobe at the top of most jumps, the timing windows
+// are wide, and three cue lights plus a green viewfinder say "now". The
+// first frame is a slow warm-up and the pace barely rises over the roll.
+// Pro is the original: random strobes, tight windows, a faster ramp.
 
 const ROLL = 6;
-const BEST_KEY = "shutter-best-v2";
 const BPM = 124;
 const BEAT = 60 / BPM;
 
 type Lens = "35" | "85";
+type Mode = "easy" | "pro";
+
+const BEST_KEY: Record<Mode, string> = { easy: "shutter-best-easy", pro: "shutter-best-v2" };
+
+interface Tuning {
+  /** Chance a strobe fires on any beat */
+  strobeChance: number;
+  /** How long a strobe stays lit, in seconds */
+  strobeHold: number;
+  gravity: number;
+  /** Take-off speed: base + random spread */
+  jump: [number, number];
+  /** Chance of a jump on each bar's downbeat */
+  jumpChance: number;
+  /** Walking speed: base + random spread, and how often it changes per second */
+  walk: [number, number, number];
+  /** Pace for frame n of the roll */
+  pace: (frame: number) => number;
+  /** Chance the lighting tech hits a strobe at the top of a jump, for frame n */
+  peakStrobe: (frame: number) => number;
+  /** |vertical speed| below which the "sharp" cue lights */
+  sharpCue: number;
+  /** Horizontal distance (in frame widths) within which the "framed" cue lights */
+  frameCue: number;
+}
+
+const TUNING: Record<Mode, Tuning> = {
+  easy: {
+    strobeChance: 0.55,
+    strobeHold: 0.4,
+    gravity: 5.2,
+    jump: [2.3, 0.5],
+    jumpChance: 1,
+    walk: [0.05, 0.1, 0.35],
+    pace: (n) => (n === 0 ? 0.72 : 0.85 + n * 0.04),
+    peakStrobe: (n) => Math.max(0.65, 1 - Math.max(0, n - 1) * 0.08),
+    sharpCue: 1.4,
+    frameCue: 0.26,
+  },
+  pro: {
+    strobeChance: 0.45,
+    strobeHold: 0.22,
+    gravity: 7,
+    jump: [2.3, 1.1],
+    jumpChance: 0.8,
+    walk: [0.08, 0.24, 0.7],
+    pace: (n) => 1 + n * 0.12,
+    peakStrobe: () => 0,
+    sharpCue: 0.9,
+    frameCue: 0.18,
+  },
+};
+
+/** Rounded rectangle, falling back to square corners on browsers without roundRect. */
+function box(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  g.beginPath();
+  if (g.roundRect) g.roundRect(x, y, w, h, r);
+  else g.rect(x, y, w, h);
+}
+
+/** How good the shot is, 0 to 1 per part. Easy is generous; Pro keeps the original maths. */
+function grade(mode: Mode, s: { y: number; vy: number; strobe: number; pyro: number }, offset: number, frameW: number) {
+  const lit = s.strobe > 0 || s.pyro > 0;
+  if (mode === "pro")
+    return {
+      sharp: s.y > 0.05 ? Math.max(0, 1 - Math.abs(s.vy) / 2.2) : 0.3,
+      lit: lit ? 1 : 0.2,
+      framed: Math.max(0, 1 - offset / (frameW * 0.42)),
+    };
+  return {
+    sharp: s.y > 0.05 ? Math.min(1, Math.max(0, 1 - Math.max(0, Math.abs(s.vy) - 0.5) / 3)) : 0.3,
+    lit: lit ? 1 : 0.25,
+    framed: Math.min(1, Math.max(0, 1 - Math.max(0, offset - frameW * 0.12) / (frameW * 0.55))),
+  };
+}
 
 interface Shot {
   score: number;
@@ -53,10 +134,15 @@ export default function ShutterGame() {
     frameX: 0.5,
     frameTarget: 0.5,
     lens: "35" as Lens,
+    mode: "easy" as Mode,
+    /** Frames taken so far this roll */
+    frame: 0,
     speed: 1,
     pyro: 0,
     nextDrop: 9,
     sparks: [] as Spark[],
+    /** This jump will get a strobe at its peak */
+    peakLit: false,
     /** Set by a shot: the next frame copies the scene (without the viewfinder) to this callback. */
     capture: null as ((url: string) => void) | null,
     // Drifting haze, spread evenly (no randomness during render)
@@ -66,18 +152,22 @@ export default function ShutterGame() {
   const [best, setBest] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [lens, setLens] = useState<Lens>("35");
+  const [mode, setMode] = useState<Mode>("easy");
+  const [rollMode, setRollMode] = useState<Mode>("easy");
   const { play, muted, toggleMute } = useArcadeSound();
   const done = shots.length >= ROLL;
   const total = shots.reduce((s, x) => s + x.score, 0);
   const bestShot = shots.reduce<Shot | null>((b, s) => (!b || s.score > b.score ? s : b), null);
+  const keepers = shots.filter((s) => s.verdict === "Keeper").length;
+  const lastShot = shots.length ? shots[shots.length - 1] : null;
   useImmersive(playing);
 
   useEffect(() => {
     try {
-      const b = Number(localStorage.getItem(BEST_KEY)) || null;
+      const b = Number(localStorage.getItem(BEST_KEY[mode])) || null;
       queueMicrotask(() => setBest(b));
     } catch {}
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     sim.current.lens = lens;
@@ -119,25 +209,36 @@ export default function ShutterGame() {
       s.beat += dt / BEAT;
       const onBeat = Math.floor(s.beat) !== prevBeat;
       const beatPhase = s.beat % 1;
+      const tune = TUNING[s.mode];
       if (onBeat) {
         const n = Math.floor(s.beat);
-        if (Math.random() < 0.45) {
-          s.strobe = 0.22;
+        if (Math.random() < tune.strobeChance) {
+          s.strobe = Math.max(s.strobe, tune.strobeHold);
           s.strobeColor = LIGHTS[Math.floor(Math.random() * LIGHTS.length)];
         }
-        if (n % 4 === 0 && s.y === 0 && Math.random() < 0.8) s.vy = (2.3 + Math.random() * 1.1) * Math.sqrt(s.speed);
+        if (n % 4 === 0 && s.y === 0 && Math.random() < tune.jumpChance) {
+          s.vy = (tune.jump[0] + Math.random() * tune.jump[1]) * Math.sqrt(s.speed);
+          s.peakLit = Math.random() < tune.peakStrobe(s.frame);
+        }
       }
 
-      // Performer wanders the stage, faster as the roll goes on.
+      // Performer wanders the stage, a little faster as the roll goes on.
       s.x += s.vx * s.speed * dt;
       if (s.x < 0.14 || s.x > 0.86) {
         s.vx *= -1;
         s.x = Math.max(0.14, Math.min(0.86, s.x));
       }
-      if (Math.random() < dt * 0.7) s.vx = (Math.random() < 0.5 ? -1 : 1) * (0.08 + Math.random() * 0.24);
-      s.vy -= 7 * s.speed * dt;
+      if (Math.random() < dt * tune.walk[2]) s.vx = (Math.random() < 0.5 ? -1 : 1) * (tune.walk[0] + Math.random() * tune.walk[1]);
+      const rising = s.vy;
+      s.vy -= tune.gravity * s.speed * dt;
       s.y = Math.max(0, s.y + s.vy * dt);
       if (s.y === 0) s.vy = 0;
+      // Easy mode: the lighting tech hits a strobe as the jump tops out
+      if (s.peakLit && s.y > 0 && rising > 0.5 && s.vy <= 0.5) {
+        s.peakLit = false;
+        s.strobe = Math.max(s.strobe, 0.55);
+        s.strobeColor = "#fdf0d5";
+      }
       s.strobe = Math.max(0, s.strobe - dt);
       s.flash = Math.max(0, s.flash - dt * 3);
 
@@ -347,9 +448,13 @@ export default function ShutterGame() {
       g.fillRect(0, fy + fh, W, H - fy - fh);
       g.fillRect(0, fy, fx, fh);
       g.fillRect(fx + fw, fy, W - fx - fw, fh);
-      g.strokeStyle = "rgba(253,240,213,0.85)";
-      g.lineWidth = Math.max(1.5, u * 0.3);
-      const corner = fh * 0.08;
+      // The moment: sharp, lit and framed all at once
+      const cueSharp = s.y > 0.05 && Math.abs(s.vy) < tune.sharpCue;
+      const cueFramed = Math.abs(px - fcx) < fw * tune.frameCue;
+      const moment = cueSharp && lit && cueFramed;
+      g.strokeStyle = moment ? "#7bd88f" : "rgba(253,240,213,0.85)";
+      g.lineWidth = Math.max(1.5, u * (moment ? 0.7 : 0.3));
+      const corner = fh * (moment ? 0.12 : 0.08);
       for (const [cx, cy, dx, dy] of [
         [fx, fy, 1, 1],
         [fx + fw, fy, -1, 1],
@@ -363,14 +468,49 @@ export default function ShutterGame() {
         g.stroke();
       }
       // Focus point turns green when it's on the performer
-      const onTarget = Math.abs(px - fcx) < fw * 0.18;
-      g.strokeStyle = onTarget ? "#7bd88f" : "rgba(253,240,213,0.8)";
+      g.lineWidth = Math.max(1.5, u * 0.3);
+      g.strokeStyle = cueFramed ? "#7bd88f" : "rgba(253,240,213,0.8)";
       g.strokeRect(fcx - u * 1.6, fcy - u * 1.6, u * 3.2, u * 3.2);
-      // Exposure meter under the frame
-      g.fillStyle = "rgba(253,240,213,0.85)";
-      g.font = `${Math.round(u * 2.4)}px ui-monospace, monospace`;
-      g.textAlign = "center";
-      g.fillText(`${s.lens}mm  f/2.8  1/500  ISO 3200  ${lit ? "●" : "○"}`, fcx, Math.min(H - u, fy + fh + u * 3.2));
+      if (moment && s.mode === "easy") {
+        g.fillStyle = "#7bd88f";
+        g.font = `bold ${Math.round(u * 2.8)}px ui-monospace, monospace`;
+        g.textAlign = "center";
+        g.fillText("NOW", fcx, fy + u * 4.2);
+      }
+
+      // Cue lights, bottom left: one for each thing a keeper needs
+      const cues: [string, boolean][] = [
+        ["SHARP", cueSharp],
+        ["LIGHT", lit],
+        ["FRAME", cueFramed],
+      ];
+      const pillH = u * 4.2;
+      const step = u * 12.5;
+      const left = u * 2;
+      const top = H - pillH - u * 2;
+      g.fillStyle = "rgba(3,5,10,0.62)";
+      box(g, left, top, step * 3 + u * 1.5, pillH, pillH / 2);
+      g.fill();
+      g.font = `${Math.round(u * 2)}px ui-monospace, monospace`;
+      g.textAlign = "left";
+      g.textBaseline = "middle";
+      cues.forEach(([label, on], i) => {
+        const x = left + u * 2.4 + i * step;
+        const y = top + pillH / 2;
+        g.beginPath();
+        g.arc(x, y, u * 0.95, 0, Math.PI * 2);
+        if (on) {
+          g.fillStyle = "#7bd88f";
+          g.fill();
+        } else {
+          g.strokeStyle = "rgba(253,240,213,0.5)";
+          g.lineWidth = Math.max(1, u * 0.25);
+          g.stroke();
+        }
+        g.fillStyle = on ? "#e8ffe9" : "rgba(253,240,213,0.6)";
+        g.fillText(label, x + u * 1.8, y + u * 0.1);
+      });
+      g.textBaseline = "alphabetic";
 
       if (s.flash > 0) {
         g.fillStyle = `rgba(255,255,255,${s.flash})`;
@@ -394,27 +534,30 @@ export default function ShutterGame() {
     haptic(15);
     play("shutter");
 
-    const sharp = s.y > 0.05 ? Math.max(0, 1 - Math.abs(s.vy) / 2.2) : 0.3; // the top of a jump freezes motion
-    const lit = s.strobe > 0 || s.pyro > 0 ? 1 : 0.2;
     const fh = (s.lens === "85" ? 0.44 : 0.66) * H;
     const fw = fh * 0.75;
-    const framed = Math.max(0, 1 - Math.abs(s.x * W - s.frameX * W) / (fw * 0.42));
+    // The top of a jump freezes motion; a strobe or the pyro lights the shot
+    const { sharp, lit, framed } = grade(s.mode, s, Math.abs(s.x * W - s.frameX * W), fw);
     const tele = s.lens === "85" ? 1.15 : 1;
     const pyro = s.pyro > 0 && lit === 1;
     const score = Math.min(100, Math.round((sharp * 0.4 + lit * 0.35 + framed * 0.25) * 100 * tele + (pyro ? 8 : 0)));
-    const reasons = [sharp < 0.5 ? "motion blur" : null, lit < 1 ? "underexposed" : null, framed < 0.4 ? "out of frame" : null].filter(Boolean);
-    const verdict: Shot["verdict"] = score >= 75 ? "Keeper" : score >= 50 ? "Almost" : "Missed";
+    const easy = s.mode === "easy";
+    const reasons = easy
+      ? [sharp < 0.5 ? "shoot at the top of a jump" : null, lit < 1 ? "wait for a light" : null, framed < 0.4 ? "keep them in frame" : null].filter(Boolean)
+      : [sharp < 0.5 ? "motion blur" : null, lit < 1 ? "underexposed" : null, framed < 0.4 ? "out of frame" : null].filter(Boolean);
+    const verdict: Shot["verdict"] = score >= 75 ? "Keeper" : score >= (easy ? 45 : 50) ? "Almost" : "Missed";
     if (verdict === "Keeper") play("keeper");
 
     // The next drawn frame hands back the photo (the scene without the viewfinder)
     const index = shots.length;
     s.capture = (url) => setShots((all) => all.map((x, i) => (i === index ? { ...x, thumb: url } : x)));
-    s.speed = 1 + (shots.length + 1) * 0.12;
+    s.frame = shots.length + 1;
+    s.speed = TUNING[s.mode].pace(s.frame);
 
     const shot: Shot = {
       score,
       verdict,
-      why: verdict === "Keeper" ? (pyro ? "pyro moment!" : "sharp, lit, framed") : reasons.join(" · ") || "close!",
+      why: verdict === "Keeper" ? (pyro ? "pyro moment" : "sharp, lit, framed") : reasons.join(" · ") || "so close",
       thumb: "",
       parts: { sharp, lit, framed },
       pyro,
@@ -425,8 +568,8 @@ export default function ShutterGame() {
       setPlaying(false);
       const sum = next.reduce((a, x) => a + x.score, 0);
       try {
-        if (sum > (Number(localStorage.getItem(BEST_KEY)) || 0)) {
-          localStorage.setItem(BEST_KEY, String(sum));
+        if (sum > (Number(localStorage.getItem(BEST_KEY[s.mode])) || 0)) {
+          localStorage.setItem(BEST_KEY[s.mode], String(sum));
           setBest(sum);
         }
       } catch {}
@@ -442,9 +585,11 @@ export default function ShutterGame() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!playing) return;
+      if (!playing || e.metaKey || e.ctrlKey || e.altKey) return;
       const el = document.activeElement as HTMLElement | null;
-      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) return;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      const box = wrapRef.current?.getBoundingClientRect();
+      if (!box || box.bottom < 0 || box.top > innerHeight) return; // only when the game is on screen
       const s = sim.current;
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
@@ -464,13 +609,15 @@ export default function ShutterGame() {
   const startRoll = () => {
     haptic();
     play("tick");
-    Object.assign(sim.current, { speed: 1, nextDrop: 6 + Math.random() * 4, frameTarget: 0.5 });
+    Object.assign(sim.current, { mode, frame: 0, speed: TUNING[mode].pace(0), nextDrop: mode === "easy" ? 10 + Math.random() * 4 : 6 + Math.random() * 4, frameTarget: 0.5, peakLit: false });
+    setRollMode(mode);
     setShots([]);
     setPlaying(true);
   };
 
   return (
-    <div className="space-y-4">
+    // Enter belongs to this game while focus is inside it, not to page-wide shortcuts
+    <div className="space-y-4" onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}>
       <div ref={wrapRef} className="relative aspect-[4/5] overflow-hidden rounded-[2px] bg-ink sm:aspect-[12/8]">
         <canvas
           ref={canvasRef}
@@ -495,29 +642,41 @@ export default function ShutterGame() {
 
         {playing && (
           <>
-            <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between gap-2">
-              <p className="label rounded-full bg-paper/90 px-3 py-1.5 text-[0.52rem] text-ink">
-                {ROLL - shots.length} left<span className="hidden sm:inline"> · aim, then click or Space</span>
-              </p>
-              <div className="pointer-events-auto flex gap-1.5">
+            <div className="pointer-events-none absolute inset-x-2 top-2 flex items-start justify-between gap-2 sm:inset-x-3 sm:top-3">
+              <div className="min-w-0 space-y-1.5" aria-live="polite">
+                <p className="label w-fit rounded-full bg-paper/90 px-3 py-1.5 text-[0.52rem] text-ink">
+                  {ROLL - shots.length} left<span className="hidden sm:inline"> · aim, then click or Space</span>
+                </p>
+                {lastShot && (
+                  <p key={shots.length} className={cn("animate-pop-in label w-fit max-w-full truncate rounded-full px-3 py-1.5 text-[0.5rem]", lastShot.verdict === "Keeper" ? "bg-[#2e8b57] text-paper" : "bg-ink/80 text-paper")}>
+                    {lastShot.verdict} {lastShot.score} · {lastShot.why}
+                  </p>
+                )}
+              </div>
+              <div className="pointer-events-auto flex shrink-0 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setLens((l) => (l === "35" ? "85" : "35"))}
-                  aria-label={`Lens: ${lens}mm. Switch lens`}
-                  className="label press rounded-full bg-paper/90 px-3 py-1.5 text-[0.52rem] text-ink"
+                  aria-label={`Lens: ${lens}mm${lens === "85" ? ", scores 15% more" : ""}. Switch lens`}
+                  className="label press flex h-11 items-center rounded-full bg-paper/90 px-3 text-[0.52rem] text-ink"
                 >
-                  {lens}mm{lens === "85" ? " ×1.15" : ""}
+                  {lens}mm{lens === "85" ? " +15%" : ""}
                 </button>
-                <button type="button" onClick={toggleMute} aria-label={muted ? "Sound off" : "Sound on"} className="label press rounded-full bg-paper/90 px-3 py-1.5 text-[0.52rem] text-ink">
-                  {muted ? "🔇" : "🔊"}
+                <button type="button" onClick={toggleMute} aria-label={muted ? "Turn sound on" : "Turn sound off"} aria-pressed={!muted} className="press flex h-11 w-11 items-center justify-center rounded-full bg-paper/90 text-ink">
+                  <Icon name={muted ? "mute" : "volume"} className="h-4.5 w-4.5" />
                 </button>
               </div>
             </div>
+            {rollMode === "easy" && shots.length === 0 && (
+              <p className="animate-pop-in pointer-events-none absolute inset-x-0 top-[3.6rem] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-xl bg-ink/85 px-3 py-2 text-center font-serif text-[0.95rem] leading-snug text-paper sm:top-16">
+                Warm-up frame. Follow the singer and shoot when <span className="font-mono text-[0.8em] text-[#7bd88f]">SHARP</span>, <span className="font-mono text-[0.8em] text-[#7bd88f]">LIGHT</span> and <span className="font-mono text-[0.8em] text-[#7bd88f]">FRAME</span> all glow.
+              </p>
+            )}
             <button
               type="button"
               onClick={shoot}
               aria-label="Take the photo"
-              className="press absolute right-4 bottom-4 flex h-16 w-16 items-center justify-center rounded-full bg-paper/90 shadow-xl ring-4 ring-ember/80 sm:hidden"
+              className="press absolute right-3 bottom-3 flex h-16 w-16 items-center justify-center rounded-full bg-paper/90 shadow-xl ring-4 ring-ember/80 pointer-fine:hidden"
             >
               <span className="h-11 w-11 rounded-full bg-ember" />
             </button>
@@ -525,21 +684,22 @@ export default function ShutterGame() {
         )}
 
         {!playing && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink/75 p-6 text-center text-paper backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 overflow-y-auto bg-ink/75 p-4 text-center text-paper backdrop-blur-[2px] sm:gap-3 sm:p-6">
             {done ? (
               <>
-                <p className="label text-sky">Roll complete</p>
+                <p className="label text-sky">Roll complete · {rollMode === "easy" ? "Easy" : "Pro"}</p>
                 <p className="font-display text-5xl leading-none">
                   {total}
                   <span className="font-serif text-2xl text-paper/60">/{ROLL * 100}</span>
                 </p>
                 <p className="font-serif text-paper/75 italic">
-                  {shots.filter((s) => s.verdict === "Keeper").length} keepers{best ? ` · best ${best}` : ""}
+                  {keepers} {keepers === 1 ? "keeper" : "keepers"}
+                  {best && rollMode === mode ? ` · best ${best}` : ""}
                 </p>
                 {bestShot?.thumb && (
-                  <div className="mt-1 flex items-center gap-3 rounded-xl bg-paper/10 p-2 pr-4 text-left">
+                  <div className="flex items-center gap-3 rounded-xl bg-paper/10 p-2 pr-4 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element -- generated in the browser */}
-                    <img src={bestShot.thumb} alt="Your best frame" className="h-20 w-15 rounded-sm object-cover" />
+                    <img src={bestShot.thumb} alt="Your best frame" className="h-16 w-12 rounded-sm object-cover sm:h-20 sm:w-15" />
                     <div className="space-y-1">
                       <p className="label text-[0.5rem] text-sky">Best frame · {bestShot.score}</p>
                       {(["sharp", "lit", "framed"] as const).map((k) => (
@@ -557,12 +717,30 @@ export default function ShutterGame() {
             ) : (
               <>
                 <p className="label text-sky">{ROLL} frames on the roll</p>
-                <p className="max-w-sm font-serif text-lg leading-snug text-paper/85">
-                  Follow the performer with the viewfinder. Shoot on a strobe, at the top of a jump. Catch the pyro for a bonus; the 85mm is harder but scores more.
+                <p className="max-w-sm font-serif text-[1.05rem] leading-snug text-paper/85 sm:text-lg">
+                  Follow the performer with the viewfinder. The best frame is at the top of a jump, under a light, in the middle of the frame. Three cue lights tell you when.
                 </p>
               </>
             )}
-            <button type="button" onClick={startRoll} className="btn mt-2 bg-paper py-3 text-ink hover:bg-sky">
+            <div role="radiogroup" aria-label="Difficulty" className="grid w-full max-w-[17rem] grid-cols-2 gap-1 rounded-full bg-paper/10 p-1">
+              {(["easy", "pro"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  onClick={() => setMode(m)}
+                  className={cn("label min-h-11 rounded-full px-3 text-[0.56rem] transition-colors", mode === m ? "bg-paper text-ink" : "text-paper/75 pointer-fine:hover:text-paper")}
+                >
+                  {m === "easy" ? "Easy" : "Pro"}
+                </button>
+              ))}
+            </div>
+            <p className="max-w-xs font-serif text-sm text-paper/65 italic">
+              {mode === "easy" ? "Slow warm-up, wide timing, a strobe at the top of most jumps." : "Random strobes, tight timing, and the band speeds up."}
+            </p>
+            <button type="button" onClick={startRoll} className="btn bg-paper py-3 text-ink pointer-fine:hover:bg-sky">
+              <Icon name="camera" className="h-4 w-4" />
               {done ? "Shoot another roll" : "Start shooting"}
             </button>
           </div>
@@ -578,7 +756,7 @@ export default function ShutterGame() {
                 {/* eslint-disable-next-line @next/next/no-img-element -- generated in the browser */}
                 {s?.thumb && <img src={s.thumb} alt={`Shot ${i + 1}: ${s.verdict}`} className="h-full w-full object-cover" />}
               </div>
-              <p className={cn("label mt-1 truncate text-center text-[0.44rem]", s?.verdict === "Keeper" ? "text-[#2e8b57]" : s?.verdict === "Almost" ? "text-[#b8860b]" : "text-ember")}>{s ? `${s.verdict} ${s.score}` : "—"}</p>
+              <p className={cn("label mt-1 truncate text-center text-[0.44rem]", s?.verdict === "Keeper" ? "text-[#2e8b57]" : s?.verdict === "Almost" ? "text-[#b8860b]" : "text-ember")}>{s ? `${s.verdict} ${s.score}` : `${i + 1}`}</p>
               {s && <p className="hidden truncate text-center font-serif text-[0.58rem] text-ink/55 italic sm:block">{s.why}</p>}
             </li>
           );
