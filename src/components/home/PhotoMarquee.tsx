@@ -4,6 +4,7 @@ import PhotoImage from "@/components/photography/Photo";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { Photo } from "@/lib/photos";
+import Icon from "@/components/ui/Icon";
 
 const WORDS = ["Networks", "Web systems", "Photography", "Security", "Production", "Astrophotography"];
 
@@ -95,7 +96,7 @@ export default function PhotoMarquee({ photos }: { photos: Photo[] }) {
               {WORDS.map((w, i) => (
                 <span key={w} className="flex items-center font-display text-[clamp(3rem,9vw,8rem)] leading-none whitespace-nowrap">
                   <span className={i % 2 ? "text-ember" : "text-transparent [-webkit-text-stroke:1.5px_var(--color-paper)]"}>{w}</span>
-                  <span className="mx-6 text-[0.4em] text-sky md:mx-10">✦</span>
+                  <Icon name="sparkle" className="mx-6 h-[0.4em] w-[0.4em] text-sky md:mx-10" />
                 </span>
               ))}
             </div>

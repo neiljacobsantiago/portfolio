@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Icon from "@/components/ui/Icon";
 
 /**
  * Click-to-play YouTube: shows a poster until tapped, so the heavy player
@@ -23,8 +24,8 @@ export default function YouTube({ id, title }: { id: string; title: string }) {
           {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube poster */}
           <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover opacity-80 transition-[opacity,transform] duration-700 group-hover:scale-[1.03] group-hover:opacity-95" />
           <span className="absolute inset-0 flex items-center justify-center">
-            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-paper/90 text-2xl text-ink shadow-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 group-active:scale-95">
-              ▶
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-paper/90 text-ink shadow-xl transition-transform duration-500 ease-[var(--ease-spring)] group-hover:scale-110 group-active:scale-95">
+              <Icon name="play" className="ml-1 h-8 w-8" />
             </span>
           </span>
         </button>

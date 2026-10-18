@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/PageHeader";
 import Magnetic from "@/components/ui/Magnetic";
+import Icon from "@/components/ui/Icon";
 import ShareButton from "@/components/ui/ShareButton";
 import FacebookMedia from "@/components/work/FacebookMedia";
 import ProjectCover from "@/components/work/ProjectCover";
@@ -84,7 +85,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
       </Container>
 
-      <Container className="grid gap-14 py-16 md:grid-cols-12 md:py-24">
+      <Container className="grid grid-cols-1 gap-14 py-16 md:grid-cols-12 md:py-24">
         <dl className="grid h-max min-w-0 grid-cols-2 gap-x-6 gap-y-8 md:sticky md:top-28 md:col-span-4 md:grid-cols-1">
           <Meta label="Role">{project.role}</Meta>
           <Meta label="Status">{project.status}</Meta>
@@ -100,20 +101,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             {project.links?.map((l) => (
               <Magnetic key={l.href}>
                 <a href={l.href} target="_blank" rel="noopener noreferrer" className="btn bg-ink py-3 text-paper hover:bg-ember">
-                  {l.label} <span className="arrow">↗</span>
+                  {l.label} <Icon name="arrow-up-right" className="arrow" />
                 </a>
               </Magnetic>
             ))}
             {project.privateRepo && (
               <span className="label inline-flex items-center gap-2 rounded-full border border-ink/20 px-4 py-3 text-ink/60">
-                <span aria-hidden>🔒</span> Private repository
+                <Icon name="lock" className="h-4 w-4" /> Private repository
               </span>
             )}
             <ShareButton title={project.title} text={project.plain} />
           </div>
           {project.notice && (
             <p className="col-span-2 flex gap-3 rounded-[2px] border-l-2 border-ember bg-ember/[0.06] px-4 py-3 font-serif text-base leading-snug text-ink/75 italic md:col-span-1">
-              <span aria-hidden className="not-italic">ⓘ</span>
+              <Icon name="info" className="mt-0.5 h-5 w-5 shrink-0 text-ember" />
               {project.notice}
             </p>
           )}
@@ -176,16 +177,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
             </section>
           )}
 
+          {/* The Lab tools are also used full width on /lab; here they sit in a narrow column, so every
+              grid cell and range slider inside is allowed to shrink instead of pushing past the box's right edge. */}
           {project.tool && (
-            <section className="mt-14 rounded-[2px] bg-paper-deep/50 p-5 ring-1 ring-ink/10 md:p-8">
+            <section className="mt-14 min-w-0 rounded-[2px] bg-paper-deep/50 p-4 ring-1 ring-ink/10 sm:p-5 md:p-8 [&_.grid>*]:min-w-0 [&_input[type=range]]:min-w-0">
               <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <h2 className="label text-ember">Try it yourself</h2>
                   <p className="mt-2 font-display text-3xl leading-tight">{toolById(project.tool).title}</p>
                   <p className="mt-2 max-w-xl font-serif text-lg text-ink/70">{toolById(project.tool).blurb}</p>
                 </div>
-                <Link href={`/lab#${project.tool}`} className="label ulink text-[0.6rem] text-ink/60 hover:text-ink">
-                  All Lab tools →
+                <Link href={`/lab#${project.tool}`} className="label ulink inline-flex items-center gap-1.5 text-[0.6rem] text-ink/60 hover:text-ink">
+                  All Lab tools <Icon name="arrow-right" />
                 </Link>
               </div>
               <ToolView id={project.tool} />
@@ -226,11 +229,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <nav aria-label="More projects" className="border-t border-ink/15">
         <div className="mx-auto grid max-w-[90rem] md:grid-cols-2">
           <Link href={`/work/${prev.slug}`} className="group press border-b border-ink/15 px-5 py-10 md:border-r md:border-b-0 md:px-10 md:py-14">
-            <span className="label text-ink/50">← Previous</span>
+            <span className="label inline-flex items-center gap-2 text-ink/50"><Icon name="arrow-left" /> Previous</span>
             <span className="mt-3 block font-display text-3xl transition-colors group-hover:text-ember md:text-4xl">{prev.title}</span>
           </Link>
           <Link href={`/work/${next.slug}`} className="group press px-5 py-10 text-right md:px-10 md:py-14">
-            <span className="label text-ink/50">Next →</span>
+            <span className="label inline-flex items-center gap-2 text-ink/50">Next <Icon name="arrow-right" /></span>
             <span className="mt-3 block font-display text-3xl transition-colors group-hover:text-ember md:text-4xl">{next.title}</span>
           </Link>
         </div>

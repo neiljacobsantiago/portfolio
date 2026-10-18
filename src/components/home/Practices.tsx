@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useDeviceProfile } from "@/lib/device";
 import { useScrollProgress } from "@/lib/scroll";
 import { cn } from "@/lib/utils";
+import Icon from "@/components/ui/Icon";
 
 const practices = [
   {
@@ -84,7 +85,9 @@ export default function Practices() {
           <h2 id="practices-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
             Five practices, <em className="font-serif text-ember">one eye.</em>
           </h2>
-          <p className="label hidden text-ink/60 md:block">{pinned ? "Keep scrolling →" : "Swipe →"}</p>
+          <p className="label hidden items-center gap-2 text-ink/60 md:flex">
+            {pinned ? "Keep scrolling" : "Swipe"} <Icon name="arrow-right" />
+          </p>
         </div>
 
         <div
