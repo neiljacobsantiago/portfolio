@@ -1,6 +1,6 @@
 "use client";
 
-import { Anton } from "next/font/google";
+import { Archivo_Black, Titan_One } from "next/font/google";
 import Link from "next/link";
 import { useRef, type CSSProperties } from "react";
 import PhotoImage from "@/components/photography/Photo";
@@ -9,8 +9,9 @@ import type { Photo } from "@/lib/photos";
 import { useSceneFallback } from "@/lib/scene";
 import { cn } from "@/lib/utils";
 
-// A heavy condensed face for the poster lettering; only this scene uses it.
-const poster = Anton({ weight: "400", subsets: ["latin"], display: "swap", preload: false, fallback: ["Impact", "Arial Narrow", "sans-serif"] });
+// Lettering for the cover's logo block; only this scene loads these.
+const wordmark = Titan_One({ weight: "400", subsets: ["latin"], display: "swap", preload: false, fallback: ["Arial Rounded MT Bold", "Arial Black", "sans-serif"] });
+const numeral = Archivo_Black({ weight: "400", subsets: ["latin"], display: "swap", preload: false, fallback: ["Arial Black", "Impact", "sans-serif"] });
 
 export interface Panel {
   photo: Photo;
@@ -19,74 +20,81 @@ export interface Panel {
   title: string;
 }
 
-/** One line per collection, lettered onto its panel. */
-const CAPTIONS: Record<string, string> = {
-  concerts: "Front barrier. Full manual.",
-  portraits: "Studio light, on cue.",
-  "photo-mode": "Virtual roads. Real framing.",
-  everyday: "Between assignments.",
-  astro: "Long nights, stacked.",
-  events: "Campus, on the record.",
-  landscapes: "Open road, late light.",
-};
-
-/** Grid areas for panels 1–6 (the hero is "h", the title block "t"); see `.pz-mosaic` in globals.css. */
-const AREAS = ["a", "b", "c", "d", "e", "f"];
+/**
+ * Grid areas for the panels after the hero ("h"), biggest slots first.
+ * Layout per screen shape lives in `.pz-mosaic` in globals.css: three staggered
+ * columns, like a game's cover-art collage, with "g" sitting under the logo.
+ */
+const AREAS = ["b", "d", "i", "a", "e", "c", "f", "g"];
 /** Each panel lands from a slight tilt, a different one each, and settles flat. */
-const TILTS = [-4, 3.5, -2.5, 5, -3, 2.5];
+const TILTS = [-4, 3.5, -2.5, 5, -3, 2.5, -3.5, 2];
 
+const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 const WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
 
 /**
- * Cover-art grid: the photography as a poster of uneven panels with thick
- * paper gutters, a hero panel and a title block. The scene opens on the hero
- * frame filling the screen; as you scroll the camera pulls back into the full
- * poster (one transform on the grid), the other panels drop into their slots
- * with a small tilt that settles, the title block stamps in and the captions
- * slide out from under each frame. Compositor-only (transform and opacity).
- * Reduced motion, low-power devices and phones without scroll timelines get
- * the finished poster as a still.
+ * The photography as a cover-art collage: staggered panels behind thick dark
+ * keylines, colour-graded towards a sunset palette, with a logo block in the
+ * middle — the collection count as a big gradient numeral and Neil's name
+ * stacked over it. The scene opens on the hero frame filling the screen; as
+ * you scroll the camera pulls back to the whole cover, the other panels drop
+ * into their slots and the logo stamps on last. Compositor-only (transform
+ * and opacity). Reduced motion, low-power devices and phones without scroll
+ * timelines get the finished cover as a still.
  */
 export default function PhotoZoom({ panels, collections }: { panels: Panel[]; collections: number }) {
   const sectionRef = useRef<HTMLElement>(null);
   useSceneFallback(sectionRef);
   const [hero, ...rest] = panels;
+  const roman = ROMAN[collections] ?? String(collections);
   const count = WORDS[collections] ?? String(collections);
 
   return (
-    <section ref={sectionRef} aria-labelledby="sheet-title" className="scene-root relative bg-ink text-paper scene:h-[260vh] lg:scene:h-[280vh]">
-      <div className="relative px-3 py-16 sm:px-5 md:px-10 md:py-24 scene:sticky scene:top-0 scene:h-[100svh] scene:overflow-hidden scene:px-2 scene:pt-[calc(4.5rem+env(safe-area-inset-top))] scene:pb-2 md:scene:px-3 md:scene:pt-[calc(5.75rem+env(safe-area-inset-top))] md:scene:pb-3 scene:[contain-intrinsic-size:auto_100svh] scene:[content-visibility:auto]">
-        <ul className="sx pz-mosaic mx-auto max-w-[90rem] scene:aspect-auto scene:h-full scene:max-w-none">
-          <li className="pz-cell [grid-area:h]">
-            <PanelLink panel={hero} index={0} hero sizes="(min-width: 1024px) 100vw, 200vw" className={poster.className} />
-          </li>
-
-          <li className="pz-cell pz-title-cell [grid-area:t]">
-            <div className="sx pz-title relative flex h-full flex-col justify-center gap-[0.6em] p-[clamp(0.75rem,3cqmin,2rem)]">
-              <p className="label w-max max-w-full truncate bg-ember px-2 py-1 text-[clamp(0.6875rem,1.6cqmin,0.75rem)] text-paper">Neil Jacob Santiago · Photographs</p>
-              <h2 id="sheet-title" className={cn(poster.className, "text-[clamp(2rem,15cqmin,6.5rem)] leading-[0.92] tracking-[0.005em] uppercase")}>
-                <span className="block text-paper">{count} worlds.</span>
-                <span className="block text-sky">One shutter.</span>
-              </h2>
-              <p className="max-w-[34ch] font-serif text-[clamp(0.8rem,2.6cqmin,1.125rem)] leading-snug text-paper/85">
-                Concert pits, studio sets, campus stages, open roads, the night sky, and a few virtual ones.
-              </p>
-            </div>
-          </li>
-
-          {rest.map((panel, i) => (
-            <li
-              key={`${panel.photo.src}-${i}`}
-              className={cn("sx pz-cell pz-panel", i >= AREAS.length && "hidden")}
-              style={{ gridArea: AREAS[i], "--i": i, "--pz-rot": `${TILTS[i % TILTS.length]}deg` } as CSSProperties}
-            >
-              <PanelLink panel={panel} index={i + 1} sizes="(min-width: 1024px) 34vw, (min-width: 768px) 50vw, 50vw" className={poster.className} />
+    <section ref={sectionRef} aria-labelledby="sheet-title" className="scene-root relative bg-[#0b0910] text-paper scene:h-[260vh] lg:scene:h-[280vh]">
+      <h2 id="sheet-title" className="sr-only">
+        Photographs: {count.toLowerCase()} collections, one shutter
+      </h2>
+      <div className="relative px-3 py-14 sm:px-5 md:px-10 md:py-20 scene:sticky scene:top-0 scene:flex scene:h-[100svh] scene:flex-col scene:overflow-hidden scene:px-2 scene:pt-[calc(4.5rem+env(safe-area-inset-top))] scene:pb-2 md:scene:px-3 md:scene:pt-[calc(5.75rem+env(safe-area-inset-top))] md:scene:pb-3 scene:[contain-intrinsic-size:auto_100svh] scene:[content-visibility:auto]">
+        <div className="pz-cover relative mx-auto w-full max-w-[90rem] scene:aspect-auto scene:min-h-0 scene:max-w-none scene:flex-1">
+          <ul className="sx pz-mosaic h-full">
+            <li className="pz-cell [grid-area:h]">
+              <PanelLink panel={hero} hero sizes="(min-width: 1024px) 100vw, 200vw" />
             </li>
-          ))}
-        </ul>
+            {rest.slice(0, AREAS.length).map((panel, i) => (
+              <li
+                key={`${panel.photo.src}-${i}`}
+                className="sx pz-cell pz-panel"
+                style={{ gridArea: AREAS[i], "--i": i, "--pz-rot": `${TILTS[i]}deg` } as CSSProperties}
+              >
+                <PanelLink panel={panel} sizes="(min-width: 1024px) 36vw, 50vw" />
+              </li>
+            ))}
+          </ul>
+
+          {/* The logo block: big gradient numeral, the name stacked over it */}
+          <div aria-hidden className="pz-logo-wrap pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="sx pz-logo relative">
+              <span className={cn(numeral.className, "pz-numeral block leading-[0.8]")}>{roman}</span>
+              <span className={cn(wordmark.className, "pz-words absolute inset-0 flex flex-col items-center justify-center leading-[0.86] lowercase")}>
+                <span>neil</span>
+                <span>jacob</span>
+                <span>santiago</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-4 flex w-full max-w-[90rem] items-center justify-between gap-4 scene:hidden">
+          <p className="font-serif text-lg text-paper/85">
+            {count} collections, one shutter. <span className="text-paper/70">Tap any panel to open it.</span>
+          </p>
+          <Link href="/photography" className="label inline-flex shrink-0 items-center gap-1.5 text-2xs text-paper/85 hover:text-paper">
+            All photographs <Icon name="arrow-right" />
+          </Link>
+        </div>
 
         {/* Scene only: the opening frame's caption and a nudge to scroll */}
-        <div aria-hidden className="sx pz-intro pointer-events-none absolute inset-x-0 bottom-0 hidden items-end justify-between gap-4 bg-gradient-to-t from-ink/85 to-transparent px-5 pt-24 pb-6 scene:flex md:px-10 md:pb-10">
+        <div aria-hidden className="sx pz-intro pointer-events-none absolute inset-x-0 bottom-0 hidden items-end justify-between gap-4 bg-gradient-to-t from-black/80 to-transparent px-5 pt-24 pb-6 scene:flex md:px-10 md:pb-10">
           <p className="label min-w-0 truncate text-2xs text-paper/85">
             <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-ember align-middle" />
             {hero.photo.alt}
@@ -101,30 +109,25 @@ export default function PhotoZoom({ panels, collections }: { panels: Panel[]; co
   );
 }
 
-function PanelLink({ panel, index, hero, sizes, className }: { panel: Panel; index: number; hero?: boolean; sizes: string; className: string }) {
-  const caption = CAPTIONS[panel.slug] ?? panel.title;
+function PanelLink({ panel, hero, sizes }: { panel: Panel; hero?: boolean; sizes: string }) {
   return (
-    <Link href={`/photography#${panel.slug}`} aria-label={`${panel.title}: ${caption}`} className="group relative block h-full overflow-hidden">
-      {/* Inset by the keyline width so the comic border stays on top of the photo */}
-      <span className="absolute inset-[3px] block overflow-hidden">
-        <span className={cn("absolute inset-0 block", hero && "sx pz-hero-img")}>
-          <PhotoImage
+    <Link href={`/photography#${panel.slug}`} aria-label={`${panel.title}: ${panel.photo.alt}`} className="group relative block h-full overflow-hidden">
+      <span className={cn("absolute inset-0 block", hero && "sx pz-hero-img")}>
+        <PhotoImage
           src={panel.photo.src}
           variants={panel.photo.variants}
           alt={panel.photo.alt}
           fill
           sizes={sizes}
-          className="object-cover transition-transform duration-700 ease-[var(--ease-apple)] group-hover:scale-105"
+          className="pz-img object-cover transition-transform duration-700 ease-[var(--ease-apple)] group-hover:scale-105"
           style={{ objectPosition: panel.photo.focus }}
-          />
-        </span>
+        />
       </span>
-      <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" />
-      <span className="pz-cap-wrap absolute bottom-[clamp(0.35rem,2.5cqmin,1rem)] left-[clamp(0.35rem,2.5cqmin,1rem)] max-w-[calc(100%-0.7rem)]">
-        <span className="sx pz-cap block" style={{ "--i": index } as CSSProperties}>
-          <span className="label mb-1 hidden w-max bg-paper px-1.5 py-0.5 text-3xs text-ink sm:block">{panel.title}</span>
-          <span className={cn(className, "pz-cap-text block bg-ink px-[0.45em] py-[0.2em] leading-[1] text-paper uppercase", hero && "bg-ember")}>{caption}</span>
-        </span>
+      {/* Sunset grade over every frame, so the collage reads as one piece of art */}
+      <span aria-hidden className="pz-grade pointer-events-none absolute inset-0" />
+      {/* The collection name shows on hover or keyboard focus only, like a cover with no captions */}
+      <span className="label pointer-events-none absolute bottom-2 left-2 translate-y-1 bg-black/75 px-2 py-1 text-3xs text-paper opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+        {panel.title}
       </span>
     </Link>
   );

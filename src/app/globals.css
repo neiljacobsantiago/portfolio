@@ -881,70 +881,64 @@ html.lenis body {
 }
 
 /* ==========================================================================
-   Home: photography cover-art grid (components/home/PhotoZoom)
-   Uneven photo panels with thick paper gutters and ink keylines, one hero
-   panel and a title block, laid out with grid areas per screen shape. In the
-   scroll scene the grid starts zoomed in on the hero (--pz-ox/--pz-oy are the
-   hero's centre, --pz-s the zoom that fills the screen with it) and pulls
-   back; panels drop in with a tilt that settles; the title block stamps in;
-   captions slide out. Transform and opacity only.
+   Home: photography cover-art collage (components/home/PhotoZoom)
+   Three staggered columns of panels behind dark keylines, colour-graded to
+   one sunset palette, with a logo block (gradient numeral + stacked name)
+   over the middle, in the manner of a game's cover-art collage. In the scroll
+   scene the collage starts zoomed in on the hero (--pz-ox/--pz-oy are its
+   centre, --pz-s the zoom that fills the screen) and pulls back; the panels
+   drop in with a tilt that settles; the logo stamps on last. Transform and
+   opacity only.
    ========================================================================== */
+.pz-cover {
+  container-type: size;
+  aspect-ratio: 3 / 4.6;
+}
+@media (min-width: 640px) {
+  .pz-cover {
+    aspect-ratio: 4 / 5;
+  }
+}
+@media (min-width: 1024px), (orientation: landscape) and (min-width: 640px) {
+  .pz-cover {
+    aspect-ratio: 16 / 9;
+  }
+}
 .pz-mosaic {
-  --pz-gut: 6px;
-  --pz-ox: 37.5%;
-  --pz-oy: 18.75%;
-  --pz-s: 2.85;
+  --pz-gut: 5px;
+  --pz-ox: 50%;
+  --pz-oy: 20.8%;
+  --pz-s: 2.75;
   display: grid;
   gap: var(--pz-gut);
   padding: var(--pz-gut);
-  background: var(--color-paper);
-  aspect-ratio: 9 / 16;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: repeat(8, minmax(0, 1fr));
+  background: #0b0910;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: repeat(12, minmax(0, 1fr));
   grid-template-areas:
-    "h h h a"
-    "h h h a"
-    "h h h c"
-    "t t t t"
-    "t t t t"
-    "b b d d"
-    "b b d d"
-    "e e f f";
+    "a h d"
+    "a h d"
+    "a h d"
+    "b h d"
+    "b h e"
+    "b g e"
+    "b g e"
+    "b g e"
+    "b i f"
+    "c i f"
+    "c i f"
+    "c i f";
 }
 @media (min-width: 640px) {
   .pz-mosaic {
-    --pz-gut: 8px;
-    --pz-ox: 33.33%;
-    aspect-ratio: 3 / 4;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    grid-template-areas:
-      "h h h h a a"
-      "h h h h a a"
-      "h h h h c c"
-      "b b t t t t"
-      "b b t t t t"
-      "d d t t t t"
-      "e e e f f f"
-      "e e e f f f";
+    --pz-gut: 7px;
   }
 }
-/* Landscape screens: desktops, tablets on their side and phones turned sideways */
 @media (min-width: 1024px), (orientation: landscape) and (min-width: 640px) {
   .pz-mosaic {
-    --pz-gut: 10px;
-    --pz-ox: 45.83%;
-    --pz-oy: 33.33%;
-    --pz-s: 2.55;
-    aspect-ratio: 16 / 9;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: repeat(6, minmax(0, 1fr));
-    grid-template-areas:
-      "a a a h h h h h b b b b"
-      "a a a h h h h h b b b b"
-      "c c c h h h h h b b b b"
-      "c c c h h h h h t t t t"
-      "d d e e e f f f t t t t"
-      "d d e e e f f f t t t t";
+    --pz-gut: 9px;
+    --pz-s: 3;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
   }
 }
 .pz-cell {
@@ -952,47 +946,61 @@ html.lenis body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  container-type: size;
-  background: #0b0d10;
-  /* Comic keyline inside the paper gutter */
-  box-shadow: inset 0 0 0 3px #0b0d10;
+  background: #1a1424;
 }
 .pz-cell > a {
   outline-offset: -4px;
 }
-.pz-title-cell {
-  background:
-    radial-gradient(circle, rgb(253 240 213 / 0.14) 0.9px, transparent 1.3px) 0 0 / 7px 7px,
-    linear-gradient(150deg, var(--color-ember), var(--color-wine) 70%);
+/* One palette across every frame: warmer, punchier, a sunset wash on top */
+.pz-img {
+  filter: saturate(1.28) contrast(1.06);
 }
-.pz-title {
-  rotate: -1.5deg;
+.pz-grade {
+  background: linear-gradient(168deg, rgb(255 118 178 / 0.3), rgb(255 168 96 / 0.16) 48%, rgb(118 78 222 / 0.36));
+  mix-blend-mode: soft-light;
 }
-.pz-cap-wrap {
-  overflow: clip;
-  padding: 0 6px 6px 0;
+
+/* The logo block sits a little below centre, over the middle panel */
+.pz-logo-wrap {
+  padding-top: 14cqh;
 }
-.pz-cap {
-  rotate: -2deg;
-  transform-origin: 0 100%;
+.pz-numeral {
+  font-size: min(33cqw, 56cqh);
+  letter-spacing: -0.03em;
+  background: linear-gradient(180deg, #ffd56e 0%, #ff9a52 28%, #ff4f97 58%, #9a5bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: max(2px, 0.014em) #1c0f2b;
+  filter: drop-shadow(0 0.035em 0 #1c0f2b) drop-shadow(0 0.08em 0.14em rgb(0 0 0 / 0.5));
 }
-.pz-cap-text {
-  width: max-content;
-  max-width: 100%;
-  font-size: clamp(0.72rem, 8cqmin, 1.5rem);
-  letter-spacing: 0.01em;
-  box-shadow: 3px 3px 0 #0b0d10;
+.pz-words {
+  font-size: min(7.6cqw, 12.5cqh);
+  color: #fff;
+  letter-spacing: -0.01em;
+  -webkit-text-stroke: 0.1em #140b1f;
+  paint-order: stroke fill;
+  text-shadow: 0 0.07em 0 #140b1f, 0 0.12em 0.3em rgb(0 0 0 / 0.45);
+  translate: 0 -2%;
 }
-.pz-cell:first-child .pz-cap-text {
-  font-size: clamp(0.9rem, 6.5cqmin, 2.4rem);
+/* Tall covers (phones held upright): the logo takes more of the width */
+@container (aspect-ratio < 1) {
+  .pz-numeral {
+    font-size: min(46cqw, 34cqh);
+  }
+  .pz-words {
+    font-size: min(11.5cqw, 9cqh);
+  }
+  .pz-logo-wrap {
+    padding-top: 6cqh;
+  }
 }
 
 /* Scene timing (lib/scene.ts runs these on the scene's scroll range, 0 → 1) */
 .pz-mosaic.sx { --kf: pz-pull; --a: 0; --b: 0.5; transform-origin: var(--pz-ox) var(--pz-oy); }
 .pz-hero-img { --kf: pz-hero-img; --a: 0; --b: 0.5; }
-.pz-panel { --kf: pz-drop; --a: calc(0.12 + var(--i) * 0.045); --b: calc(0.4 + var(--i) * 0.045); }
-.pz-title { --kf: pz-stamp; --a: 0.5; --b: 0.66; }
-.pz-cap { --kf: pz-cap; --a: calc(0.58 + var(--i) * 0.025); --b: calc(0.68 + var(--i) * 0.025); }
+.pz-panel { --kf: pz-drop; --a: calc(0.12 + var(--i) * 0.04); --b: calc(0.4 + var(--i) * 0.04); }
+.pz-logo { --kf: pz-stamp; --a: 0.56; --b: 0.74; }
 .pz-intro { --kf: sc-fade-out; --a: 0; --b: 0.12; }
 
 @keyframes pz-pull {
@@ -1011,17 +1019,10 @@ html.lenis body {
   75% { transform: translate3d(0, -1%, 0) rotate(calc(var(--pz-rot) * -0.18)) scale(1.012); }
   100% { opacity: 1; transform: none; }
 }
+/* The logo slams down from big and settles with a slight bounce */
 @keyframes pz-stamp {
-  0% { opacity: 0; transform: scale(1.35) rotate(-5deg); }
-  55% { opacity: 1; transform: scale(0.96) rotate(0.6deg); }
+  0% { opacity: 0; transform: scale(1.6) rotate(-6deg); }
+  50% { opacity: 1; transform: scale(0.94) rotate(0.8deg); }
+  75% { transform: scale(1.02) rotate(-0.2deg); }
   100% { opacity: 1; transform: none; }
-}
-@keyframes pz-cap {
-  from { transform: translate3d(-110%, 0, 0); }
-}
-/* Panels too narrow for a legible line (phone side column) go without a caption */
-@container (max-width: 7.5rem) {
-  .pz-cap-wrap {
-    display: none;
-  }
 }
