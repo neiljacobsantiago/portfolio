@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import Icon from "@/components/ui/Icon";
 import type { Profile } from "@/content/about";
 import { haptic } from "@/lib/haptics";
 
@@ -74,13 +75,13 @@ export default function ProfileReel({ profiles }: { profiles: Profile[] }) {
   return (
     <div className="relative">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <p className="label text-ink/55" aria-live="polite">
+        <p className="label text-ink/75" aria-live="polite">
           <span className="text-ember">{String(active + 1).padStart(2, "0")}</span> / {String(profiles.length).padStart(2, "0")} · {profiles[active]?.title}
         </p>
         <div className="flex gap-2">
           {[
-            { label: "Previous portrait", dir: -1, glyph: "←" },
-            { label: "Next portrait", dir: 1, glyph: "→" },
+            { label: "Previous portrait", dir: -1, icon: "arrow-left" as const },
+            { label: "Next portrait", dir: 1, icon: "arrow-right" as const },
           ].map((b) => (
             <button
               key={b.dir}
@@ -90,7 +91,7 @@ export default function ProfileReel({ profiles }: { profiles: Profile[] }) {
               onClick={() => go(active + b.dir)}
               className="press flex h-11 w-11 items-center justify-center rounded-full border border-ink/25 text-lg hover:border-ink hover:bg-ink hover:text-paper disabled:pointer-events-none disabled:opacity-30"
             >
-              {b.glyph}
+              <Icon name={b.icon} className="h-[1.1rem] w-[1.1rem]" />
             </button>
           ))}
         </div>
@@ -147,8 +148,8 @@ export default function ProfileReel({ profiles }: { profiles: Profile[] }) {
                   )}
                 </figcaption>
               </figure>
-              <p aria-hidden className="mt-2 flex justify-between font-mono text-[0.6rem] tracking-[0.2em] text-ember/80">
-                <span>NJS ▸ {String(i + 1).padStart(2, "0")}A</span>
+              <p aria-hidden className="mt-2 flex justify-between font-mono text-[0.6rem] tracking-[0.2em] text-sky">
+                <span>NJS {String(i + 1).padStart(2, "0")}A</span>
                 <span>{p.exif ? p.exif.split(" · ")[0].toUpperCase() : "STUDIO"}</span>
               </p>
             </li>
@@ -159,7 +160,7 @@ export default function ProfileReel({ profiles }: { profiles: Profile[] }) {
 
       <div className="mt-5 flex justify-center gap-2" aria-hidden>
         {profiles.map((p, i) => (
-          <span key={p.src} className={`h-1.5 rounded-full transition-all duration-500 ease-[var(--ease-spring)] ${active === i ? "w-8 bg-ember" : "w-1.5 bg-ink/25"}`} />
+          <span key={p.src} className={`h-1.5 rounded-full transition-all duration-500 ease-[var(--ease-spring)] ${active === i ? "w-8 bg-ember" : "w-1.5 bg-ink/30"}`} />
         ))}
       </div>
     </div>

@@ -652,6 +652,41 @@ html[data-shield] .shield-badge {
     border: 1px solid currentColor;
     font: 12px/1.4 var(--font-mono);
   }
+
+  /* Résumé (app/resume): prints as a plain document on its own named page.
+     It carries no photographs, so the photo notice never applies, and the
+     page-transition wrapper must not leave it faded or shifted. */
+  @page resume {
+    margin: 12mm 14mm 11mm;
+  }
+  .resume-sheet {
+    page: resume;
+    width: auto !important;
+    max-width: none !important;
+    color: #003049 !important;
+    background: #fff !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    orphans: 3;
+    widows: 3;
+  }
+  .resume-sheet svg {
+    visibility: visible !important;
+  }
+  .resume-sheet a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+  body:has(.resume-sheet)::before {
+    content: none !important;
+    display: none !important;
+  }
+  main:has(.resume-sheet) * {
+    animation: none !important;
+  }
 }
 
 /* ---------- Lenis smooth scrolling (desktop only) ---------- */

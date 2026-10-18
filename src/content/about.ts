@@ -49,6 +49,15 @@ export interface Certificate {
 /** Newest first. */
 export const certificates: Certificate[] = [
   {
+    title: "The Art of Becoming: RStudio for Data Analysis",
+    issuer: "Central Luzon State University",
+    date: "Aug 2026",
+    image: "/certs/rstudio-data-analysis.jpg",
+    width: 1040,
+    height: 720,
+    note: "Webinar · certificate of completion, August 28, 2026",
+  },
+  {
     title: "Google Agile Essentials",
     issuer: "Google · Coursera",
     date: "Jul 2026",
@@ -91,7 +100,7 @@ export const toolkit: { group: string; tools: Tool[] }[] = [
 export const gear = [
   { brand: "Canon", logo: "canon", items: ["EOS 1500D + EF 50mm f/1.8", "EOS 80D"] },
   { brand: "Nikon", logo: "nikon", items: ["D780"] },
-  { brand: "Apple", logo: "apple", items: ["iPhone 14 Pro Max — ProRAW"] },
+  { brand: "Apple", logo: "apple", items: ["iPhone 14 Pro Max"] },
   { brand: "DJI", logo: "dji", items: ["Osmo Mobile 7", "Ronin mini gimbal"] },
 ];
 
