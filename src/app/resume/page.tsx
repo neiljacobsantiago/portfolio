@@ -48,7 +48,7 @@ const PROJECTS: Entry[] = [
     href: "/work/pathoscan",
     bullets: [
       "Trained a MobileNetV2 classifier that identifies five mycotoxin-producing Aspergillus species from culture-plate photos, running fully in the browser with TensorFlow.js and answering “Unknown” rather than forcing a guess.",
-      "Designed the capture-to-result interface: confidence score, a probability matrix for every class, colony traits for comparison, and a 90% threshold that separates preliminary clearance from PCR referral.",
+      "Designed the capture-to-result interface: confidence score, a probability matrix for every class, colony traits for comparison, and a 90% confidence bar that marks a result ready for preliminary screening or prompts a second look.",
       "Delivered with a nine-member Agile-Scrum team as an offline Progressive Web App; formally turned over to the DA PhilMech Laboratory Services Division on September 28, 2026.",
     ],
     stack: "React, TypeScript, Vite, TensorFlow.js, IndexedDB, PWA",
