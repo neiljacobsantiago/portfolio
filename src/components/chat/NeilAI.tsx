@@ -3,17 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Icon, { type IconName } from "@/components/ui/Icon";
 import { haptic } from "@/lib/haptics";
 import { linksIn, localAnswer } from "@/lib/neil-faq";
 import { introFor } from "@/lib/neilai/intents";
+import { historyOf, loadMemory, storeDeal } from "@/lib/neilai/memory";
 import { freshSeed, mix } from "@/lib/neilai/random";
-import { hostOf, sourcesIn, type Source } from "@/lib/neilai/sources";
-import { pickSuggestions, topicOf } from "@/lib/neilai/suggest";
+import { hostOf, isSafeHref, sourcesIn, type Source } from "@/lib/neilai/sources";
+import { pickSuggestions, topicOf, type ChipMeta, type Suggestion } from "@/lib/neilai/suggest";
 import { greeting, starterFor, surprise } from "@/lib/neilai/variety";
 import { ASK_EVENT, takeAsk, type AskDetail } from "@/lib/neilai-events";
 import { chatTools, type ChatCard } from "@/lib/tools";
 import BlobAvatar from "./BlobAvatar";
 import ChatCards from "./ChatCards";
+import RichText from "./RichText";
 
 interface ChatMessage {
   id: number;
@@ -37,9 +40,12 @@ function welcome(path: string): ChatMessage[] {
   ];
 }
 
-const TOOL_ICONS: Record<string, string> = { pathoscan: "🔬", subnet: "🌐", memory: "🧠", link: "🛡️", quote: "📸" };
-const STORE = "neilai-chat-v4";
-const SURPRISE = "🎲 Surprise me";
+const TOOL_ICONS: Record<string, IconName> = { pathoscan: "search", subnet: "globe", memory: "copy", link: "lock", quote: "camera" };
+const STORE = "neilai-chat-v5";
+const SURPRISE = "Surprise me";
+/** How many recent deals this visit keeps, to rotate the opening chip. */
+const DEALS_MAX = 6;
+const metaOf = (deal: Suggestion[]): ChipMeta[] => deal.map(({ topic, theme, template }) => ({ topic, theme, template }));
 /** How many recently shown chips are held back from coming straight back. */
 const SEEN_MAX = 60;
 const VISITED_MAX = 8;
@@ -50,12 +56,13 @@ const remember = (prev: string[], add: (string | null | undefined)[], max = SEEN
   return [...prev.filter((x) => !fresh.includes(x)), ...fresh].slice(-max);
 };
 
-/** Only well-formed outside links from the server make it into a message. */
-const cleanSources = (raw: unknown): Source[] =>
-  (Array.isArray(raw) ? raw : [])
-    .filter((x): x is Source => !!x && typeof x.href === "string" && typeof x.label === "string" && /^https:\/\//.test(x.href))
-    .slice(0, 4)
-    .map((x) => ({ label: x.label.slice(0, 80), href: x.href, host: hostOf(x.href) }));
+/** Only well-formed, safe outside links from the server make it into a message: up to 4 vetted and 5 web results. */
+const cleanSources = (raw: unknown): Source[] => {
+  const ok = (Array.isArray(raw) ? raw : [])
+    .filter((x): x is Source => !!x && typeof x.href === "string" && typeof x.label === "string" && isSafeHref(x.href))
+    .map((x): Source => ({ label: x.label.slice(0, 80), href: x.href, host: hostOf(x.href), kind: x.kind === "web" ? "web" : "vetted" }));
+  return [...ok.filter((x) => x.kind === "vetted").slice(0, 4), ...ok.filter((x) => x.kind === "web").slice(0, 5)];
+};
 const TYPE_MS = 14;
 
 interface Saved {
@@ -65,6 +72,8 @@ interface Saved {
   seen?: string[];
   /** Topics of recent answers, newest last: follow-ups, and what "Surprise me" skips. */
   visited?: string[];
+  /** This visit's chip deals, oldest first, so the opening chip rotates. */
+  deals?: ChipMeta[][];
 }
 
 function restore(): Saved | null {
@@ -79,7 +88,7 @@ function restore(): Saved | null {
 /** The offline brain's answer, with outside links for anything it names. */
 function offline(question: string, page: string) {
   const answer = localAnswer(question, { page });
-  const sources = [...(answer.sources ?? []), ...sourcesIn(answer.text)].filter((x, i, all) => all.findIndex((y) => y.href === x.href) === i).slice(0, 4);
+  const sources = [...(answer.sources ?? []), ...sourcesIn(answer.text)].filter((x, i, all) => all.findIndex((y) => y.href === x.href) === i).slice(0, 5);
   return sources.length ? { ...answer, sources } : answer;
 }
 
@@ -99,6 +108,10 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
   const [seen, setSeen] = useState<string[]>(saved?.seen ?? []);
   const [visited, setVisited] = useState<string[]>(saved?.visited ?? []);
   const [dealtFor, setDealtFor] = useState(opens);
+  // What earlier visits showed (localStorage), read once: recently shown chips are held
+  // back, older ones fade back in. This visit's own deals are tracked alongside.
+  const [memory] = useState(() => loadMemory());
+  const [deals, setDeals] = useState<ChipMeta[][]>(saved?.deals ?? []);
   const stayRef = useRef<HTMLButtonElement>(null);
   const nextId = useRef(Math.max(0, ...messages.map((m) => m.id)) + 1);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -111,7 +124,8 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
     if (!typing) return;
     const id = setInterval(() => {
       setMessages((prev) =>
-        prev.map((m) => (m.shown !== undefined && m.shown < m.text.length ? { ...m, shown: Math.min(m.text.length, m.shown + 2) } : m)),
+        // Longer answers type a little faster, so none takes more than a few seconds.
+        prev.map((m) => (m.shown !== undefined && m.shown < m.text.length ? { ...m, shown: Math.min(m.text.length, m.shown + Math.max(2, Math.ceil(m.text.length / 220))) } : m)),
       );
     }, TYPE_MS);
     return () => clearInterval(id);
@@ -120,10 +134,10 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
   // Keep the conversation for this browser tab, so a refresh doesn't wipe it.
   useEffect(() => {
     try {
-      const keep: Saved = { messages: messages.slice(-30).map((m) => ({ ...m, shown: undefined })), round, seen, visited };
+      const keep: Saved = { messages: messages.slice(-30).map((m) => ({ ...m, shown: undefined })), round, seen, visited, deals };
       sessionStorage.setItem(STORE, JSON.stringify(keep));
     } catch {}
-  }, [messages, round, seen, visited]);
+  }, [messages, round, seen, visited, deals]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -148,24 +162,48 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
   }, [leaving]);
 
   // The chips: a seeded deal from the whole pool. The page leads, the last
-  // answer gets follow-ups, one chip wanders off-theme, and nothing asked or
-  // shown lately comes back. Deterministic for these inputs, so it's render-safe.
+  // answer gets follow-ups, one chip wanders off-theme, the opening chip rotates,
+  // and nothing asked or shown lately (this visit or earlier ones) comes back.
+  // Deterministic for these inputs, so it's render-safe.
   const topic = visited.at(-1) ?? null;
   const asked = messages.filter((m) => m.sender === "user").map((m) => m.text);
-  const suggestions = pickSuggestions({ seed: mix(seed, dealtFor), round, path: pathname, exclude: [...seen, ...asked], topic });
+  const suggestions = pickSuggestions({
+    seed: mix(seed, dealtFor),
+    round,
+    path: pathname,
+    exclude: [...memory.recent, ...seen, ...asked],
+    topic,
+    history: historyOf(memory, deals),
+  });
+  const dealKey = `${round}-${pathname}-${dealtFor}-${seed}`;
+  const chipsShown = open && !isTyping && !typing;
+
+  /** The deal on screen is done with: hold its chips back, and remember it for rotating the lead. */
+  const retire = (extra: (string | undefined)[] = []) => {
+    setSeen((prev) => remember(prev, [...suggestions.map((s) => s.text), ...extra]));
+    setDeals((prev) => [...prev, metaOf(suggestions)].slice(-DEALS_MAX));
+  };
 
   // Opened again: the chips that were on screen count as seen, and a new hand is dealt.
   // (Before the first opening the panel is mounted but hidden, so nothing was seen yet.)
   if (opens !== dealtFor) {
     setDealtFor(opens);
-    if (dealtFor > 0) setSeen((prev) => remember(prev, suggestions.map((s) => s.text)));
+    if (dealtFor > 0) retire();
   }
+
+  // Each deal that's actually on screen goes into the browser's chip memory, for later visits.
+  const storedKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (!chipsShown || storedKey.current === dealKey) return;
+    storedKey.current = dealKey;
+    storeDeal(suggestions);
+  });
 
   const push = (msg: Omit<ChatMessage, "id">) => setMessages((prev) => [...prev, { ...msg, id: nextId.current++ }]);
 
   /** Marks what's on screen as seen and moves to the next topic and round. */
   const advance = (next: string | null, question?: string) => {
-    setSeen((prev) => remember(prev, [...suggestions.map((s) => s.text), question]));
+    retire([question]);
     if (next) setVisited((prev) => remember(prev, [next], VISITED_MAX));
     setRound((r) => r + 1);
   };
@@ -211,7 +249,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
     advance(topicOf(message, reply.cards) ?? topicOf(reply.text), message);
   };
 
-  /** 🎲 Something interesting, picked at random and answered on the spot (works offline too). */
+  /** Surprise me: something interesting, picked at random and answered on the spot (works offline too). */
   const surpriseMe = () => {
     if (isTyping) return;
     haptic(5);
@@ -253,7 +291,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
     setLeaving(null);
     setRound(0);
     setVisited([]);
-    setSeen((prev) => remember(prev, suggestions.map((s) => s.text)));
+    retire();
     setSeed(freshSeed());
     const fresh = welcome(pathname);
     setMessages(fresh);
@@ -276,7 +314,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
         if (!a || a.hasAttribute("data-leave-ok") || !/^https?:\/\//.test(href) || new URL(href).host === location.host) return;
         e.preventDefault();
         haptic(5);
-        setLeaving({ label: a.getAttribute("data-label") ?? a.textContent?.trim() ?? hostOf(href), href, host: hostOf(href) });
+        setLeaving({ label: a.getAttribute("data-label") ?? a.textContent?.trim() ?? hostOf(href), href, host: hostOf(href), kind: a.getAttribute("data-kind") === "web" ? "web" : "vetted" });
       }}
       // Height: whatever's left of the visible viewport (--vv-h, which shrinks with the on-screen
       // keyboard; 100dvh until the launcher measures it) once the NavBar (4rem / 5rem + the top safe
@@ -306,13 +344,13 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
             title="Tools"
             className="press flex h-9 w-9 items-center justify-center rounded-full text-lg hover:bg-paper/10 aria-expanded:bg-paper aria-expanded:text-ink"
           >
-            🧰
+            <Icon name="tools" />
           </button>
           <button type="button" onClick={reset} aria-label="New chat" title="New chat" className="press flex h-9 w-9 items-center justify-center rounded-full text-lg text-paper/70 hover:bg-paper/10 hover:text-paper">
-            ↺
+            <Icon name="refresh" />
           </button>
-          <button type="button" onClick={onClose} aria-label="Close chat" className="press flex h-9 w-9 items-center justify-center rounded-full font-display text-2xl leading-none text-paper/70 hover:bg-paper/10 hover:text-paper">
-            ×
+          <button type="button" onClick={onClose} aria-label="Close chat" className="press flex h-9 w-9 items-center justify-center rounded-full text-lg text-paper/70 hover:bg-paper/10 hover:text-paper">
+            <Icon name="close" />
           </button>
         </div>
       </div>
@@ -330,7 +368,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
                 className="press flex items-center gap-2 rounded-xl bg-paper/[0.07] px-3 py-2.5 text-left text-paper transition-colors hover:bg-paper hover:text-ink"
                 style={{ transitionDelay: drawer ? `${i * 30}ms` : "0ms" }}
               >
-                <span aria-hidden className="text-lg">{TOOL_ICONS[t.id]}</span>
+                <Icon name={TOOL_ICONS[t.id] ?? "tools"} className="text-lg text-sky" />
                 <span className="font-serif text-sm leading-tight">{t.title}</span>
               </button>
             ))}
@@ -340,7 +378,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
               onClick={() => showCard({ kind: "github" })}
               className="press flex items-center gap-2 rounded-xl bg-paper/[0.07] px-3 py-2.5 text-left text-paper transition-colors hover:bg-paper hover:text-ink"
             >
-              <span aria-hidden className="text-lg">📈</span>
+              <Icon name="github" className="text-lg text-sky" />
               <span className="font-serif text-sm leading-tight">GitHub activity</span>
             </button>
           </div>
@@ -351,48 +389,36 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
         {messages.map((msg) => {
           const text = msg.shown !== undefined ? msg.text.slice(0, msg.shown) : msg.text;
           const done = msg.shown === undefined || msg.shown >= msg.text.length;
+          const cursor = !done && <span className="animate-blink ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-ink/60" />;
+          const vetted = msg.sources?.filter((s) => s.kind !== "web") ?? [];
+          const web = msg.sources?.filter((s) => s.kind === "web") ?? [];
           return (
             <div key={msg.id} className={`animate-pop-in flex flex-col ${msg.sender === "user" ? "origin-bottom-right items-end" : "origin-bottom-left items-start"}`}>
-              <div
-                className={`max-w-[85%] px-4 py-2.5 font-serif text-[1.02rem] leading-snug whitespace-pre-line ${
-                  msg.sender === "user" ? "rounded-[20px] rounded-br-md bg-ember text-paper" : "rounded-[20px] rounded-bl-md bg-paper-deep text-ink"
-                }`}
-              >
-                {text}
-                {!done && <span className="animate-blink ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 bg-ink/60" />}
-              </div>
+              {msg.sender === "user" ? (
+                <div className="max-w-[85%] rounded-[20px] rounded-br-md bg-ember px-4 py-2.5 font-serif text-[1.02rem] leading-snug whitespace-pre-line text-paper">{text}</div>
+              ) : (
+                // Replies use a tiny, safe markdown subset (paragraphs, lists, bold), parsed into text nodes.
+                <div className="max-w-[88%] rounded-[20px] rounded-bl-md bg-paper-deep px-4 py-2.5 font-serif text-[1.02rem] leading-snug text-ink">
+                  <RichText text={text} cursor={cursor} />
+                </div>
+              )}
               {done && msg.cards && msg.cards.length > 0 && <ChatCards cards={msg.cards} onNavigate={onClose} />}
               {done && msg.links && msg.links.length > 0 && (
                 <div className="animate-pop-in mt-2 flex flex-wrap gap-1.5">
                   {msg.links.map((l) => (
-                    <Link key={l.href} href={l.href} onClick={onClose} className="label press rounded-full bg-ink px-3 py-1.5 text-[0.6rem] text-paper hover:bg-ember">
-                      {l.label} →
+                    <Link key={l.href} href={l.href} onClick={onClose} className="label press inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-[0.6rem] text-paper hover:bg-ember">
+                      {l.label} <Icon name="arrow-right" />
                     </Link>
                   ))}
                 </div>
               )}
-              {done && msg.sources && msg.sources.length > 0 && (
-                <div className="animate-pop-in mt-2 w-full max-w-[85%]" style={{ animationDelay: "90ms" }}>
-                  <p className="label mb-1.5 text-[0.5rem] text-ink/40">Learn more · outside this site</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {msg.sources.map((src) => (
-                      <a
-                        key={src.href}
-                        href={src.href}
-                        data-label={src.label}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="press flex max-w-full items-center gap-2 rounded-full bg-paper py-1 pr-3.5 pl-1 ring-1 ring-ink/15 hover:ring-ink"
-                      >
-                        <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky/20 text-[0.8rem] text-ink">↗</span>
-                        <span className="min-w-0 text-left">
-                          <span className="block truncate font-serif text-[0.92rem] leading-tight text-ink">{src.label}</span>
-                          <span className="label block truncate text-[0.46rem] text-ink/45">{src.host}</span>
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
+              {done && vetted.length > 0 && <SourceChips sources={vetted} title="Learn more · outside this site" icon="arrow-up-right" />}
+              {done && web.length > 0 && (
+                <SourceChips
+                  sources={web}
+                  title={web.every((s) => s.href.startsWith("https://www.google.com/search?")) ? "Search the web · opens Google" : "Web results · from a live search, not checked by Neil"}
+                  icon="search"
+                />
               )}
             </div>
           );
@@ -409,15 +435,16 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
       </div>
 
       {!isTyping && !typing && (
-        <div key={`${round}-${pathname}-${dealtFor}-${seed}`} className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-3" data-neilai-chips>
+        <div key={dealKey} className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-4 pb-3" data-neilai-chips>
           {/* Always first, so it's never scrolled out of sight. */}
           <button
             type="button"
             onClick={surpriseMe}
             aria-label="Surprise me: pick something at random"
             title="Pick something at random"
-            className="animate-pop-in label press shrink-0 rounded-full border border-dashed border-ember/60 px-3 py-2 text-[0.6rem] text-ember hover:border-ember hover:bg-ember hover:text-paper"
+            className="animate-pop-in label press inline-flex shrink-0 items-center gap-1.5 rounded-full border border-dashed border-ember/60 px-3 py-2 text-[0.6rem] text-ember hover:border-ember hover:bg-ember hover:text-paper"
           >
+            <Icon name="dice" className="text-[0.85rem]" />
             {SURPRISE}
           </button>
           {suggestions.map((s, i) => (
@@ -426,6 +453,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
               key={s.text}
               onClick={() => send(s.text)}
               data-topic={s.topic}
+              data-template={s.template}
               className="animate-pop-in label press shrink-0 rounded-full border border-ink/20 px-3 py-2 text-[0.6rem] hover:border-ink hover:bg-ink hover:text-paper"
               style={{ animationDelay: `${(i + 1) * 70}ms` }}
             >
@@ -459,7 +487,7 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
           aria-label="Send"
           className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-lg text-paper hover:bg-ink disabled:opacity-40"
         >
-          ↑
+          <Icon name="arrow-up" />
         </button>
       </form>
 
@@ -474,12 +502,16 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
             onClick={(e) => e.stopPropagation()}
             className="animate-blob-in w-full origin-bottom rounded-[20px] bg-paper p-5 shadow-[0_30px_60px_-20px_rgb(0_48_73/0.6)] ring-1 ring-ink/10"
           >
-            <p className="label text-[0.55rem] text-ember">Leaving Neil&apos;s site</p>
+            <p className="label text-[0.55rem] text-ember">Leaving Neil&apos;s site{leaving.kind === "web" && " · web result"}</p>
             <p id="leave-title" className="mt-2 font-display text-[1.7rem] leading-[1.05] break-words text-ink">{leaving.host}</p>
             <p className="mt-1 font-serif text-ink/70 italic">{leaving.label}</p>
             <p className="mt-3 rounded-xl bg-paper-deep/80 px-3 py-2 font-mono text-[0.68rem] leading-snug break-all text-ink/70">{leaving.href}</p>
             <p id="leave-desc" className="mt-3 font-serif text-[0.95rem] leading-snug text-ink/75">
-              This opens another website in a new tab. Neil doesn&apos;t run it, so browse with the usual care.
+              {leaving.kind === "web" && leaving.href.startsWith("https://www.google.com/search?")
+                ? "This opens a Google search for your question in a new tab. The results aren't checked by Neil, so browse with the usual care."
+                : leaving.kind === "web"
+                ? "This came from a live web search, so nobody here has checked it. It opens in a new tab; Neil doesn't run it, so browse with the usual care."
+                : "This opens another website in a new tab. Neil doesn't run it, so browse with the usual care."}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button ref={stayRef} type="button" onClick={() => setLeaving(null)} className="label press rounded-full border border-ink/20 py-3 text-[0.58rem] hover:border-ink">
@@ -496,12 +528,42 @@ export default function NeilAI({ open, opens = 0, onClose }: { open: boolean; op
                 }}
                 className="label press flex items-center justify-center gap-1.5 rounded-full bg-ink py-3 text-[0.58rem] text-paper hover:bg-ember"
               >
-                Open link <span aria-hidden>↗</span>
+                Open link <Icon name="arrow-up-right" />
               </a>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Outside links under a reply. Every one opens through the leaving-the-site sheet (see onClickCapture above). */
+function SourceChips({ sources, title, icon }: { sources: Source[]; title: string; icon: IconName }) {
+  return (
+    <div className="animate-pop-in mt-2 w-full max-w-[88%]" style={{ animationDelay: "90ms" }}>
+      <p className="label mb-1.5 text-[0.5rem] text-ink/40">{title}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {sources.map((src) => (
+          <a
+            key={src.href}
+            href={src.href}
+            data-label={src.label}
+            data-kind={src.kind ?? "vetted"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="press flex max-w-full items-center gap-2 rounded-full bg-paper py-1 pr-3.5 pl-1 ring-1 ring-ink/15 hover:ring-ink"
+          >
+            <span aria-hidden className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.85rem] text-ink ${src.kind === "web" ? "bg-ember/15" : "bg-sky/20"}`}>
+              <Icon name={icon} />
+            </span>
+            <span className="min-w-0 text-left">
+              <span className="block truncate font-serif text-[0.92rem] leading-tight text-ink">{src.label}</span>
+              <span className="label block truncate text-[0.46rem] text-ink/45">{src.host}</span>
+            </span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }

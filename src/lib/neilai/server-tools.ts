@@ -1,5 +1,5 @@
 import type { FunctionDeclaration } from "@google/genai";
-import { certificates, education, gear, inProgress, interests, organizations, profiles, toolkit } from "@/content/about";
+import { education, inProgress, interests, organizations, profiles, toolkit } from "@/content/about";
 import { seriesList } from "@/content/series";
 import { categories, projectBySlug, projects, type Category, type Project } from "@/content/work";
 import { addOns, EXTRA_PERSON, PRIVATE_PEOPLE_INCLUDED, privateTerms, services } from "@/content/sessions";
@@ -11,6 +11,7 @@ import { ALGORITHMS, allocate, type Algorithm } from "@/lib/tools/memory";
 import { screen } from "@/lib/tools/pathoscan";
 import { quote } from "@/lib/tools/quote";
 import { subnet, vlsm } from "@/lib/tools/subnet";
+import { certificateFacts, fixFacts, gearList, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "./facts";
 import { pick, sample } from "./random";
 import { resolveTopic, type Source, type SourceKind } from "./sources";
 
@@ -18,7 +19,13 @@ import { resolveTopic, type Source, type SourceKind } from "./sources";
 // (validating every argument), and each can attach a live card to the reply.
 
 type Args = Record<string, unknown>;
-type Output = { result: unknown; card?: ChatCard; sources?: Source[] };
+export type Output = { result: unknown; card?: ChatCard; sources?: Source[] };
+
+/** What the route lends the tools for one request. */
+export interface ToolContext {
+  /** Runs one grounded web search, within the request's and the visitor's limits. Absent when search is off. */
+  webSearch?: (query: string) => Promise<Output>;
+}
 
 const KINDS: SourceKind[] = ["place", "person", "band", "organization", "thing", "event"];
 
@@ -53,6 +60,16 @@ export const declarations: FunctionDeclaration[] = [
         },
       },
       required: ["topics"],
+    },
+  },
+  {
+    name: "web_search",
+    description:
+      "Search the web (Google) for things beyond Neil's site: general knowledge, current events and news, places, people, products, how-tos and tech concepts. Returns a short grounded answer and the pages it came from; those pages are shown to the visitor as 'web results' chips. Never use it for facts about Neil, his projects, prices or photos (use the other tools), and don't use it when you already know a stable, simple answer. At most two searches per message.",
+    parametersJsonSchema: {
+      type: "object",
+      properties: { query: { type: "string", description: "A focused search query in plain words, e.g. 'Philippine Arena capacity' or 'what is VLSM subnetting'." } },
+      required: ["query"],
     },
   },
   {
@@ -142,7 +159,7 @@ export const declarations: FunctionDeclaration[] = [
   },
   {
     name: "pathoscan_decision",
-    description: "Show PathoScan's decision rule: whether a top match at a given confidence is cleared (>= 90%) or sent for PCR. Species: A. flavus, A. terreus, A. fumigatus, A. tamarii, A. niger, Unknown.",
+    description: `Show PathoScan's confidence threshold on a result. It's ${PATHOSCAN_THRESHOLD.short}; it mainly guards against false positives. Species: A. flavus, A. terreus, A. fumigatus, A. tamarii, A. niger, Unknown.`,
     parametersJsonSchema: {
       type: "object",
       properties: { species: { type: "string" }, confidence: { type: "number", description: "Top-match confidence in percent." } },
@@ -158,7 +175,7 @@ function alsoLike(p: Project): Project[] {
   return [first, other.length ? pick(other) : undefined].filter((x): x is Project => !!x);
 }
 
-const summary = (p: (typeof projects)[number]) => ({ slug: p.slug, title: p.title, category: p.category, oneLine: p.plain, role: p.role, status: p.status, page: `/work/${p.slug}` });
+const summary = (p: (typeof projects)[number]) => ({ slug: p.slug, title: p.title, category: p.category, oneLine: fixFacts(p.plain), role: p.role, status: p.status, page: `/work/${p.slug}` });
 
 function profile(topic: string) {
   const all = topic === "all" || !topic;
@@ -166,12 +183,16 @@ function profile(topic: string) {
     ...((all || topic === "education") && { education: education.map((e) => `${e.school} (${e.years}): ${e.level}. ${e.detail}`) }),
     ...((all || topic === "organizations") && { organizations: organizations.map((o) => `${o.name} (${o.short}): ${o.role}. ${o.detail}`) }),
     ...((all || topic === "certificates") && {
-      certificates: certificates.map((c) => `${c.title}, ${c.issuer}, ${c.date}${c.note ? ` (${c.note})` : ""}${c.verify ? "; verifiable online" : ""}`),
+      certificates: certificateFacts.map((c) => `${c.title}, ${c.issuer}, ${c.date}${c.note ? ` (${c.note})` : ""}${c.verify ? "; verifiable online" : ""}`),
       workingTowards: inProgress.map((c) => `${c.title} (${c.detail})`),
       certificatesPage: "/about#credentials",
     }),
     ...((all || topic === "skills") && { toolkit: toolkit.map((g) => `${g.group}: ${g.tools.map((t) => t.name).join(", ")}`) }),
-    ...((all || topic === "gear") && { gear: gear.map((g) => `${g.brand}: ${g.items.join(", ")}`) }),
+    ...((all || topic === "gear") && {
+      gear: gearList.map((g) => `${g.brand}: ${g.items.join(", ")}`),
+      gearNotes: "The iPhone 14 Pro Max shows up in landscapes and video, not at concerts (the concert collection is shot on Nikon and Canon). Don't describe it as a ProRAW camera.",
+    }),
+    ...(all && { freelancePricing: PRICING, thirdParties: THIRD_PARTIES }),
     ...((all || topic === "interests") && { interests: interests.map((i) => `${i.title}: ${i.text}`) }),
     ...((all || topic === "photography") && {
       collections: seriesList.map((s) => `${s.title} (/photography#${s.slug}): ${s.story} Gear: ${s.gear}.`),
@@ -180,10 +201,16 @@ function profile(topic: string) {
   };
 }
 
-export async function runTool(name: string | undefined, args: Args = {}): Promise<Output> {
+export async function runTool(name: string | undefined, args: Args = {}, ctx: ToolContext = {}): Promise<Output> {
   switch (name) {
     case "about_neil":
       return { result: profile(str(args.topic, 20)) };
+    case "web_search": {
+      const query = str(args.query, 300);
+      if (query.length < 2) return { result: { error: "Empty search query." } };
+      if (!ctx.webSearch) return { result: { error: "Web search isn't available right now. Say so, and suggest the visitor searches it themselves." } };
+      return ctx.webSearch(query);
+    }
     case "learn_more": {
       const topics = (Array.isArray(args.topics) ? args.topics : []).slice(0, 3).map((t) => (t ?? {}) as Args);
       const sources = topics
@@ -213,7 +240,7 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
         result: {
           ...summary(p),
           context: p.context,
-          story: p.body.join(" "),
+          story: fixFacts(p.body.join(" ")),
           stack: p.stack,
           team: p.team,
           links: p.links,
@@ -309,7 +336,11 @@ export async function runTool(name: string | undefined, args: Args = {}): Promis
     }
     case "pathoscan_decision": {
       const r = screen(str(args.species), Number(args.confidence) || 90);
-      return { result: { top: r.top, confidence: r.confidence, decision: r.headline, why: r.detail }, card: { kind: "pathoscan", species: r.top, confidence: r.confidence } };
+      // The threshold is a cue for the lab staff, not an automatic referral to any test.
+      return {
+        result: { top: r.top, confidence: r.confidence, threshold: "90%", verdict: r.headline, meaning: r.detail, nextSteps: r.next, rule: PATHOSCAN_THRESHOLD.long },
+        card: { kind: "pathoscan", species: r.top, confidence: r.confidence },
+      };
     }
     default:
       return { result: { error: `Unknown tool ${name}` } };
