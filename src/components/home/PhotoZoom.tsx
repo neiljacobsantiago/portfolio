@@ -25,7 +25,7 @@ const CAPTIONS: Record<string, string> = {
   portraits: "Studio light, on cue.",
   "photo-mode": "Virtual roads. Real framing.",
   everyday: "Between assignments.",
-  astro: "Andromeda, stacked.",
+  astro: "Long nights, stacked.",
   events: "Campus, on the record.",
   landscapes: "Open road, late light.",
 };
