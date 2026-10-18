@@ -9,7 +9,6 @@ import ProjectCover from "@/components/work/ProjectCover";
 import WorkFilter from "@/components/work/WorkFilter";
 import WorkViews from "@/components/work/WorkViews";
 import { categories, projects, type Category } from "@/content/work";
-import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Work",

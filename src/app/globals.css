@@ -969,3 +969,9 @@ html.lenis body {
 @keyframes pz-cap {
   from { transform: translate3d(-110%, 0, 0); }
 }
+/* Panels too narrow for a legible line (phone side column) go without a caption */
+@container (max-width: 7.5rem) {
+  .pz-cap-wrap {
+    display: none;
+  }
+}

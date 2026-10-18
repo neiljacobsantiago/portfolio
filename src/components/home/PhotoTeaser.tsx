@@ -18,7 +18,7 @@ export default function PhotoTeaser({ series }: { series: SeriesWithPhotos[] }) 
             Light, caught <em className="font-serif text-ember">in passing.</em>
           </h2>
           <p className="mt-6 max-w-xl font-serif text-xl leading-relaxed text-paper/80">
-            Concert barricades, studio portraits, campus events and long nights under Andromeda — shot on Canon, Nikon and iPhone.
+            Concert barricades, studio portraits, campus events, long nights under Andromeda and a few laps in photo mode — shot on Canon, Nikon, iPhone and in-game cameras.
           </p>
         </div>
       </div>

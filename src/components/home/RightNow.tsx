@@ -63,7 +63,7 @@ export default async function RightNow() {
             </a>
           ) : (
             <a href={`https://github.com/${site.githubUser}`} target="_blank" rel="noopener noreferrer" className="font-display text-[clamp(1.5rem,6vw,1.875rem)] break-all hover:text-ember">
-              github.com/{site.githubUser} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" />
+              github.com/<span className="whitespace-nowrap">{site.githubUser} <Icon name="arrow-up-right" className="h-[0.7em] w-[0.7em] align-baseline" /></span>
             </a>
           )}
         </div>
