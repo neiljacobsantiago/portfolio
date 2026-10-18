@@ -8,7 +8,7 @@ import { reveal } from "@/lib/reveal";
 
 export const metadata: Metadata = {
   title: "Play",
-  description: "Set a lap on a floodlit 3D street circuit by the bay, where every pavilion opens one of Neil Jacob Santiago's projects. Then time a concert shot in Shutter, match frames in Contact Sheet, or race the clock in Packet Check.",
+  description: "Set a lap on a floodlit 3D street circuit by the bay, where every pavilion opens one of Neil Jacob Santiago's projects. Then time a concert shot in Shutter, match pairs of his photographs in Contact Sheet, or play the router in Packet Check.",
 };
 
 export default function PlayPage() {
