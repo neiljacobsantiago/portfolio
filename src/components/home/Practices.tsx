@@ -39,7 +39,7 @@ const practices = [
     n: "04",
     title: "Photography",
     line: "Concert pits, campus stages and the slow light of distant galaxies.",
-    detail: "Nikon, Canon, an iPhone in ProRAW and a DJI gimbal — from concert pits to portrait sessions.",
+    detail: "Nikon and Canon bodies, an iPhone and a DJI gimbal, from concert pits to portrait sessions.",
     href: "/photography",
     tone: "bg-ember text-paper",
     accent: "text-paper-deep",
