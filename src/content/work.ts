@@ -66,7 +66,7 @@ export const projects: Project[] = [
     body: [
       "PathoScan is a web-based plant pathogen image classification system with a localized architecture, built for the Laboratory Services Division of DA PhilMech in the Science City of Muñoz. Several Aspergillus species produce mycotoxins that contaminate grains, corn and peanuts; identifying them by eye takes trained staff, printed references and often 10 to 14 days.",
       "Lab staff photograph a Potato Dextrose Agar plate (or upload one) and a MobileNetV2 convolutional neural network, running in the browser through TensorFlow.js, names one of five mycotoxin-producing species — A. flavus, A. terreus, A. fumigatus, A. tamarii or A. niger — or answers \"Unknown\" instead of forcing a guess. It shows the confidence, a probability matrix for every class, and the species' known colony traits to compare against the plate.",
-      "Results at 90% confidence or higher are cleared for preliminary screening; anything lower is flagged for PCR confirmation. Everything runs on the device inside PhilMech's local network: no login, no cloud, no stored history beyond the most recent scan for crash recovery, and it installs and works offline as a Progressive Web App.",
+      "The 90% confidence threshold is a prompt, not a verdict. A top match at 90% or more is confident enough to use for preliminary screening; anything lower is PathoScan's cue to look twice: re-scan the plate, compare it with the species' colony traits, or verify further at the lab's discretion. The bar is there because false positives are the real risk: a wrong species reported with confidence does more harm than a second look. Everything runs on the device inside PhilMech's local network: no login, no cloud, no stored history beyond the most recent scan for crash recovery, and it installs and works offline as a Progressive Web App.",
       "We built it as our COMSCI 3100 project using an Agile-Scrum approach, working in sprints as a team of nine, and I designed the interface and trained the classification model. On September 28, 2026, the team formally turned the system over to PhilMech, where it was accepted for operational use.",
     ],
     stack: ["React", "TypeScript", "Vite", "TensorFlow.js", "MobileNetV2", "Teachable Machine", "IndexedDB", "PWA", "Agile-Scrum"],
@@ -114,6 +114,7 @@ export const projects: Project[] = [
   },
   {
     slug: "buildit",
+    tool: "buildit",
     title: "BuildIT",
     category: "web",
     featured: 3,
@@ -210,6 +211,7 @@ export const projects: Project[] = [
   },
   {
     slug: "parkmate",
+    tool: "parkmate",
     title: "ParkMate",
     category: "web",
     plain: "Replaced a parking lot's paper logbook with a desktop app.",
@@ -228,6 +230,7 @@ export const projects: Project[] = [
   },
   {
     slug: "worktayo",
+    tool: "worktayo",
     title: "WorkTayo",
     category: "web",
     plain: "One place to register and track every attendee at a big conference.",
@@ -249,6 +252,7 @@ export const projects: Project[] = [
   },
   {
     slug: "bankosantiago",
+    tool: "banko",
     title: "BankoSantiago",
     category: "web",
     plain: "A banking dashboard that does the essentials, fast, and nothing else.",
