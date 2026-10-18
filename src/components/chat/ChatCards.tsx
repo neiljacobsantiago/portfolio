@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ToolView, { toolOfCard } from "@/components/tools/ToolView";
+import Icon from "@/components/ui/Icon";
 import ProjectCover from "@/components/work/ProjectCover";
 import { projectBySlug } from "@/content/work";
 import type { GitHubActivity } from "@/lib/github";
@@ -33,7 +34,9 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
           <p className="label text-[0.52rem] text-ember">{p.context}</p>
           <p className="mt-1 font-display text-xl leading-tight transition-colors group-hover:text-ember">{p.title}</p>
           <p className="mt-1 font-serif text-[0.92rem] leading-snug text-ink/70 italic">{p.plain}</p>
-          <p className="label mt-2 text-[0.55rem] text-ink/55">Open project →</p>
+          <p className="label mt-2 flex items-center gap-1.5 text-[0.55rem] text-ink/55">
+            Open project <Icon name="arrow-right" />
+          </p>
         </div>
       </Link>
     );
@@ -49,7 +52,9 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
         </div>
         <p className="label flex justify-between p-3.5 text-[0.55rem] text-ink/60">
           <span>{card.count} frames</span>
-          <span>Open the collection →</span>
+          <span className="flex items-center gap-1.5">
+            Open the collection <Icon name="arrow-right" />
+          </span>
         </p>
       </Link>
     );
@@ -62,9 +67,11 @@ function Card({ card, onNavigate }: { card: ChatCard; onNavigate: () => void }) 
   return (
     <div>
       <div className="flex items-center justify-between gap-3 border-b border-ink/10 bg-paper-deep/40 px-3.5 py-2.5">
-        <p className="label text-[0.55rem] text-ink/70">🧪 {toolById(tool).title}</p>
-        <Link href={`/lab#${tool}`} onClick={onNavigate} className="label shrink-0 text-[0.52rem] text-ember hover:text-ink">
-          Open in Lab ↗
+        <p className="label flex items-center gap-1.5 text-[0.55rem] text-ink/70">
+          <Icon name="tools" className="text-[0.8rem]" /> {toolById(tool).title}
+        </p>
+        <Link href={`/lab#${tool}`} onClick={onNavigate} className="label flex shrink-0 items-center gap-1 text-[0.52rem] text-ember hover:text-ink">
+          Open in Lab <Icon name="arrow-up-right" />
         </Link>
       </div>
       <div className="p-3.5">
@@ -123,7 +130,7 @@ function GitHubCard() {
         ))}
       </dl>
       <a href="https://github.com/neiljacobsantiago" target="_blank" rel="noopener noreferrer" className="label mt-3 inline-block text-[0.55rem] text-sky hover:text-paper">
-        github.com/neiljacobsantiago ↗
+        github.com/neiljacobsantiago <Icon name="arrow-up-right" />
       </a>
     </div>
   );
