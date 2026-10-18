@@ -1,7 +1,9 @@
 import astro from "../../public/photography/astro/captions.json";
 import concerts from "../../public/photography/concerts/captions.json";
 import events from "../../public/photography/events/captions.json";
+import everyday from "../../public/photography/everyday/captions.json";
 import landscapes from "../../public/photography/landscapes/captions.json";
+import photoMode from "../../public/photography/photo-mode/captions.json";
 import portraits from "../../public/photography/portraits/captions.json";
 
 // Captions for photos uploaded straight to Cloudinary under their camera file
@@ -40,7 +42,7 @@ export const captionKey = (name: string) =>
     .toLowerCase();
 
 const all = new Map<string, Caption>(
-  [astro, concerts, events, landscapes, portraits, uploads].flatMap((group) => Object.entries(group as Record<string, Caption>).map(([file, c]) => [captionKey(file), c] as const)),
+  [astro, concerts, events, everyday, landscapes, photoMode, portraits, uploads].flatMap((group) => Object.entries(group as Record<string, Caption>).map(([file, c]) => [captionKey(file), c] as const)),
 );
 
 /**
