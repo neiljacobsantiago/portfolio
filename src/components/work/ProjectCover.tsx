@@ -172,7 +172,7 @@ function PathoScanArt({ className, priority }: { className?: string; priority?: 
         <div className="w-[50%] rounded-xl bg-paper/10 p-[4%] ring-1 ring-paper/15 backdrop-blur-sm">
           <p className="label text-[0.55rem] text-paper/70">Top match · on-device</p>
           <p className="mt-1 font-display text-[clamp(0.9rem,2vw,1.6rem)] leading-tight italic">Aspergillus tamarii</p>
-          <p className="label mt-1 text-[0.5rem] text-[#7bd88f]">Cleared · ≥ 90%</p>
+          <p className="label mt-1 text-[0.5rem] text-[#7bd88f]">Above the 90% bar · screening</p>
           {/* Small covers (phone cards) keep the top match only, so the panel never outgrows its frame */}
           <div className="mt-2 space-y-2 @md:mt-3">
             {bars.map((b, i) => (

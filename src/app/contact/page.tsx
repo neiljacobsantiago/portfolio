@@ -33,7 +33,7 @@ export default function ContactPage() {
           </div>
           <div>
             <p className="label mb-3 text-ink/50">Rates</p>
-            <p className="font-serif text-xl">Freelance projects start at {site.rate}.</p>
+            <p className="font-serif text-xl">Photo packages have set prices. Everything else is quoted to the work it needs, in writing, before anything starts.</p>
           </div>
           <div>
             <p className="label mb-3 text-ink/50">Based in</p>
