@@ -16,7 +16,7 @@ export const revalidate = 1800;
 
 /** Collections in the order the cover-art grid hands out its panels (big slots first). */
 const PANEL_ORDER = ["portraits", "photo-mode", "everyday", "astro", "events", "landscapes"];
-const PANELS = 7;
+const PANELS = 9;
 
 /**
  * Panels for the cover-art grid: a concert frame takes the hero slot, then one
