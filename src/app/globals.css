@@ -236,8 +236,11 @@ html.low-power {
 
 /* ---------- Micro-interactions ---------- */
 
-/* Springy press feedback for anything tappable */
+/* Springy press feedback for anything tappable. It shrinks toward the point
+   under the finger (--tap-x/y, set by TapGuard), so that point never slides
+   out from under it and the click lands. */
 @utility press {
+  transform-origin: var(--tap-x, 50%) var(--tap-y, 50%);
   transition:
     transform 0.45s var(--ease-spring),
     background-color 0.3s ease,
@@ -252,6 +255,7 @@ html.low-power {
 
 /* Pill buttons: lift on hover (mouse only), sink on press */
 @utility btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -267,6 +271,14 @@ html.low-power {
     color 0.3s ease,
     border-color 0.3s ease,
     box-shadow 0.45s var(--ease-apple);
+  transform-origin: var(--tap-x, 50%) var(--tap-y, 50%);
+  /* Keeps the hit area where the pill was before it lifted, so the cursor on
+     its bottom edge doesn't drop it, lift it, drop it... */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 -3px;
+  }
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       transform: translateY(-2px);
@@ -276,6 +288,12 @@ html.low-power {
   &:active {
     transform: scale(0.96);
     transition-duration: 0.12s;
+  }
+  /* Pressed while lifted: sink in place rather than drop 2px away from the cursor */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:active {
+      transform: translateY(-2px) scale(0.96);
+    }
   }
   & .arrow {
     transition: transform 0.45s var(--ease-spring);
