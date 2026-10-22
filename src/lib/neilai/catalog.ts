@@ -213,15 +213,15 @@ export const TRIVIA: Trivia[] = [
     names: /\btensorflow(\.js)?\b/i,
     kind: "thing",
     prompt: "What's TensorFlow.js?",
-    line: "TensorFlow.js is what runs PathoScan's MobileNetV2 model right inside the browser, so it works fully offline.",
+    line: "TensorFlow.js is what runs PathoScan's model, trained in Teachable Machine, right inside the browser, so it works fully offline.",
     near: "project:pathoscan",
   },
   {
     label: "MobileNetV2 paper",
     names: /\bmobilenet(v2)?\b/i,
     kind: "thing",
-    prompt: "What's MobileNetV2?",
-    line: "MobileNetV2 is the convolutional neural network behind PathoScan — Neil trained the model that names the Aspergillus species.",
+    prompt: "What's MobileNet?",
+    line: "MobileNet is the kind of compact image network that Google's Teachable Machine builds on. Neil trained PathoScan's model there, then exported it to run in the browser.",
     near: "project:pathoscan",
   },
   {

@@ -378,9 +378,9 @@ const RULES: Rule[] = [
         };
       return {
         text: `**PathoScan** is Neil's team project for DA PhilMech's Laboratory Services Division: photograph a fungal culture and an on-device AI names one of five mycotoxin-producing Aspergillus species, or says "Unknown" instead of guessing.\n\n${bullets([
-          "**How:** a MobileNetV2 model running in the browser with TensorFlow.js, fully offline as a PWA (no login, no cloud)",
+          "**How:** an image model Neil trained in Google's Teachable Machine, exported to TensorFlow.js and running in the browser, fully offline as a PWA (no login, no cloud)",
           `**The 90% threshold:** tells staff whether a result can be taken at face value for preliminary screening, or whether to think twice and look further`,
-          "**Neil's role:** UI/UX and training the model, in a team of nine",
+          "**Neil's role:** UI/UX, plus training the model in Teachable Machine and integrating it, in a team of nine",
           "**Outcome:** turned over to and accepted by PhilMech on September 28, 2026",
         ])}\n\n${one(ctx, "Want to see how the threshold works?", "Curious who else was on the team?")}`,
         links: [{ label: "View the project", href: "/work/pathoscan" }],

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 /* ------------------------------------------------------------------------- */
 
 const SUMMARY =
-  "Third-year BS Information Technology student at Central Luzon State University, majoring in Network Systems & Infrastructure Engineering. Focused on network planning: physical and logical topology, network mapping, cabling, bills of materials, and IP addressing with subnets and VLANs. Builds web systems with AI-assisted development, owning the requirements, structure, testing and deployment; designed the interface and trained the model for PathoScan, an offline plant-pathogen classifier accepted for operational use by DA PhilMech. Writes plain-language security awareness lessons. Production Director of the ITSC Media Group.";
+  "Third-year BS Information Technology student at Central Luzon State University, majoring in Network Systems & Infrastructure Engineering. Focused on network planning: physical and logical topology, network mapping, cabling, bills of materials, and IP addressing with subnets and VLANs. Builds web systems with AI-assisted development, owning the requirements, structure, testing and deployment; designed the interface for PathoScan, an offline plant-pathogen classifier accepted for operational use by DA PhilMech, and trained its image model in Google's Teachable Machine. Writes plain-language security awareness lessons. Production Director of the ITSC Media Group.";
 
 interface Entry {
   title: string;
@@ -47,7 +47,7 @@ const PROJECTS: Entry[] = [
     where: "COMSCI 3100 · for DA PhilMech",
     href: "/work/pathoscan",
     bullets: [
-      "Trained a MobileNetV2 classifier that identifies five mycotoxin-producing Aspergillus species from culture-plate photos, running fully in the browser with TensorFlow.js and answering “Unknown” rather than forcing a guess.",
+      "Trained the image classifier in Google's Teachable Machine from labelled culture-plate photos, exported it as a TensorFlow.js model and integrated it into PathoScan, where it names five mycotoxin-producing Aspergillus species fully in the browser and answers “Unknown” rather than forcing a guess.",
       "Designed the capture-to-result interface: confidence score, a probability matrix for every class, colony traits for comparison, and a 90% confidence bar that marks a result ready for preliminary screening or prompts a second look.",
       "Delivered with a nine-member Agile-Scrum team as an offline Progressive Web App; formally turned over to the DA PhilMech Laboratory Services Division on September 28, 2026.",
     ],

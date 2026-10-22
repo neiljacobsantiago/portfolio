@@ -119,7 +119,7 @@ export default function AboutPage() {
 
   const systems: Proof[] = [
     { title: "Networks", line: "Topologies, cabling plans, BOMs, subnets and VLANs. Cisco NetAcad certificate in addressing and troubleshooting; CCNA next.", href: "#credentials" },
-    { title: "PathoScan", line: "Designed the interface and trained the model. Turned over to DA PhilMech, September 2026.", href: workHref("pathoscan") },
+    { title: "PathoScan", line: "Designed the interface and trained the model in Teachable Machine. Turned over to DA PhilMech, September 2026.", href: workHref("pathoscan") },
     { title: "Student Information System", line: "A Laravel API with sign-in, roles and server-side rules. AI-assisted code, my plan and my testing.", href: workHref("student-information-system") },
     { title: "BuildIT", line: "One product carried across three courses: C, Figma, then a cloud storefront.", href: workHref("buildit") },
   ];
