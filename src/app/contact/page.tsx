@@ -9,10 +9,10 @@ import { site, socials } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Start a project with ${site.name} — websites, photography, video, networks and security check-ups.`,
+  description: `Start a project with ${site.name}: network planning, websites, photography, video and security awareness talks.`,
 };
 
-const services = ["Websites & web systems", "Photoshoots & event coverage", "Video & media production", "Network design & setup", "Security check-ups & talks"];
+const services = ["Network planning & setup", "Websites & web systems", "Photoshoots & event coverage", "Video & media production", "Security awareness talks"];
 
 export default function ContactPage() {
   return (
@@ -20,7 +20,7 @@ export default function ContactPage() {
       <PageHeader
         eyebrow="Contact"
         title={<>Say <em className="font-serif text-ember">hello.</em></>}
-        lead="A website to build, a shoot to book, a video to make or a network to fix — pick one, answer a few questions, and I'll reply personally within a day."
+        lead="A network to plan, a website to build, a shoot to book or a video to make. Pick one, answer a few questions, and I'll reply personally within a day."
       />
       <Container className="grid gap-14 pb-24 md:grid-cols-12 md:pb-32">
         <aside className="space-y-10 md:col-span-4">

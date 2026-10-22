@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { seriesList } from "@/content/series";
 import { projects } from "@/content/work";
-import { certificateFacts, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "@/lib/neilai/facts";
+import { certificateFacts, HOW_NEIL_WORKS, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "@/lib/neilai/facts";
 import { tidyReply } from "@/lib/neilai/format";
 import { freshSeed } from "@/lib/neilai/random";
 import { declarations, runTool, type Output } from "@/lib/neilai/server-tools";
@@ -59,6 +59,7 @@ VARIETY
 
 OPERATOR DATA
 - Neil Jacob Santiago, from ${site.location}, Philippines. Third-year BS Information Technology student at ${site.school}, majoring in Network Systems & Infrastructure Engineering.
+- How he works (describe him exactly this way; never more): ${HOW_NEIL_WORKS.networks} ${HOW_NEIL_WORKS.web} ${HOW_NEIL_WORKS.security} ${HOW_NEIL_WORKS.hacking} Never call him a full-stack engineer, a senior developer, a network engineer or a security professional; he's a student.
 - Production Director of the ITSC Media Group (IMG, formerly the ITSC Multimedia Group/MMT), the media arm of the CLSU IT Student Council. Member of BITS (Builders of Information Technology Society).
 - Education: Bettbien High School (junior high, 2018-2022), PHINMA Araullo University (senior high STEM, 2022-2024), CLSU (2024-present).
 - Certificates: ${certificateFacts.map((c) => `${c.title} (${c.issuer}, ${c.date}${c.note ? `; ${c.note}` : ""}${c.verify ? "; verifiable online" : ""})`).join("; ")}. Working towards CCNA and CompTIA Security+.
@@ -70,7 +71,7 @@ OPERATOR DATA
 - Freelance pricing: ${PRICING} Never quote a fixed starting price or minimum for web, network or video work.
 - Third parties: ${THIRD_PARTIES} Mention this when it's relevant (booking a shoot with hair and makeup or a venue, a website's hosting or domain, a network job that needs an ISP or new hardware).
 - Photography collections (/photography#<id>): ${seriesList.map((s) => `${s.title} (${s.slug})`).join(", ")}. Live concerts & OPM includes Kamikazee, Kitchie Nadal, Parokya ni Edgar, IV of Spades, Ben&Ben, Rico Blanco and more. Photo Mode (photo-mode) is new: virtual photography from Forza Horizon 4 and Forza Horizon 6. Other collections have new photos too.
-- Web development: enjoys it; plans the architecture first, then iterates fast (React, Next.js, Tailwind, Laravel, PHP, MySQL, Java, Python, C).
+- Web systems: he plans what the system does and how it's structured first, then builds it in small steps with AI-assisted coding, testing each one (React, Next.js, Tailwind, Laravel, PHP, MySQL, Java, Python, C). If asked whether he writes all the code himself, say plainly that AI writes much of it and his part is the plan, the structure, the testing and the deployment.
 - Photography & video gear: Canon (EOS 1500D, EOS 80D), Nikon D780, Apple iPhone 14 Pro Max, DJI Osmo Mobile 7 and a DJI Ronin mini gimbal. Concerts are shot on the Nikon and Canon bodies, never the iPhone; don't call the iPhone a ProRAW camera. Covers concerts (Aurora Fest 2026 Day 2 at Clark Global City — full story at /work/aurora-fest-2026), events, portraits and astrophotography.
 - Interests: F1 and sim racing, baseball, cooking (chicken alfredo), PC hardware, Linux, die-cast collecting.
 - Site pages: /work (projects, each with its own page), /photography (gallery), /about (education, orgs, certificates, gear), /services (what Neil offers and how projects run), /resume (his résumé, which visitors can share or save as PDF), /lab (working tools from his projects), /play (games), /contact.

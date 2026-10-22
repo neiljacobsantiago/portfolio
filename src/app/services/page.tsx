@@ -13,7 +13,7 @@ import { site, siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Services",
-  description: `Work with ${site.name}: websites and web systems, network design and setup, security awareness and basic audits, portrait sessions, event and concert coverage, and video. Based in ${site.location}, available remotely.`,
+  description: `Work with ${site.name}: network planning and setup, websites and web systems built with AI-assisted coding, security awareness talks, portrait sessions, event and concert coverage, and video. Based in ${site.location}, available remotely.`,
 };
 
 function OfferBlock({ offer, index }: { offer: Offer; index: number }) {
@@ -115,10 +115,10 @@ export default async function ServicesPage() {
         eyebrow="Work with me"
         title={
           <>
-            Built right, <em className="font-serif text-ember">shot right.</em>
+            Plan it, build it, <em className="font-serif text-ember">shoot it.</em>
           </>
         }
-        lead="Websites, networks, security, photography and video. Every job is scoped in writing up front and handed over complete."
+        lead="Network planning, websites, security awareness, photography and video. Every job is scoped in writing first and handed over with notes you can follow."
         aside={
           <div className="space-y-4">
             <AvailabilityBadge availability={availability} tone="ink" />
@@ -199,9 +199,9 @@ export default async function ServicesPage() {
         <section className="mt-24 grid items-end gap-8 rounded-[2px] bg-sky/30 p-7 md:mt-32 md:grid-cols-12 md:p-14">
           <div className="md:col-span-8">
             <h2 className="font-display text-[clamp(2.25rem,5vw,4rem)] leading-none">
-              Not sure which <em className="font-serif text-ember">one fits?</em>
+              Tell me the problem, <em className="font-serif text-ember">not the service.</em>
             </h2>
-            <p className="mt-5 max-w-xl font-serif text-xl text-ink/80">Tell me what you&apos;re trying to do. I&apos;ll suggest the simplest way there, even if it isn&apos;t me.</p>
+            <p className="mt-5 max-w-xl font-serif text-xl text-ink/80">Say what you&apos;re trying to do and I&apos;ll suggest the simplest way there, even if it isn&apos;t me.</p>
           </div>
           <div className="md:col-span-4 md:text-right">
             <Magnetic>

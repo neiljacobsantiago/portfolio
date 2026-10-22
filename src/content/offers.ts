@@ -56,15 +56,38 @@ function photoFrom(ids: string[]) {
 
 const offers: Offer[] = [
   {
+    id: "network",
+    topic: "network",
+    title: "Network design & setup",
+    short: "Networks",
+    pitch: "Wired and wireless networks that are mapped, cabled, addressed and written down, so whoever looks after them next isn't guessing.",
+    forWho: "Homes, small offices, shops, dorms and org rooms.",
+    deliverables: [
+      "A site walkthrough, then physical and logical topology diagrams",
+      "A cabling plan and a bill of materials (BOM) before anything is bought",
+      "An IP addressing and VLAN plan, checked in Packet Tracer first",
+      "Router, switch and Wi-Fi setup, with coverage and speed checks",
+      "A labelled network map, plain-language notes and the passwords handed over",
+    ],
+    timeline: "Small office or home: 2–5 days including testing. Bigger sites after a walkthrough.",
+    price: { label: "Priced by scope", note: "Quoted after a walkthrough: size, devices and equipment decide it" },
+    partners: "Routers, access points and cabling are bought from suppliers, and the internet line is your ISP's. Stock and install dates depend on them, so they're confirmed before work is scheduled.",
+    proof: [
+      { label: "Subnet & VLAN planner", href: "/lab#subnet" },
+      { label: "Cisco NetAcad certificate", href: "/about#credentials" },
+    ],
+    cta: "Plan a network",
+  },
+  {
     id: "website",
     topic: "website",
     title: "Websites & web systems",
     short: "Websites",
-    pitch: "From a one-page site to a system with logins and a database, built to a scope you've signed off.",
+    pitch: "From a one-page site to a system with logins and a database. I plan it with you, build it with AI-assisted coding, then test and deploy it.",
     forWho: "Small businesses, student organizations, freelancers and research teams.",
     deliverables: [
       "A clickable Figma design you approve before any build",
-      "A fast, responsive site that works on budget phones",
+      "A responsive site, tested on budget phones as well as laptops",
       "Forms, dashboards and databases when the job needs them",
       "Hosting and domain set up in your name",
       "A walkthrough so you can update it yourself",
@@ -81,43 +104,20 @@ const offers: Offer[] = [
     cta: "Plan a website",
   },
   {
-    id: "network",
-    topic: "network",
-    title: "Network design & setup",
-    short: "Networks",
-    pitch: "Wired and wireless networks that are mapped, addressed and documented, so whoever looks after them next isn't guessing.",
-    forWho: "Homes, small offices, shops, dorms and org rooms.",
-    deliverables: [
-      "A site walkthrough and a topology diagram",
-      "An IP addressing and VLAN plan, simulated in Packet Tracer first",
-      "Router, switch and Wi-Fi configuration",
-      "Coverage and speed checks once it's running",
-      "Plain-language documentation and passwords handed over",
-    ],
-    timeline: "Small office or home: 2–5 days including testing. Bigger sites after a walkthrough.",
-    price: { label: "Priced by scope", note: "Quoted after a walkthrough: size, devices and equipment decide it" },
-    partners: "Routers, access points and cabling are bought from suppliers, and the internet line is your ISP's. Stock and install dates depend on them, so they're confirmed before work is scheduled.",
-    proof: [
-      { label: "Subnet & VLAN planner", href: "/lab#subnet" },
-      { label: "Cisco NetAcad certificate", href: "/about#credentials" },
-    ],
-    cta: "Plan a network",
-  },
-  {
     id: "security",
     topic: "security",
-    title: "Security awareness & basic audits",
+    title: "Security awareness talks & check-ups",
     short: "Security",
-    pitch: "Make your people harder to fool and your setup harder to break into, explained without the jargon.",
+    pitch: "Simple lessons on staying safe online, for people who don't work in IT.",
     forWho: "Offices, schools and organizations that handle personal data.",
     deliverables: [
-      "An awareness talk or short video series for your team",
-      "A basic check of accounts, passwords, Wi-Fi and router settings",
-      "Phishing and suspicious-link spotting, with real examples",
-      "A short written report with fixes ranked by urgency",
+      "An awareness talk, handout or short video for your team",
+      "How to spot phishing and suspicious links, with real examples",
+      "A walk through accounts, passwords, Wi-Fi and router settings against a basic checklist",
+      "A short written list of what to fix first",
     ],
-    timeline: "Awareness session: 1–2 weeks to prepare. Basic audit and report: about a week.",
-    price: { label: "Priced by scope", note: "A basic review, not a penetration test" },
+    timeline: "Awareness session: 1–2 weeks to prepare. Basic check-up and notes: about a week.",
+    price: { label: "Priced by scope", note: "Awareness and a basic settings check, not a penetration test or incident response" },
     proof: [
       { label: "Cyber Awareness Series", href: "/work/cyber-awareness-series" },
       { label: "Link safety check", href: "/lab#link" },
@@ -239,10 +239,10 @@ export interface Principle {
 }
 
 const principles: Principle[] = [
-  { title: "Drawn before it's built", detail: "Every system starts as a diagram, a prototype or a shot list. Rework costs more than a sketch." },
+  { title: "Drawn before it's built", detail: "A network starts as a topology and a BOM, a website as a prototype, a shoot as a shot list. Rework costs more than a sketch." },
   { title: "No jargon", detail: "You'll always know what's happening and why, without needing to speak IT." },
   { title: "Private by default", detail: "Your photos, data and passwords stay yours. Nothing is posted or shared without a yes." },
-  { title: "Fast on any phone", detail: "Sites are built and tested on budget Androids and mobile data, as well as new laptops." },
+  { title: "Tested on real phones", detail: "Sites are checked on budget Androids and mobile data, as well as new laptops." },
   { title: "Finished, not raw", detail: "Photos are delivered edited and code is delivered documented. No loose ends to tidy up yourself." },
 ];
 
@@ -278,6 +278,10 @@ const faqs: Faq[] = [
   {
     q: "Will you post my photos or project?",
     a: "Only if you say yes. Private shoots stay private unless you choose otherwise, and client work only goes on this site with permission.",
+  },
+  {
+    q: "Do you write all the code yourself?",
+    a: "No, and I'd rather say so up front. I decide what the site or system should do, plan its data, pages and rules, and use AI-assisted coding to write much of it. Then I read it, test it against the plan, fix what's wrong and deploy it. You get a working site and the notes to look after it.",
   },
   {
     q: "You're still a student. How do you fit projects in?",

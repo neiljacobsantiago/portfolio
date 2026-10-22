@@ -6,8 +6,8 @@ export const site = {
   firstName: "Neil",
   title: "Neil Jacob Santiago — Networks, Web & Photography",
   description:
-    "Neil Jacob Santiago is a third-year BSIT student at Central Luzon State University who designs networks, builds web systems and photographs concerts, campus life and the night sky. Production Director of the ITSC Media Group.",
-  tagline: "Structural logic. Editorial vision.",
+    "Neil Jacob Santiago is a third-year BSIT student at Central Luzon State University. He plans networks (topology, cabling, addressing), builds web systems with AI-assisted coding, and photographs concerts, campus life and the night sky. Production Director of the ITSC Media Group.",
+  tagline: "Plan the cables. Catch the light.",
   location: "San Jose City, Nueva Ecija",
   country: "Philippines",
   coordinates: "15.79° N, 120.99° E",
@@ -63,7 +63,7 @@ export const LEGAL_UPDATED = "October 15, 2026";
  * the command palette, the shortcuts overlay and the site map.
  */
 export const moreRoutes: NavItem[] = [
-  { label: "Services", href: "/services", description: "Work with me: websites, networks, shoots & video" },
+  { label: "Services", href: "/services", description: "Work with me: networks, websites, shoots & video" },
   { label: "Now", href: "/now", description: "What I'm focused on this season" },
   { label: "Uses", href: "/uses", description: "Gear, software & how this site is built" },
 ];

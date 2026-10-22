@@ -12,7 +12,7 @@ import { categories, projects, type Category } from "@/content/work";
 
 export const metadata: Metadata = {
   title: "Work",
-  description: "Network, security, web and media projects by Neil Jacob Santiago — from an offline AI pathogen classifier to concert coverage.",
+  description: "Web systems, applied AI and media projects by Neil Jacob Santiago, from an offline pathogen classifier to concert coverage.",
 };
 
 export default function WorkPage() {
@@ -27,7 +27,7 @@ export default function WorkPage() {
       <PageHeader
         eyebrow="Work"
         title={<>Built, secured, <em className="font-serif text-ember">directed.</em></>}
-        lead="Networks, offline AI, web systems and event coverage, each with the brief, the build and the part I played. Every project opens with a one-line summary for readers who don't write code."
+        lead="School and team projects in web systems and applied AI, plus event coverage and video. Each one says what it is, how it was built and the part I played, starting with a one-line summary for readers who don't write code."
         aside={
           <dl className="grid grid-cols-3 gap-4 md:grid-cols-1">
             {keys.map((k) => (

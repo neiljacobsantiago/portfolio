@@ -118,10 +118,10 @@ export default function AboutPage() {
   ];
 
   const systems: Proof[] = [
+    { title: "Networks", line: "Topologies, cabling plans, BOMs, subnets and VLANs. Cisco NetAcad certificate in addressing and troubleshooting; CCNA next.", href: "#credentials" },
     { title: "PathoScan", line: "Designed the interface and trained the model. Turned over to DA PhilMech, September 2026.", href: workHref("pathoscan") },
-    { title: "Student Information System", line: "A Laravel API with sign-in, roles and rules the server enforces.", href: workHref("student-information-system") },
+    { title: "Student Information System", line: "A Laravel API with sign-in, roles and server-side rules. AI-assisted code, my plan and my testing.", href: workHref("student-information-system") },
     { title: "BuildIT", line: "One product carried across three courses: C, Figma, then a cloud storefront.", href: workHref("buildit") },
-    { title: "Networks", line: "Cisco NetAcad certified in network addressing and troubleshooting; working towards CCNA.", href: "#credentials" },
   ];
   const production: Proof[] = [
     { title: `${mainOrg.role}, ${mainOrg.short}`, line: "Coverage, reels and broadcasts for the CLSU IT Student Council.", href: workHref("it-fest") },
@@ -133,7 +133,7 @@ export default function AboutPage() {
   const principles = [
     {
       title: "Plan it before it's built.",
-      text: "Every interface starts as a clickable Figma prototype, and every network is simulated in Packet Tracer before a cable is run. Changing a plan is cheap; changing a build is not.",
+      text: "Interfaces start as clickable Figma prototypes. Networks start as a topology, an addressing plan and a bill of materials, checked in Packet Tracer before any cable is bought. Changing a plan is cheap; changing a build is not.",
       source: { label: "BuildIT", href: workHref("buildit") },
     },
     {
@@ -159,7 +159,7 @@ export default function AboutPage() {
             <p className="label animate-rise-in text-ember">About</p>
             <h1 id="about-title" className="mt-5 font-display text-[clamp(2.75rem,9vw,5.75rem)] leading-[0.98] lg:text-[clamp(3.5rem,5.7vw,6.5rem)] tracking-[-0.01em]">
               <span className="line-mask">
-                <span className="animate-line-up block">I build systems.</span>
+                <span className="animate-line-up block">I map networks.</span>
               </span>
               <span className="line-mask">
                 <em className="animate-line-up block font-serif text-ember" style={{ animationDelay: "90ms" }}>
@@ -196,9 +196,9 @@ export default function AboutPage() {
               the Production Director of the ITSC Media Group.
             </p>
             <p className="mt-5 font-serif text-lg leading-relaxed text-ink/80 md:text-xl">
-              My work sits where two disciplines meet. One side maps networks, prototypes interfaces and builds systems people rely on, like PathoScan, now in use at DA
-              PhilMech. The other briefs a crew, keeps a shot list and gets the story out the same day. Both reward the same discipline: prepare properly, sweat the
-              details, and finish the job.
+              Most of my technical work is networks: drawing the physical and logical topology, planning the cabling and the bill of materials, and working out
+              subnets and VLANs. I also build web systems. I decide what they should do and how they fit together, use AI to write much of the code, then test and
+              deploy them. The rest of my week goes to the Media Group: briefing a crew, keeping a shot list and getting the story out the same day.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/resume" className="btn bg-ink text-paper hover:bg-ember">
@@ -235,7 +235,7 @@ export default function AboutPage() {
               Two sides of <em className="font-serif text-ember">the same work.</em>
             </>
           }
-          lead="Systems work decides how things connect; production decides how they're seen. Either way, the finish line is something people actually use."
+          lead="One half is planning networks and building systems. The other is running cameras and crews. Both end with something handed over to the people who asked for it."
         >
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             <SideCard
@@ -243,7 +243,7 @@ export default function AboutPage() {
               kicker="Systems & web"
               title={
                 <>
-                  Networks, interfaces and <em className="font-serif text-sky">the logic underneath.</em>
+                  Networks, web systems <em className="font-serif text-sky">and the plans behind them.</em>
                 </>
               }
               image="/about/neil-studio-seated.jpg"
@@ -276,6 +276,7 @@ export default function AboutPage() {
               Three habits, <em className="font-serif text-ember">every project.</em>
             </>
           }
+          lead="How I build web systems: I decide what the system should do, plan the data, the pages and the rules, and write it down. AI-assisted coding writes much of the code. I read it, test it against the plan, fix what's wrong and deploy it myself."
         >
           <ol className="grid gap-px overflow-hidden rounded-[4px] bg-ink/12 ring-1 ring-ink/12 lg:grid-cols-3">
             {principles.map((p, i) => (
@@ -482,10 +483,10 @@ export default function AboutPage() {
           <div className={`${styles.lift} relative max-w-3xl`}>
             <p className="label text-sky">Next</p>
             <h2 id="about-cta" className="mt-4 font-display text-[clamp(2.4rem,6vw,4.75rem)] leading-[1.02]">
-              Something to build, <em className="font-serif text-sky">or a day worth covering?</em>
+              A network to plan, a system to build <em className="font-serif text-sky">or a day to cover.</em>
             </h2>
             <p className="mt-6 max-w-xl font-serif text-lg leading-relaxed text-paper/85 md:text-xl">
-              Websites and web systems, network setups, event coverage and video. Every project is quoted on its scope after a first conversation.
+              Network plans and setups, websites and web systems, event coverage and video. Every project is quoted on its scope after a first conversation.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Magnetic>

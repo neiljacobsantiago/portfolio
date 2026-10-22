@@ -25,7 +25,7 @@ export default function PlayPage() {
               Three more, built from <em className="font-serif text-ember">the day jobs.</em>
             </h2>
             <p className="mt-5 max-w-xl font-serif text-xl leading-relaxed text-ink/75">
-              A timing game for the photographer at the barricade, a quiz for the network engineer who also teaches people to spot a phishing email, and a pairs game dealt from his own prints.
+              A timing game for the photographer at the barricade, a quiz from a networking student who also writes about spotting phishing emails, and a pairs game dealt from his own prints.
             </p>
           </div>
         </div>

@@ -13,7 +13,7 @@ import { seriesList } from "@/content/series";
 import { addOns, bookingSteps, bookingTerms, services } from "@/content/sessions";
 import { categories, projectBySlug, projects, type Category, type Project } from "@/content/work";
 import { COLLECTION_WORDS, collectionSays, GAMES, TRIVIA } from "@/lib/neilai/catalog";
-import { certificateFacts, fixFacts, gearList, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "@/lib/neilai/facts";
+import { certificateFacts, fixFacts, gearList, HOW_NEIL_WORKS, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "@/lib/neilai/facts";
 import { detectCards, introFor } from "@/lib/neilai/intents";
 import { pick, sample, shuffle, type Rng } from "@/lib/neilai/random";
 import { googleSearch, hostOf, resolveTopic, type Source } from "@/lib/neilai/sources";
@@ -195,7 +195,10 @@ function gameAnswer(q: string, ctx: Ctx): FaqAnswer {
 function categoryAnswer(c: Category, ctx: Ctx): FaqAnswer {
   const all = projects.filter((p) => p.category === c);
   const picks = sample(all, Math.min(4, all.length), ctx.rng);
-  const lead = c === "web" ? one(ctx, "Web development is a big part of what he does, from the data model to the finished interface.", "He maps out the data and routes first, then builds in short, careful passes.") : `**${categories[c].label}**: ${categories[c].blurb}.`;
+  const lead =
+    c === "web"
+      ? one(ctx, "Neil builds web systems with AI-assisted coding: he decides what they should do and how they're structured, then tests and deploys them.", "He plans the data, pages and rules first, lets AI write much of the code, and tests each step himself.")
+      : `**${categories[c].label}**: ${categories[c].blurb}.`;
   return {
     text: `${lead} ${one(ctx, "A few to start with:", "Some highlights:", "Worth a look:")}\n\n${bullets(picks.map((p) => `**${p.title}**: ${fixFacts(p.plain)}`))}\n\n${one(ctx, "Want the story behind one of them?", "Ask me about any of these, or what Neil did on it.")}`,
     links: [{ label: categories[c].label, href: `/work#${c}` }],
@@ -417,7 +420,7 @@ const RULES: Rule[] = [
       const group = /edit|lightroom|premiere|davinci|video|photo/i.test(q) ? toolkit.find((g) => /image/i.test(g.group)) : /code|language|programming/i.test(q) ? toolkit.find((g) => g.group === "Code") : /web/i.test(q) ? toolkit.find((g) => /web/i.test(g.group)) : undefined;
       if (group)
         return {
-          text: `${one(ctx, `His ${group.group.toLowerCase()} toolkit:`, `For ${group.group.toLowerCase()}, Neil works with:`)}\n\n${bullets(group.tools.map((t) => t.name))}\n\n${one(ctx, "Want to see a project that uses them?", "Want the rest of his toolkit?")}`,
+          text: `${one(ctx, `His ${group.group.toLowerCase()} toolkit:`, `For ${group.group.toLowerCase()}, Neil works with:`)}\n\n${bullets(group.tools.map((t) => t.name))}${group.group === "Code" || /web/i.test(group.group) ? `\n\n${HOW_NEIL_WORKS.web}` : ""}\n\n${one(ctx, "Want to see a project that uses them?", "Want the rest of his toolkit?")}`,
           links: [{ label: "About", href: "/about" }],
         };
       return {
@@ -489,14 +492,46 @@ const RULES: Rule[] = [
     },
   },
   {
-    test: /\b(network|cisco|security|hack|kali|snort|audit|vlan|router)/i,
+    test: /\b(network|cisco|security|hack|kali|snort|audit|vlan|router|pentest\w*|penetration|forensic\w*|malware|offensive|cabling|topolog\w*|bom\b|bill of materials)/i,
+    answer: (q, ctx) => {
+      if (/\b(hack\w*|kali|pentest\w*|penetration|offensive|forensic\w*|malware)/i.test(q))
+        return {
+          text: `${HOW_NEIL_WORKS.hacking}\n\n${HOW_NEIL_WORKS.security}\n\n${one(ctx, "Want to see the Cyber Awareness Series instead?", "Want me to check a suspicious link the way his lessons explain?")}`,
+          links: [
+            { label: "Cyber Awareness Series", href: "/work/cyber-awareness-series" },
+            { label: "Link safety check", href: "/lab#link" },
+          ],
+        };
+      if (/\b(security|audit|snort)/i.test(q) && !/\b(network|cisco|vlan|router)/i.test(q))
+        return {
+          text: `${HOW_NEIL_WORKS.security}\n\n${bullets([
+            "**Made:** the Cyber Awareness Series, six short videos on data privacy for the CLSU Department of IT (he directed and filmed them)",
+            "**Offers:** awareness talks and a basic check of accounts, passwords and Wi-Fi settings, not a penetration test",
+            `**Next:** ${list(inProgress.map((c) => c.title))}`,
+          ])}\n\n${one(ctx, "Want me to check a suspicious link?", "Want to see the series?")}`,
+          links: [
+            { label: "Cyber Awareness Series", href: "/work/cyber-awareness-series" },
+            { label: "Services", href: "/services#security" },
+          ],
+        };
+      return {
+        text: `${one(ctx, "Networking is his major: **Network Systems & Infrastructure Engineering** at CLSU.", "Networks are his main field, and his major at CLSU.")}\n\n${HOW_NEIL_WORKS.networks}\n\n${bullets([
+          `**Certified:** ${certificateFacts.find((c) => /cisco/i.test(c.issuer))?.title ?? "Cisco NetAcad"} (Cisco Networking Academy)`,
+          `**Next:** ${list(inProgress.map((c) => c.title))}`,
+          "**Try it:** the subnet and VLAN planner runs right here in the chat",
+        ])}\n\n${one(ctx, "Give me a network, like 192.168.1.0/26, and I'll break it down.", "Want me to plan VLANs for a building?")}`,
+        links: [{ label: "The Lab", href: "/lab" }],
+      };
+    },
+  },
+  {
+    test: /\b(write (all )?(the |your |his )?(own )?code|writes? (all )?(the |his )?code|hand-?(code|coded|written)|vibe-?cod\w*|ai[- ]assisted|use[sd]? ai|chatgpt|copilot|full[- ]?stack|web dev\w*)\b/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, "Networking is his major: **Network Systems & Infrastructure Engineering** at CLSU.", "It's what he's majoring in at CLSU.")}\n\n${bullets([
-        `**Certified:** ${certificateFacts.find((c) => /cisco/i.test(c.issuer))?.title ?? "Cisco NetAcad"} (Cisco Networking Academy)`,
-        `**Next:** ${list(inProgress.map((c) => c.title))}`,
-        "**Try it:** the subnet and VLAN planner runs right here in the chat",
-      ])}\n\n${one(ctx, "Give me a network, like 192.168.1.0/26, and I'll break it down.", "Want me to plan VLANs for a building?")}`,
-      links: [{ label: "The Lab", href: "/lab" }],
+      text: `${one(ctx, "Not in the usual sense, and he's upfront about it.", "Short answer: AI writes much of the code, and Neil says so himself.")}\n\n${HOW_NEIL_WORKS.web}\n\n${one(ctx, "Want to see one he built that way, like the Student Information System?", "Want to hear how that worked on a real project?")}`,
+      links: [
+        { label: "Student Information System", href: "/work/student-information-system" },
+        { label: "How this site is built", href: "/uses#colophon" },
+      ],
     }),
   },
   {
@@ -554,10 +589,11 @@ const RULES: Rule[] = [
   {
     test: /\b(who|about|yourself|neil|introduce|sino)/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, `**${site.name}** is a third-year BSIT student at CLSU who designs networks, builds web systems and photographs concerts, campus life and the night sky.`, `${site.name} in thirty seconds: networks by major, web systems by habit, concerts and night skies through a lens.`)}\n\n${bullets([
+      text: `${one(ctx, `**${site.name}** is a third-year BSIT student at CLSU. He plans networks, builds web systems with AI-assisted coding, and photographs concerts, campus life and the night sky.`, `${site.name} in thirty seconds: networks by major, web systems built with AI's help, concerts and night skies through a lens.`)}\n\n${bullets([
         `**Studies:** BS Information Technology, majoring in Network Systems & Infrastructure Engineering`,
+        `**Networks:** topology, network mapping, cabling, bills of materials, subnets and VLANs`,
+        `**Builds:** web systems like the Student Information System, planned and tested by him, with AI writing much of the code`,
         `**Leads:** ${site.role}`,
-        `**Builds:** web systems like PathoScan and the Student Information System`,
         `**Shoots:** concerts, events, portraits, landscapes and astrophotography`,
       ])}\n\n${one(ctx, "Want to start with his projects or his photos?", "What would you like to see first?")}`,
       links: [

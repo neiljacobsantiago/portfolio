@@ -62,7 +62,7 @@ export default async function UsesPage() {
                 How this site <em className="font-serif text-sky">is built.</em>
               </h2>
               <p className="mt-5 max-w-2xl font-serif text-xl leading-relaxed text-paper/75">
-                Designed and built by {site.firstName}. Pages are rendered ahead of time and only the interactive parts ship JavaScript, so it stays quick on a budget Android over mobile data.
+                Planned, designed and tested by {site.firstName}, with much of the code written using AI coding tools. Pages are rendered ahead of time and only the interactive parts ship JavaScript, so it stays quick on a budget Android over mobile data.
               </p>
             </div>
           </div>

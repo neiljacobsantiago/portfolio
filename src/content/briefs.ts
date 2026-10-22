@@ -254,13 +254,13 @@ export const briefs: Brief[] = [
     ],
     message: { label: "Tell me about the network", placeholder: "What's frustrating now, the layout of the place, anything already bought…" },
     partners: "Equipment comes from suppliers and the line from your ISP, so stock and install dates are confirmed before work is scheduled.",
-    next: [reply, "A site visit or video call to walk the space and check the signal.", "You get a plan with an equipment list and a quote; nothing is bought without your OK.", "Setup and testing, room by room.", "A network map, the passwords handed over, and a walkthrough."],
+    next: [reply, "A site visit or video call to walk the space and check the signal.", "You get a plan with a bill of materials (BOM) and a quote; nothing is bought without your OK.", "Setup and testing, room by room.", "A network map, the passwords handed over, and a walkthrough."],
   },
   {
     id: "security",
     button: "Security",
     topic: "Security check",
-    intro: "A plain-language check of what's exposed and what to fix first, or an awareness talk for your team. Testing only ever happens on systems you own or are allowed to have tested.",
+    intro: "An awareness talk for your team, or a plain-language look at accounts, passwords and Wi-Fi settings against a basic checklist. It isn't a penetration test or incident response, and nothing is checked without your permission.",
     steps: [
       {
         title: "What to look at",
@@ -271,7 +271,7 @@ export const briefs: Brief[] = [
             label: "In scope",
             wide: true,
             card: true,
-            options: ["A website or web app", "Office network and Wi-Fi", "Social media and accounts", "Laptops and phones", "A talk or training for staff/students", "Not sure, a general check-up"],
+            options: ["Website logins and admin accounts", "Office network and Wi-Fi", "Social media and accounts", "Laptops and phones", "A talk or training for staff/students", "Not sure, a general check-up"],
           },
           { id: "who", kind: "chips", label: "For", options: ["Myself", "A small business", "A school or organisation", "A company"] },
           { id: "org", kind: "text", label: "Organisation name", optional: true, max: 100 },
@@ -280,7 +280,7 @@ export const briefs: Brief[] = [
       },
       {
         title: "The situation",
-        hint: "If something has already happened, Neil prioritises it.",
+        hint: "If something serious has already happened, like a breach or ransomware, contact a professional incident responder first.",
         fields: [
           {
             id: "incident",
@@ -296,7 +296,7 @@ export const briefs: Brief[] = [
       {
         title: "What you'd like back",
         fields: [
-          { id: "format", kind: "multi", label: "Deliverables", wide: true, options: ["A written report", "A walkthrough call", "Help fixing the issues", "A talk or workshop"] },
+          { id: "format", kind: "multi", label: "Deliverables", wide: true, options: ["A short written list", "A walkthrough call", "Help with the simple fixes", "A talk or workshop"] },
           { id: "mode", kind: "chips", label: "On site or online", options: ["On site", "Online", "Either"] },
           { id: "budget", kind: "chips", label: "Budget", wide: true, options: budget("Under ₱5,000", "₱5,000–₱15,000", "₱15,000–₱40,000", "₱40,000+") },
           { id: "deadline", kind: "date", label: "Needed by", optional: true, card: true },
@@ -304,14 +304,14 @@ export const briefs: Brief[] = [
             id: "authorised",
             kind: "confirm",
             wide: true,
-            label: "I own these systems or have written permission from whoever does. Nothing is tested until that's confirmed in writing.",
+            label: "I own these accounts and systems or have written permission from whoever does. Nothing is checked until that's confirmed in writing.",
           },
         ],
       },
       keepInTouch,
     ],
     message: { label: "Tell me what's worrying you", placeholder: "What happened or what you'd like checked. Please don't send passwords here." },
-    next: [reply, "A call to agree on exactly what's in scope, in writing.", "The check runs only within that scope and the agreed hours.", "You get findings in plain language, worst first, with how to fix each one.", "A follow-up check once fixes are in, if you'd like one."],
+    next: [reply, "A call to agree on exactly what's in scope, in writing.", "The check stays within that scope and the agreed hours.", "You get notes in plain language, most urgent first, with how to fix each one.", "A follow-up check once fixes are in, if you'd like one."],
   },
   {
     id: "other",

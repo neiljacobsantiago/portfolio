@@ -20,6 +20,20 @@ export const PATHOSCAN_THRESHOLD = {
   unknown: "The model's best answer is “Unknown”: it isn't confident it's one of the five species, so nothing is identified and staff decide what to check next.",
 };
 
+/**
+ * How Neil describes his own work, in his words. NeilAI must not go beyond
+ * this: no "full-stack engineer", no forensics, malware analysis, pentesting
+ * or incident response, and hacking is something he's learning, not a skill.
+ */
+export const HOW_NEIL_WORKS = {
+  networks:
+    "Networks are Neil's main field, mostly the physical and logical side: physical and logical topology, network mapping, cabling plans, bills of materials (BOM), and IP addressing with subnets and VLANs.",
+  web: "Web systems aren't Neil's main field, and he builds them with AI-assisted coding: he decides what the system should do, plans its structure, data and rules, tests it and deploys it, and AI writes much of the code. He doesn't claim to hand-write everything.",
+  security:
+    "On security, Neil mostly writes and shares simple lessons: awareness, phishing, data privacy, explained in plain words (like the Cyber Awareness Series). He doesn't do forensics, malware analysis, penetration testing or incident response.",
+  hacking: "Offensive security and ethical hacking are things Neil is starting to learn, on his own lab machines only. It's not a skill he offers yet.",
+};
+
 /** Pricing for freelance work: there's no fixed floor; it depends on the job. */
 export const PRICING =
   "Freelance web, network and video work is priced by scope: what's needed, how big it is and how fast. Neil quotes after hearing the details, so the best start is a message through /contact (or a look at /services).";

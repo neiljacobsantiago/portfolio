@@ -70,6 +70,12 @@ const now: Now = {
       link: { label: "Certificates", href: "/about#credentials" },
     },
     {
+      label: "Starting",
+      title: "Ethical hacking, from the beginning",
+      detail: "Learning how attacks work, on my own lab machines only. Early days: something I'm studying, not something I offer.",
+      link: { label: "What I use", href: "/uses#network" },
+    },
+    {
       label: "Shooting",
       title: "Campus coverage and portrait sessions",
       detail: "Events with the Media Group during the week, graduation and portrait sessions when the calendar allows, and the night sky whenever it's clear.",

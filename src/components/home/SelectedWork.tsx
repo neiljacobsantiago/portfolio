@@ -32,7 +32,7 @@ export default function SelectedWork() {
         <p className="label text-ember md:col-span-3">Selected work</p>
         <div className="md:col-span-9">
           <h2 id="work-title" className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-[1.04]">
-            Systems that hold up <em className="font-serif text-ember">under pressure.</em>
+            Built, shot <em className="font-serif text-ember">and handed over.</em>
           </h2>
           <Link href="/work" className="label ulink mt-6 inline-flex items-center gap-2 text-ink/70 hover:text-ink">
             All projects <Icon name="arrow-right" />

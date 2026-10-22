@@ -2,8 +2,8 @@ import type { CSSProperties } from "react";
 
 // Each line is true to a featured project (see content/work.ts) or the Web practice.
 const SEGMENTS: { text: string; em?: boolean }[] = [
-  { text: "Architecture first,", em: true },
-  { text: "then fast, careful iteration." },
+  { text: "Plan it first,", em: true },
+  { text: "then build it in small steps and test each one." },
   { text: "A classifier that names fungal species without the internet." },
   { text: "A shop that checks your PC parts fit." },
   { text: "Six short videos on data privacy." },
