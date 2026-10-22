@@ -3,7 +3,6 @@ import {
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
-  CanvasTexture,
   Color,
   DirectionalLight,
   DynamicDrawUsage,
@@ -37,9 +36,13 @@ import { createAudio, type DriveAudio } from "./audio";
 import { buildCar, CAR, type PaintId } from "./car";
 import { buildCircuit } from "./circuit";
 import { buildCity, buildSky, buildStars, buildWater } from "./city";
+import { buildFoliage } from "./foliage";
 import { createGlows } from "./glow";
 import { clamp, LIGHTS } from "./kit";
 import { type Animated, buildPavilions } from "./landmarks";
+import { canPost, createPost } from "./post";
+import { buildProps, contactShadowTexture } from "./props";
+import { createGovernor, type GraphicsProfile, type Quality, tierSettings } from "./quality";
 import { createRace, type Ghost, type RaceEvents } from "./race";
 import {
   BRAKE,
@@ -74,10 +77,12 @@ import {
 //   · hot laps with start lights, sectors, track limits and a ghost; a free
 //     roam with hidden trophies; project pavilions to open on the way round
 //   · quality scales with the device and adapts to the frame rate
+//   · parkland, lanterns and the NEIL letters live in foliage.ts and
+//     props.ts; bloom and the colour grade in post.ts; tiers in quality.ts
 
-export type CameraMode = "chase" | "onboard" | "map";
+export type CameraMode = "chase" | "diorama" | "onboard" | "map";
 export type TimeOfDay = "night" | "golden" | "day";
-export type Quality = "low" | "medium" | "high";
+export type { Quality };
 export type GameMode = "race" | "free";
 export type DrsState = "off" | "ready" | "open";
 
@@ -139,7 +144,7 @@ export interface DriveEngine {
   dispose: () => void;
 }
 
-const CAMERAS: CameraMode[] = ["chase", "onboard", "map"];
+const CAMERAS: CameraMode[] = ["chase", "diorama", "onboard", "map"];
 const TIMES_ORDER: TimeOfDay[] = ["night", "golden", "day"];
 
 interface TimePreset {
@@ -185,20 +190,25 @@ const PIT_SPAWN = { x: PIT_BOXES.x0 + 64, z: PIT_BOXES.z - 2.2, heading: -Math.P
 
 export function createDriveEngine(
   canvas: HTMLCanvasElement,
-  opts: { quality: Quality; reducedMotion: boolean; touch: boolean; labels: HTMLElement; minimap: HTMLCanvasElement | null; hud: HudNodes },
+  opts: { quality: Quality; reducedMotion: boolean; touch: boolean; labels: HTMLElement; minimap: HTMLCanvasElement | null; hud: HudNodes; graphics?: GraphicsProfile },
   cb: DriveCallbacks,
 ): DriveEngine {
   const tier = ({ low: 0, medium: 1, high: 2 } as const)[opts.quality];
-  const shadows = tier === 2;
-  const maxPixelRatio = Math.min(devicePixelRatio, [1, 1.5, 2][tier]);
-  let pixelRatio = maxPixelRatio;
+  const gfx: GraphicsProfile = opts.graphics ?? { quality: opts.quality, auto: false, gpu: "", phone: opts.touch, lock: false, calm: opts.reducedMotion, off: [] };
+  const T = tierSettings(opts.quality, gfx.phone);
+  // Medium and high go through the post chain (its target has the MSAA); low draws straight to an antialiased canvas
+  const usePost = T.post && !gfx.off.includes("post") && canPost();
+  const shadows = T.shadowMap > 0;
+  let pixelRatio = T.ratio;
 
-  const renderer = new WebGLRenderer({ canvas, antialias: tier > 0, powerPreference: "high-performance", preserveDrawingBuffer: false });
+  const renderer = new WebGLRenderer({ canvas, antialias: !usePost, powerPreference: "high-performance", preserveDrawingBuffer: false });
   renderer.setPixelRatio(pixelRatio);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.shadowMap.enabled = shadows;
   renderer.shadowMap.type = PCFShadowMap;
+  renderer.info.autoReset = false;
+  const post = usePost ? createPost(renderer, { mips: T.bloomMips }) : null;
 
   const scene = new Scene();
   const fog = new Fog(TIMES.night.fog, TIMES.night.near, TIMES.night.far);
@@ -210,7 +220,9 @@ export function createDriveEngine(
   const sun = new DirectionalLight(TIMES.night.sun, TIMES.night.sunI);
   sun.castShadow = shadows;
   if (shadows) {
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(T.shadowMap, T.shadowMap);
+    // PCF here is a Vogel-disk soft shadow: the radius sets the penumbra
+    sun.shadow.radius = tier === 2 ? 4 : 3;
     const sc = sun.shadow.camera;
     sc.left = sc.bottom = -26;
     sc.right = sc.top = 26;
@@ -227,7 +239,7 @@ export function createDriveEngine(
   scene.environment = envTex;
 
   /* ───────── world ───────── */
-  const glows = createGlows([700, 1100, 1500][tier]);
+  const glows = createGlows([800, 1250, 1700][tier]);
   const sky = buildSky();
   scene.add(sky.mesh);
   const stars = buildStars([300, 600, 900][tier]);
@@ -241,6 +253,10 @@ export function createDriveEngine(
   const animated: Animated[] = [];
   const pavilions = buildPavilions(landmarks, glows, animated);
   scene.add(pavilions.staticMesh, pavilions.boards, ...pavilions.groups);
+  const foliage = buildFoliage({ tier: T, calm: gfx.calm || opts.reducedMotion, footprints: circuit.footprints, poles: circuit.poles, off: gfx.off });
+  scene.add(foliage.group);
+  const props = buildProps({ glows, footprints: circuit.footprints, poles: circuit.poles, lanterns: T.lanterns, bigGlow: tier > 0 });
+  scene.add(props.group);
   scene.add(glows.mesh);
 
   /* ───────── the car, its ghost, its shadow and sparks ───────── */
@@ -251,16 +267,8 @@ export function createDriveEngine(
   ghostMesh.visible = false;
   scene.add(ghostMesh);
   const blob = (() => {
-    const c = document.createElement("canvas");
-    c.width = 64;
-    c.height = 128;
-    const g = c.getContext("2d")!;
-    const grad = g.createRadialGradient(32, 64, 4, 32, 64, 62);
-    grad.addColorStop(0, "rgba(0,0,0,0.75)");
-    grad.addColorStop(1, "rgba(0,0,0,0)");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 64, 128);
-    const m = new Mesh(new PlaneGeometry(2.6, 6.4), new MeshBasicMaterial({ map: new CanvasTexture(c), transparent: true, depthWrite: false, opacity: shadows ? 0.45 : 0.8 }));
+    // Contact shade on every tier; the shadow map adds the cast shadow on medium and high
+    const m = new Mesh(new PlaneGeometry(2.7, 6.6), new MeshBasicMaterial({ map: contactShadowTexture(), transparent: true, depthWrite: false, opacity: shadows ? 0.6 : 0.9 }));
     m.rotation.x = -Math.PI / 2;
     m.position.y = 0.04;
     m.renderOrder = 1;
@@ -419,6 +427,7 @@ export function createDriveEngine(
     const w = parent.clientWidth;
     const h = parent.clientHeight;
     renderer.setSize(w, h, false);
+    post?.setSize(w * pixelRatio, h * pixelRatio);
     camera.aspect = w / Math.max(1, h);
     portrait = camera.aspect < 0.8;
     camera.updateProjectionMatrix();
@@ -553,7 +562,7 @@ export function createDriveEngine(
     st.hint = h.i;
     st.s = h.s;
     Object.assign(prev, { x, z, heading });
-    camYaw = heading;
+    camYaw = dioYaw = heading;
     snapCam = true;
   }
   function reset() {
@@ -589,8 +598,9 @@ export function createDriveEngine(
   }
   function cycleCamera() {
     camMode = CAMERAS[(CAMERAS.indexOf(camMode) + 1) % CAMERAS.length];
+    dioYaw = st.heading;
     look = { yaw: 0, pitch: 0, idle: 0 };
-    camera.near = camMode === "onboard" ? 0.08 : 0.3;
+    camera.near = camMode === "onboard" ? 0.08 : camMode === "diorama" ? 1 : 0.3;
     camera.updateProjectionMatrix();
     cb.onCamera(camMode);
   }
@@ -826,6 +836,7 @@ export function createDriveEngine(
   const eLook = new Euler(0, 0, 0, "YXZ");
   const want = new Vector3();
   let camYaw = st.heading;
+  let dioYaw = st.heading;
   /** After a teleport (grid, reset), the chase camera jumps straight to its spot. */
   let snapCam = true;
   let fov = 60;
@@ -852,6 +863,8 @@ export function createDriveEngine(
     car.wheels.forEach((w) => (w.rotation.x -= (st.v * dt) / CAR.wheelR));
     car.steerers.forEach((s) => (s.rotation.y = -st.steer * (0.44 / (1 + Math.abs(st.v) / 21))));
     car.animate(t, { drs: st.drs, flash: st.inPit || (input.throttle <= 0 && st.v > 30), braking: st.braking, night: cur.lights });
+    const thud = props.update(dt, { x, z, heading, v: st.v });
+    if (thud > 4 && mode === "drive") audio?.impact(thud * 0.4);
 
     // Sparks: the plank kisses the tarmac at speed, more over the kerbs
     if (mode === "drive" || frame % 2 === 0) {
@@ -1027,6 +1040,19 @@ export function createDriveEngine(
       camTarget.set(x + fx * 4, 0.9, z + fz * 4);
       camera.lookAt(camTarget);
       fovTarget = (opts.reducedMotion ? 60 : 58 + Math.min(16, speed * 0.2) + st.drs * 3) + (portrait ? 14 : 0);
+    } else if (camMode === "diorama") {
+      // High three-quarter view, like a model on a table: it follows the car's turns slowly, never spins with them
+      dioYaw = angleLerp(dioYaw, heading + look.yaw, damp(1.3, dt));
+      const a = dioYaw + 0.6;
+      // Kept above the floodlight heads (16 m), at about 45 degrees
+      const back = portrait ? 26 : 21;
+      want.set(x + Math.sin(a) * back, (portrait ? 29 : 23.5) + look.pitch * 14, z + Math.cos(a) * back);
+      if (snapCam) camPos.copy(want);
+      else camPos.lerp(want, damp(4, dt));
+      camera.position.copy(camPos);
+      camTarget.set(x + fx * 6, 0.4, z + fz * 6);
+      camera.lookAt(camTarget);
+      fovTarget = portrait ? 50 : 36;
     } else if (camMode === "onboard") {
       car.car.updateMatrixWorld(true);
       car.body.localToWorld(seat.copy(CAR.eye));
@@ -1064,32 +1090,32 @@ export function createDriveEngine(
       g.visible = Math.hypot(g.position.x - camera.position.x, g.position.z - camera.position.z) < [220, 320, 420][tier];
     }
 
-    // Keep the shadow box on the car
-    if (shadows) {
-      sun.position.set(x + cur.sunDir.x * 60, cur.sunDir.y * 60, z + cur.sunDir.z * 60);
-      sun.target.position.set(x, 0, z);
-    }
+    // Keep the shadow box on the car (and the light from the right direction on every tier)
+    sun.position.set(x + cur.sunDir.x * 60, cur.sunDir.y * 60, z + cur.sunDir.z * 60);
+    sun.target.position.set(x, 0, z);
+    foliage.update(t, camera, hemi, sun);
+    if (post) post.uniforms.uBloom.value = 0.25 + 0.3 * cur.lights;
 
     if (mode === "drive") audio?.update({ rpm: st.rpm, throttle: input.throttle, slip: st.slip, kerb: st.kerb && speed > 8, speed });
   };
 
-  /* Adaptive resolution: drop pixels before frames */
-  let frameTimes = 0;
-  let frameCount = 0;
-  const minRatio = [0.6, 0.7, 0.8][tier];
-  const adapt = (dt: number) => {
-    frameTimes += dt;
-    frameCount++;
-    if (frameCount < 90) return;
-    const avg = frameTimes / frameCount;
-    frameTimes = 0;
-    frameCount = 0;
-    if (avg > 1 / 45 && pixelRatio > minRatio) pixelRatio = Math.max(minRatio, pixelRatio - 0.15);
-    else if (avg < 1 / 57 && pixelRatio < maxPixelRatio) pixelRatio = Math.min(maxPixelRatio, pixelRatio + 0.1);
-    else return;
-    renderer.setPixelRatio(pixelRatio);
-    resize();
+  /* Adaptive quality: effects go before pixels, with a floor (see quality.ts) */
+  const governor = createGovernor(gfx, T, {
+    bloom: (on) => post?.setBloom(on),
+    reach: (k) => foliage.setReach(k),
+    ratio: (r) => {
+      if (Math.abs(r - pixelRatio) < 0.01) return;
+      pixelRatio = r;
+      renderer.setPixelRatio(r);
+      resize();
+    },
+  });
+  const draw = () => {
+    renderer.info.reset();
+    if (post) post.render(scene, camera);
+    else renderer.render(scene, camera);
   };
+  const debug = process.env.NODE_ENV === "development" || location.search.includes("gfxdebug");
 
   const loop = (now: number) => {
     if (disposed) return;
@@ -1113,11 +1139,15 @@ export function createDriveEngine(
     }
     if (steps === 5) acc = 0;
     frameUpdate(dt, now / 1000, acc / FIXED, now);
-    renderer.render(scene, camera);
+    draw();
     placeLabels();
     if (frame % 3 === 0 && mode === "drive") drawMinimap();
     if (frame === 2) cb.onReady();
-    adapt(dt);
+    governor.tick(dt);
+    if (debug && (frame === 40 || frame % 600 === 0)) {
+      const i = renderer.info;
+      console.info(`[drive] ${JSON.stringify({ tier: opts.quality, auto: gfx.auto, gpu: gfx.gpu, ratio: pixelRatio, rung: governor.rung, post: !!post, calls: i.render.calls, tris: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, glows: glows.count, ...foliage.counts, lanterns: props.lanternCount })}`);
+    }
   };
   // Start the title view mid-lap, on the bay
   {
@@ -1194,7 +1224,8 @@ export function createDriveEngine(
     setPaint: (id) => car.paint(id),
     capture: () => {
       try {
-        renderer.render(scene, camera);
+        // Drawn and read in the same task, so the canvas still holds the frame
+        draw();
         return canvas.toDataURL("image/jpeg", 0.92);
       } catch {
         return null;
@@ -1230,6 +1261,8 @@ export function createDriveEngine(
         }
       });
       envTex.dispose();
+      post?.dispose();
+      foliage.dispose();
       renderer.dispose();
     },
   };

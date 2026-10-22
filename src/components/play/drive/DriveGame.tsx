@@ -7,7 +7,8 @@ import { haptic } from "@/lib/haptics";
 import { useImmersive } from "@/lib/immersive";
 import { cn } from "@/lib/utils";
 import { PAINTS, type PaintId } from "./car";
-import type { CameraMode, DriveEngine, DrsState, GameMode, Quality, RaceUpdate, TimeOfDay } from "./engine";
+import type { CameraMode, DriveEngine, DrsState, GameMode, RaceUpdate, TimeOfDay } from "./engine";
+import { detectGraphics } from "./quality";
 import type { Ghost } from "./race";
 import { landmarks, trophies, type Landmark } from "./track";
 
@@ -22,6 +23,7 @@ const signed = (ms: number) => `${ms > 0 ? "+" : "−"}${(Math.abs(ms) / 1000).t
 
 const CAMERA_LABEL: Record<CameraMode, string> = {
   chase: "Chase cam",
+  diorama: "Diorama",
   onboard: "Onboard",
   map: "Map view",
 };
@@ -95,21 +97,6 @@ function loadSettings(): Settings {
     paint: s.paint && s.paint in PAINTS ? s.paint : "ember",
     muted: !!s.muted,
   };
-}
-
-/** Picks a graphics tier from what the device tells us. */
-function detectQuality(coarse: boolean): Quality {
-  const nav = navigator as Navigator & {
-    deviceMemory?: number;
-    connection?: { saveData?: boolean };
-  };
-  // ?gfx=low|medium|high overrides the guess (handy on a device that guesses wrong)
-  const forced = new URLSearchParams(location.search).get("gfx");
-  if (forced === "low" || forced === "medium" || forced === "high") return forced;
-  const cores = nav.hardwareConcurrency ?? 4;
-  const memory = nav.deviceMemory ?? 4;
-  if (cores <= 4 || memory <= 3 || nav.connection?.saveData) return "low";
-  return coarse || cores <= 6 ? "medium" : "high";
 }
 
 interface Split {
@@ -213,10 +200,13 @@ export default function DriveGame() {
     import("./engine").then(({ createDriveEngine }) => {
       if (cancelled) return;
       try {
+        // Graphics tier: the GPU's name, memory and screen, or ?gfx=low|medium|high
+        const graphics = detectGraphics(coarse);
         const e = createDriveEngine(
           canvas,
           {
-            quality: detectQuality(coarse),
+            quality: graphics.quality,
+            graphics,
             reducedMotion,
             touch: coarse,
             labels: labelsRef.current!,
