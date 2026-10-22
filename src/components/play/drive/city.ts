@@ -9,7 +9,6 @@ import {
   DodecahedronGeometry,
   Float32BufferAttribute,
   Group,
-  IcosahedronGeometry,
   InstancedMesh,
   Matrix4,
   Mesh,
@@ -241,20 +240,8 @@ export function buildWater(lights: Reflected[], maxLights: number) {
   return { mesh: new Mesh(geo, mat), uniforms: mat.uniforms };
 }
 
-/* ───────────── trees ───────────── */
+/* ───────────── palms (the parkland's trees are in foliage.ts) ───────────── */
 
-function rainTree() {
-  const b = new Batch();
-  b.add(new CylinderGeometry(0.3, 0.45, 3.4, 6).translate(0, 1.7, 0), "#5b4434", 0.25);
-  for (const [x, y, z, s, c] of [
-    [0, 4.6, 0, 2.6, "#3f6a3c"],
-    [1.8, 4.0, 0.6, 1.8, "#4f7c45"],
-    [-1.6, 4.1, -0.7, 1.9, "#365f36"],
-    [0.4, 5.6, -0.4, 1.7, "#4a7742"],
-  ] as const)
-    b.add(new IcosahedronGeometry(s, 0).scale(1.2, 0.62, 1.2).translate(x, y, z), c, 0.12);
-  return b.build();
-}
 function palm() {
   const b = new Batch();
   for (let i = 0; i < 5; i++) b.add(new CylinderGeometry(0.22 - i * 0.02, 0.26 - i * 0.02, 1.6, 6).translate(i * i * 0.04, 0.8 + i * 1.6, 0), i % 2 ? "#7a5a3c" : "#8a6a48", 0.2);
@@ -525,11 +512,9 @@ export function buildCity(opts: { tier: 0 | 1 | 2; glows: Glows; shadows: boolea
     roofs.slice(0, tier ? 40 : 18).forEach(([x, y, z]) => glows.add(x, y, z, 2.2, "#ff3b30", 0.8));
   }
 
-  /* ── trees: rain trees in the parks and along the river, palms on the promenade ── */
+  /* ── palms on the promenade ── */
   {
-    const counts = [[50, 24], [110, 50], [190, 80]][tier];
-    const trees = new InstancedMesh(rainTree(), mat, counts[0]);
-    const palms = new InstancedMesh(palm(), mat, counts[1]);
+    const palms = new InstancedMesh(palm(), mat, [24, 50, 80][tier]);
     const o = new Object3D();
     const ok = (x: number, z: number) => {
       if (inWater(x, z)) return false;
@@ -539,31 +524,6 @@ export function buildCity(opts: { tier: 0 | 1 | 2; glows: Glows; shadows: boolea
       return !clear.some(([cx, cz, cr]) => Math.hypot(cx - x, cz - z) < cr * 0.6);
     };
     let n = 0;
-    const g = SET.green;
-    for (let guard = 0; n < trees.count && guard < 4000; guard++) {
-      // Round the green, along the river banks and through the infield
-      const pick = rand();
-      let x: number;
-      let z: number;
-      if (pick < 0.5) {
-        const t = rand();
-        const side = Math.floor(rand() * 4);
-        x = side < 2 ? g.x0 + (g.x1 - g.x0) * t : side === 2 ? g.x0 - 4 : g.x1 + 4;
-        z = side >= 2 ? g.z0 + (g.z1 - g.z0) * t : side === 0 ? g.z0 - 4 : g.z1 + 4;
-      } else {
-        const w = water[Math.floor(rand() * water.length)];
-        x = w[0] + (rand() - 0.5) * 40;
-        z = w[1] + (rand() - 0.5) * 40;
-      }
-      if (!ok(x, z)) continue;
-      o.position.set(x, 0, z);
-      o.rotation.set(0, rand() * 6.28, 0);
-      o.scale.setScalar(0.9 + rand() * 0.6);
-      o.updateMatrix();
-      trees.setMatrixAt(n++, o.matrix);
-    }
-    trees.count = n;
-    n = 0;
     for (let guard = 0; n < palms.count && guard < 4000; guard++) {
       const k = Math.floor(rand() * water.length);
       const a = water[k];
@@ -585,11 +545,9 @@ export function buildCity(opts: { tier: 0 | 1 | 2; glows: Glows; shadows: boolea
       }
     }
     palms.count = n;
-    for (const t of [trees, palms]) {
-      t.computeBoundingSphere();
-      t.castShadow = opts.shadows;
-      group.add(t);
-    }
+    palms.computeBoundingSphere();
+    palms.castShadow = opts.shadows;
+    group.add(palms);
   }
 
   // A few reflections of the floodlit circuit along the waterfront

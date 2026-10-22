@@ -144,11 +144,34 @@ function fenceTexture() {
   return t;
 }
 
+/** Ground the circuit's buildings stand on: a rectangle in its own frame (rotation.y = ry about x, z). */
+export interface Footprint {
+  x: number;
+  z: number;
+  ry: number;
+  x0: number;
+  x1: number;
+  z0: number;
+  z1: number;
+}
+export function inFootprint(f: Footprint, px: number, pz: number, margin = 0) {
+  const dx = px - f.x;
+  const dz = pz - f.z;
+  const c = Math.cos(f.ry);
+  const s = Math.sin(f.ry);
+  const lx = c * dx - s * dz;
+  const lz = s * dx + c * dz;
+  return lx > f.x0 - margin && lx < f.x1 + margin && lz > f.z0 - margin && lz < f.z1 + margin;
+}
+
 export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Glows; shadows: boolean }) {
   const { glows, tier } = opts;
   const group = new Group();
   const rand = rng(31);
   const mat = worldMaterial();
+  /** Where the stands, the pit building and the light poles are, so the parkland keeps clear. */
+  const footprints: Footprint[] = [];
+  const poles: [number, number][] = [];
 
   /* ───────── pylons first: the track's light pools follow them ───────── */
   const pylons: { i: number; side: 1 | -1 }[] = [];
@@ -530,6 +553,7 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
       const m = new Matrix4().makeRotationY(Math.atan2(-fx, -fz));
       m.setPosition(x, 0, z);
       list.push(m);
+      poles.push([x, z]);
       const hx = x + fx * 3.6;
       const hz = z + fz * 3.6;
       glows.add(hx, 16.2, hz, 7, "#fff3d6", 0.85);
@@ -555,7 +579,10 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
     const p = samples[2];
     const b = new Batch();
     const span = Math.max(wallOffset(2, 1), wallOffset(2, -1)) + 1.5;
-    for (const side of [1, -1]) b.add(new BoxGeometry(0.7, 9.2, 0.7).translate(side * span, 4.6, 0), "#4c535c", 0.6);
+    for (const side of [1, -1]) {
+      b.add(new BoxGeometry(0.7, 9.2, 0.7).translate(side * span, 4.6, 0), "#4c535c", 0.6);
+      poles.push([p.x - p.tz * span * side, p.z + p.tx * span * side]);
+    }
     b.add(new BoxGeometry(span * 2 + 0.7, 1.1, 0.9).translate(0, 8.4, 0), "#3a4048", 0.5);
     b.add(new BoxGeometry(span * 2 + 0.7, 0.18, 1.0).translate(0, 9.0, 0), C.ember, 0.8);
     b.add(new BoxGeometry(5.2, 1.5, 0.5).translate(0, 7.3, 0), "#0c0d10", 0);
@@ -618,6 +645,7 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
     const g = local.build();
     // Local -z faces the track
     g.applyMatrix4(new Matrix4().makeRotationY(Math.atan2(-fx, -fz)).setPosition(x, 0, z));
+    footprints.push({ x, z, ry: Math.atan2(-fx, -fz), x0: -length / 2 - 0.5, x1: length / 2 + 0.5, z0: roof ? -2.6 : -0.6, z1: depth + 0.6 });
     stands.add(g, "#ffffff");
   };
   const standAt = (frac: number, side: 1 | -1, length: number, rows: number, gap = 3.5) => {
@@ -653,6 +681,7 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
     b.add(new BoxGeometry(len + 2, 0.5, depth + 3).translate(cx, 10.05, front - depth / 2 + 1), "#ece7dc", 0.45);
     b.add(new BoxGeometry(len + 2, 0.7, 0.2).translate(cx, 9.8, front + 2.5), C.ember, 1.0);
     b.add(new BoxGeometry(len, 6, 0.4).translate(cx, 3, front - depth), "#cfc9bc", 0.3);
+    footprints.push({ x: cx, z: front - depth / 2, ry: 0, x0: -len / 2 - 16, x1: len / 2 + 16, z0: -depth / 2 - 1, z1: depth / 2 + 3 });
     const garages = 12;
     const gw = (len - 16) / garages;
     for (let g = 0; g <= garages; g++) {
@@ -758,7 +787,7 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
     // Parks: the infield green and a strip along the promenade
     const g = SET.green;
     const green = new BoxGeometry(g.x1 - g.x0, 0.1, g.z1 - g.z0).translate((g.x0 + g.x1) / 2, -0.04, (g.z0 + g.z1) / 2);
-    b.add(green, "#3f5a3a", 0.25);
+    b.add(green, "#34502f", 0.22);
     // Quay walls round the water, and a railing on top
     for (let k = 0; k < wp.length; k++) {
       const [ax, az] = wp[k];
@@ -780,6 +809,8 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
   let lastLit = -1;
   return {
     group,
+    footprints,
+    poles,
     /** Fences fade with the floodlights. */
     fenceMaterial: group.children.find((c) => c.userData.fence)?.userData.fence as MeshBasicMaterial | undefined,
     /** Shows `lit` columns of red lights (0 = all out). */
