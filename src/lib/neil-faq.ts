@@ -197,7 +197,7 @@ function categoryAnswer(c: Category, ctx: Ctx): FaqAnswer {
   const picks = sample(all, Math.min(4, all.length), ctx.rng);
   const lead =
     c === "web"
-      ? one(ctx, "Neil builds web systems with AI-assisted coding: he decides what they should do and how they're structured, then tests and deploys them.", "He plans the data, pages and rules first, lets AI write much of the code, and tests each step himself.")
+      ? one(ctx, "Neil builds web systems with AI-assisted coding: he decides what they should do and how they're structured, then tests and deploys them.", "He plans the data, pages and rules first, builds with AI-assisted coding, and tests each step himself.")
       : `**${categories[c].label}**: ${categories[c].blurb}.`;
   return {
     text: `${lead} ${one(ctx, "A few to start with:", "Some highlights:", "Worth a look:")}\n\n${bullets(picks.map((p) => `**${p.title}**: ${fixFacts(p.plain)}`))}\n\n${one(ctx, "Want the story behind one of them?", "Ask me about any of these, or what Neil did on it.")}`,
@@ -527,7 +527,7 @@ const RULES: Rule[] = [
   {
     test: /\b(write (all )?(the |your |his )?(own )?code|writes? (all )?(the |his )?code|hand-?(code|coded|written)|vibe-?cod\w*|ai[- ]assisted|use[sd]? ai|chatgpt|copilot|full[- ]?stack|web dev\w*)\b/i,
     answer: (_, ctx) => ({
-      text: `${one(ctx, "Not in the usual sense, and he's upfront about it.", "Short answer: AI writes much of the code, and Neil says so himself.")}\n\n${HOW_NEIL_WORKS.web}\n\n${one(ctx, "Want to see one he built that way, like the Student Information System?", "Want to hear how that worked on a real project?")}`,
+      text: `${one(ctx, "Not in the usual sense, and he's upfront about it.", "Short answer: he builds with AI-assisted coding, and says so himself.")}\n\n${HOW_NEIL_WORKS.web}\n\n${one(ctx, "Want to see one he built that way, like the Student Information System?", "Want to hear how that worked on a real project?")}`,
       links: [
         { label: "Student Information System", href: "/work/student-information-system" },
         { label: "How this site is built", href: "/uses#colophon" },
@@ -592,7 +592,7 @@ const RULES: Rule[] = [
       text: `${one(ctx, `**${site.name}** is a third-year BSIT student at CLSU. He plans networks, builds web systems with AI-assisted coding, and photographs concerts, campus life and the night sky.`, `${site.name} in thirty seconds: networks by major, web systems built with AI's help, concerts and night skies through a lens.`)}\n\n${bullets([
         `**Studies:** BS Information Technology, majoring in Network Systems & Infrastructure Engineering`,
         `**Networks:** topology, network mapping, cabling, bills of materials, subnets and VLANs`,
-        `**Builds:** web systems like the Student Information System, planned and tested by him, with AI writing much of the code`,
+        `**Builds:** web systems like the Student Information System, planned, built and tested by him with AI-assisted coding`,
         `**Leads:** ${site.role}`,
         `**Shoots:** concerts, events, portraits, landscapes and astrophotography`,
       ])}\n\n${one(ctx, "Want to start with his projects or his photos?", "What would you like to see first?")}`,

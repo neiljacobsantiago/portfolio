@@ -56,7 +56,7 @@ const PROJECTS: Entry[] = [
   {
     title: "Student Information System",
     kind: "Registrar Records Platform",
-    role: "Developer (AI-assisted development)",
+    role: "Solo developer (AI-assisted development)",
     where: "INTECH 3112 · Final project",
     href: "/work/student-information-system",
     bullets: [

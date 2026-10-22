@@ -197,7 +197,7 @@ export default function AboutPage() {
             </p>
             <p className="mt-5 font-serif text-lg leading-relaxed text-ink/80 md:text-xl">
               Most of my technical work is networks: drawing the physical and logical topology, planning the cabling and the bill of materials, and working out
-              subnets and VLANs. I also build web systems. I decide what they should do and how they fit together, use AI to write much of the code, then test and
+              subnets and VLANs. I also build web systems. I decide what they should do and how they fit together, build them with AI-assisted coding, then test and
               deploy them. The rest of my week goes to the Media Group: briefing a crew, keeping a shot list and getting the story out the same day.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -276,7 +276,7 @@ export default function AboutPage() {
               Three habits, <em className="font-serif text-ember">every project.</em>
             </>
           }
-          lead="How I build web systems: I decide what the system should do, plan the data, the pages and the rules, and write it down. AI-assisted coding writes much of the code. I read it, test it against the plan, fix what's wrong and deploy it myself."
+          lead="How I build web systems: I decide what the system should do, plan the data, the pages and the rules, and write it down. I build it with AI-assisted coding, read the code, test it against the plan, fix what's wrong and deploy it myself."
         >
           <ol className="grid gap-px overflow-hidden rounded-[4px] bg-ink/12 ring-1 ring-ink/12 lg:grid-cols-3">
             {principles.map((p, i) => (

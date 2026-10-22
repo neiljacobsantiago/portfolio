@@ -28,7 +28,7 @@ export const PATHOSCAN_THRESHOLD = {
 export const HOW_NEIL_WORKS = {
   networks:
     "Networks are Neil's main field, mostly the physical and logical side: physical and logical topology, network mapping, cabling plans, bills of materials (BOM), and IP addressing with subnets and VLANs.",
-  web: "Web systems aren't Neil's main field, and he builds them with AI-assisted coding: he decides what the system should do, plans its structure, data and rules, tests it and deploys it, and AI writes much of the code. He doesn't claim to hand-write everything.",
+  web: "Web systems aren't Neil's main field, and he builds them with AI-assisted coding: he decides what the system should do, plans its structure, data and rules, tests it and deploys it. He doesn't claim to hand-write everything, and he doesn't put a number on how much AI wrote.",
   security:
     "On security, Neil mostly writes and shares simple lessons: awareness, phishing, data privacy, explained in plain words (like the Cyber Awareness Series). He doesn't do forensics, malware analysis, penetration testing or incident response.",
   hacking: "Offensive security and ethical hacking are things Neil is starting to learn, on his own lab machines only. It's not a skill he offers yet.",

@@ -64,10 +64,10 @@ const offers: Offer[] = [
     forWho: "Homes, small offices, shops, dorms and org rooms.",
     deliverables: [
       "A site walkthrough, then physical and logical topology diagrams",
-      "A cabling plan and a bill of materials (BOM) before anything is bought",
+      "A basic cabling plan and a bill of materials (BOM) before anything is bought",
       "An IP addressing and VLAN plan, checked in Packet Tracer first",
       "Router, switch and Wi-Fi setup, with coverage and speed checks",
-      "A labelled network map, plain-language notes and the passwords handed over",
+      "A simple labelled network map, plain-language notes and the passwords handed over",
     ],
     timeline: "Small office or home: 2–5 days including testing. Bigger sites after a walkthrough.",
     price: { label: "Priced by scope", note: "Quoted after a walkthrough: size, devices and equipment decide it" },
@@ -281,7 +281,7 @@ const faqs: Faq[] = [
   },
   {
     q: "Do you write all the code yourself?",
-    a: "No, and I'd rather say so up front. I decide what the site or system should do, plan its data, pages and rules, and use AI-assisted coding to write much of it. Then I read it, test it against the plan, fix what's wrong and deploy it. You get a working site and the notes to look after it.",
+    a: "No, and I'd rather say so up front. I decide what the site or system should do, plan its data, pages and rules, and build it with AI-assisted coding. Then I read the code, test it against the plan, fix what's wrong and deploy it. You get a working site and the notes to look after it.",
   },
   {
     q: "You're still a student. How do you fit projects in?",

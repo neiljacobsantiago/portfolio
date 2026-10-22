@@ -72,7 +72,7 @@ const groups: UseGroup[] = [
     blurb: "What the web systems and school projects are made with.",
     items: [
       item("Figma", "Interfaces start here as clickable prototypes before any code.", "Figma"),
-      item("AI coding assistants", "Write much of the code from my plan. I review it, test it and deploy it."),
+      item("AI coding assistants", "Help me write and check code from my plan. I review it, test it and deploy it."),
       item("Next.js, React & TypeScript", "Web apps and this site.", "React"),
       item("Tailwind CSS", "Styling, straight in the markup."),
       item("TensorFlow.js", "Machine learning that runs in the browser, offline.", "TensorFlow.js"),
@@ -102,7 +102,7 @@ export interface ColophonItem {
 
 /** How this site is built. Matches package.json; update both together. */
 const colophon: ColophonItem[] = [
-  { name: "AI-assisted coding", role: "I planned, tested and deployed the site; AI wrote much of the code" },
+  { name: "AI-assisted coding", role: "I planned, built, tested and deployed the site, with AI helping on the code" },
   { name: "Next.js 16 & React 19", role: "App Router, Server Components and static pages by default" },
   { name: "Tailwind CSS v4", role: "Every style, with the five-colour palette as theme tokens" },
   { name: "Gloock, Newsreader & IBM Plex Mono", role: "Display, text and labels, loaded through next/font" },
