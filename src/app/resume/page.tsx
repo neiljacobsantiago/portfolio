@@ -47,7 +47,7 @@ const PROJECTS: Entry[] = [
     where: "COMSCI 3100 · for DA PhilMech",
     href: "/work/pathoscan",
     bullets: [
-      "Trained the image classifier in Google's Teachable Machine from labelled culture-plate photos, exported it as a TensorFlow.js model and integrated it into PathoScan, where it names five mycotoxin-producing Aspergillus species fully in the browser and answers “Unknown” rather than forcing a guess.",
+      "Trained a MobileNetV2-based image classifier in Google's Teachable Machine from labelled culture-plate photos, exported it as a TensorFlow.js model and integrated it into PathoScan, where it names five mycotoxin-producing Aspergillus species fully in the browser and answers “Unknown” rather than forcing a guess.",
       "Designed the capture-to-result interface: confidence score, a probability matrix for every class, colony traits for comparison, and a 90% confidence bar that marks a result ready for preliminary screening or prompts a second look.",
       "Delivered with a nine-member Agile-Scrum team as an offline Progressive Web App; formally turned over to the DA PhilMech Laboratory Services Division on September 28, 2026.",
     ],

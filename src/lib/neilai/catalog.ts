@@ -220,8 +220,8 @@ export const TRIVIA: Trivia[] = [
     label: "MobileNetV2 paper",
     names: /\bmobilenet(v2)?\b/i,
     kind: "thing",
-    prompt: "What's MobileNet?",
-    line: "MobileNet is the kind of compact image network that Google's Teachable Machine builds on. Neil trained PathoScan's model there, then exported it to run in the browser.",
+    prompt: "What's MobileNetV2?",
+    line: "MobileNetV2 is the compact image network PathoScan's model is built on. Neil trained it in Google's Teachable Machine, then exported it to run in the browser.",
     near: "project:pathoscan",
   },
   {
