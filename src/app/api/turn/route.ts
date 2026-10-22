@@ -37,6 +37,16 @@ function normalise(body: unknown): IceServer[] {
 
 export async function POST(req: Request) {
   const headers = { "Cache-Control": "no-store" };
+  // Relay bandwidth is paid for: only hand credentials to this site's own pages.
+  const origin = req.headers.get("origin");
+  const sameSite = (() => {
+    try {
+      return new URL(origin!).host === new URL(req.url).host;
+    } catch {
+      return false;
+    }
+  })();
+  if (origin && !sameSite) return NextResponse.json({ error: "Not allowed." }, { status: 403, headers });
   if (!rateLimit(clientKey(req, "turn"), 20, 10 * 60_000)) return NextResponse.json({ iceServers: STUN, relay: false, error: "Too many requests; try again in a few minutes." }, { status: 429, headers });
 
   const id = process.env.CLOUDFLARE_TURN_KEY_ID?.trim();
