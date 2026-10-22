@@ -116,11 +116,11 @@ export function createRace() {
       phase = "off";
       lit = 0;
     },
-    /** Lights sequence from the grid; the car is held until the lights go out. */
-    start(now: number) {
+    /** Lights sequence from the grid; the car is held until the lights go out. `at` sets both times (multiplayer). */
+    start(now: number, at?: { lightsAt: number; goAt: number }) {
       phase = "lights";
-      lightsAt = now + 600;
-      goAt = lightsAt + 5000 + 300 + Math.random() * 2200;
+      lightsAt = at ? at.lightsAt : now + 600;
+      goAt = at ? at.goAt : lightsAt + 5000 + 300 + Math.random() * 2200;
       lit = 0;
       lap = 0;
       penalty = 0;

@@ -71,7 +71,8 @@ const groups: UseGroup[] = [
     title: "Design & code",
     blurb: "What the web systems and school projects are made with.",
     items: [
-      item("Figma", "Every interface is a clickable prototype before it's code.", "Figma"),
+      item("Figma", "Interfaces start here as clickable prototypes before any code.", "Figma"),
+      item("AI coding assistants", "Help me write and check code from my plan. I review it, test it and deploy it."),
       item("Next.js, React & TypeScript", "Web apps and this site.", "React"),
       item("Tailwind CSS", "Styling, straight in the markup."),
       item("TensorFlow.js", "Machine learning that runs in the browser, offline.", "TensorFlow.js"),
@@ -85,11 +86,11 @@ const groups: UseGroup[] = [
   {
     id: "network",
     title: "Networks & security",
-    blurb: "For planning networks and testing my own lab machines.",
+    blurb: "For planning topologies, addressing and cabling, and for learning security on my own machines.",
     items: [
-      item("Cisco Packet Tracer", "Networks are simulated here before any cable is run."),
-      item("Routers & switches", "Routing, switching and VLANs, hands on."),
-      item("Kali Linux", "Security testing on my own lab machines, never anyone else's."),
+      item("Cisco Packet Tracer", "Topologies and VLAN plans are checked here before any cable is bought."),
+      item("Routers & switches", "Switching, basic routing and VLANs, hands on."),
+      item("Kali Linux", "Where I'm starting to learn ethical hacking, on my own lab machines only."),
     ],
   },
 ];
@@ -101,6 +102,7 @@ export interface ColophonItem {
 
 /** How this site is built. Matches package.json; update both together. */
 const colophon: ColophonItem[] = [
+  { name: "AI-assisted coding", role: "I planned, built, tested and deployed the site, with AI helping on the code" },
   { name: "Next.js 16 & React 19", role: "App Router, Server Components and static pages by default" },
   { name: "Tailwind CSS v4", role: "Every style, with the five-colour palette as theme tokens" },
   { name: "Gloock, Newsreader & IBM Plex Mono", role: "Display, text and labels, loaded through next/font" },

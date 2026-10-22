@@ -70,7 +70,7 @@ export default function Statement() {
 
         <div className="pointer-events-none relative z-10 scene:absolute scene:inset-0 scene:flex scene:items-center scene:justify-center lg:scene:items-end lg:scene:pb-12">
           <p className="sx st-copy mx-auto mt-10 max-w-xl px-5 font-serif text-xl leading-snug text-paper/90 scene:mt-0 scene:text-center scene:text-paper lg:scene:text-2xl">
-            Tracing a dropped packet across a network and waiting for the stage light to land take the same kind of patience.
+            Labelling every cable on a floor plan and waiting for the stage light to land take the same kind of patience.
           </p>
         </div>
       </div>

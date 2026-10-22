@@ -68,7 +68,7 @@ export default function Terminal() {
       case "whoami":
         return `${site.name}. Third-year BSIT (Network Systems & Infrastructure Engineering) at CLSU. Production Director, ITSC Media Group. BITS member.`;
       case "skills":
-        return "Networking (VLANs, subnetting, routing), Linux, Next.js & React, Python, Java, multimedia direction.";
+        return "Networking (topology, mapping, cabling, BOMs, subnetting, VLANs), web systems built with AI-assisted coding (Next.js & React), Linux, Python, Java, multimedia direction. Learning: ethical hacking.";
       case "rates":
         return <span className="font-bold text-paper">Rates are quoted per job. Send a brief: /contact</span>;
       case "ls":

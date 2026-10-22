@@ -61,7 +61,7 @@ function StructuredData() {
         description: site.description,
         address: { "@type": "PostalAddress", addressLocality: "San Jose City", addressRegion: "Nueva Ecija", addressCountry: "PH" },
         affiliation: { "@type": "CollegeOrUniversity", name: "Central Luzon State University", url: "https://clsu.edu.ph" },
-        knowsAbout: ["Network design", "Network security", "Web development", "UI/UX design", "Photography", "Videography"],
+        knowsAbout: ["Network planning", "Network topology and cabling", "Subnetting and VLANs", "Web systems", "UI/UX design", "Security awareness", "Photography", "Videography"],
         sameAs: socials.filter((s) => s.url).map((s) => s.url),
       },
       { "@type": "WebSite", "@id": `${url}/#site`, url, name: site.name, inLanguage: "en", publisher: { "@id": `${url}/#neil` } },

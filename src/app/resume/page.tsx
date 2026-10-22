@@ -12,7 +12,7 @@ const doc = Source_Serif_4({ subsets: ["latin"], style: ["normal", "italic"], ax
 
 export const metadata: Metadata = {
   title: "Résumé",
-  description: `${site.name}'s résumé: BS Information Technology at Central Luzon State University, technical projects in web systems and networking, leadership, certifications and skills.`,
+  description: `${site.name}'s résumé: BS Information Technology at Central Luzon State University, network planning, web systems built with AI-assisted development, leadership, certifications and skills.`,
 };
 
 /* ------------------------------------------------------------------------- */
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 /* ------------------------------------------------------------------------- */
 
 const SUMMARY =
-  "Third-year BS Information Technology student at Central Luzon State University, majoring in Network Systems & Infrastructure Engineering. Designs interfaces, trains models and builds full-stack web systems in team settings, most recently PathoScan, an offline plant-pathogen classifier accepted for operational use by DA PhilMech. Production Director of the ITSC Media Group, leading planning and delivery for the IT Student Council's productions.";
+  "Third-year BS Information Technology student at Central Luzon State University, majoring in Network Systems & Infrastructure Engineering. Focused on network planning: physical and logical topology, network mapping, cabling, bills of materials, and IP addressing with subnets and VLANs. Builds web systems with AI-assisted development, owning the requirements, structure, testing and deployment; designed the interface for PathoScan, an offline plant-pathogen classifier accepted for operational use by DA PhilMech, and trained its image model in Google's Teachable Machine. Writes plain-language security awareness lessons. Production Director of the ITSC Media Group.";
 
 interface Entry {
   title: string;
@@ -47,7 +47,7 @@ const PROJECTS: Entry[] = [
     where: "COMSCI 3100 · for DA PhilMech",
     href: "/work/pathoscan",
     bullets: [
-      "Trained a MobileNetV2 classifier that identifies five mycotoxin-producing Aspergillus species from culture-plate photos, running fully in the browser with TensorFlow.js and answering “Unknown” rather than forcing a guess.",
+      "Trained a MobileNetV2-based image classifier in Google's Teachable Machine from labelled culture-plate photos, exported it as a TensorFlow.js model and integrated it into PathoScan, where it names five mycotoxin-producing Aspergillus species fully in the browser and answers “Unknown” rather than forcing a guess.",
       "Designed the capture-to-result interface: confidence score, a probability matrix for every class, colony traits for comparison, and a 90% confidence bar that marks a result ready for preliminary screening or prompts a second look.",
       "Delivered with a nine-member Agile-Scrum team as an offline Progressive Web App; formally turned over to the DA PhilMech Laboratory Services Division on September 28, 2026.",
     ],
@@ -56,13 +56,13 @@ const PROJECTS: Entry[] = [
   {
     title: "Student Information System",
     kind: "Registrar Records Platform",
-    role: "Full-Stack Developer",
+    role: "Solo developer (AI-assisted development)",
     where: "INTECH 3112 · Final project",
     href: "/work/student-information-system",
     bullets: [
-      "Built a Laravel REST API over a relational MySQL schema (programs, sections, students and saved records) with search, filtering, sorting and pagination executed in SQL on the server.",
-      "Implemented Sanctum token sign-in with three roles (registrar, staff adviser, student), enforced by a server-side policy that refuses unauthorised requests with HTTP 403.",
-      "Moved business rules to the server: per-field 422 validation, section capacity limits, program–section consistency and student numbers issued once at creation.",
+      "Planned the data model and built, with AI-assisted development, a Laravel REST API over a relational MySQL schema (programs, sections, students and saved records), with search, filtering, sorting and pagination run in SQL on the server.",
+      "Defined three roles (registrar, staff adviser, student) behind Sanctum token sign-in, enforced by a server-side policy, and tested that unauthorised requests are refused with HTTP 403.",
+      "Kept business rules on the server: per-field 422 validation, section capacity limits, program–section consistency and student numbers issued once at creation.",
     ],
     stack: "Laravel, PHP 8.3, MySQL, Eloquent ORM, React, Tailwind CSS",
   },
@@ -132,10 +132,12 @@ const LEADERSHIP: Entry[] = [
 ];
 
 const SKILLS: { group: string; items: string }[] = [
-  { group: "Languages", items: "C, Java, Python, PHP, JavaScript, TypeScript, SQL (MySQL), HTML5, CSS3" },
-  { group: "Frameworks & Tools", items: "React, Next.js, Laravel (Sanctum, Eloquent), Tailwind CSS, Vite, TensorFlow.js, Pandas, Java Swing & JDBC, WordPress, Google Colab; Agile-Scrum" },
-  { group: "Networking", items: "Cisco Packet Tracer, routing & switching, IP addressing & VLAN planning, network troubleshooting, hardware architecture, Kali Linux (lab security testing)" },
-  { group: "Design", items: "Figma (high-fidelity prototypes), UI/UX design, responsive layouts; Premiere Pro, After Effects, DaVinci Resolve, OBS Studio" },
+  { group: "Networking", items: "Physical and logical topology, network mapping, cabling plans, bills of materials (BOM), IP addressing, subnetting & VLAN planning, Cisco Packet Tracer, basic routing & switching, network troubleshooting, hardware architecture" },
+  { group: "Web Systems", items: "AI-assisted development: requirements, data modelling, system structure, testing and deployment. React, Next.js, Laravel (Sanctum, Eloquent), Tailwind CSS, Vite, TensorFlow.js, MySQL, WordPress" },
+  { group: "Security", items: "Plain-language security awareness lessons and videos (phishing, data privacy)" },
+  { group: "Learning", items: "Offensive security and ethical hacking, just starting, on own lab machines only (Kali Linux)" },
+  { group: "Languages", items: "C, Java, Python, PHP, JavaScript, TypeScript, SQL, HTML5, CSS3 (coursework and projects)" },
+  { group: "Design & Tools", items: "Figma (high-fidelity prototypes), UI/UX design, responsive layouts; Pandas, Google Colab, Java Swing & JDBC; Premiere Pro, After Effects, DaVinci Resolve, OBS Studio; Agile-Scrum" },
 ];
 
 const LINK = "underline-offset-[0.18em] decoration-1 hover:underline focus-visible:underline print:no-underline";

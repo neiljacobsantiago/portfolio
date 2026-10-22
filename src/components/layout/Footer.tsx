@@ -135,7 +135,7 @@ export default async function Footer() {
             </Link>
           </div>
         </div>
-        <p className="mt-6 font-serif text-sm text-paper/70">Designed and built by {site.firstName} with Next.js · Set in Gloock, Newsreader &amp; IBM Plex Mono · Tool icons by{" "}
+        <p className="mt-6 font-serif text-sm text-paper/70">Planned and built by {site.firstName} with Next.js and AI-assisted coding · Set in Gloock, Newsreader &amp; IBM Plex Mono · Tool icons by{" "}
           <a href="https://icons8.com" target="_blank" rel="noopener noreferrer" className="underline decoration-paper/40 underline-offset-2 hover:text-paper">
             Icons8
           </a>{" "}

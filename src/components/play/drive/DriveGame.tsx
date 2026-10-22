@@ -7,7 +7,11 @@ import { haptic } from "@/lib/haptics";
 import { useImmersive } from "@/lib/immersive";
 import { cn } from "@/lib/utils";
 import { PAINTS, type PaintId } from "./car";
-import type { CameraMode, DriveEngine, DrsState, GameMode, Quality, RaceUpdate, TimeOfDay } from "./engine";
+import type { CameraMode, DriveEngine, DrsState, GameMode, RaceUpdate, TimeOfDay } from "./engine";
+import Lobby from "./net/Lobby";
+import { NetBoard, NetToasts, SessionPanel } from "./net/NetHud";
+import { useMultiplayer } from "./net/useMultiplayer";
+import { detectGraphics } from "./quality";
 import type { Ghost } from "./race";
 import { landmarks, trophies, type Landmark } from "./track";
 
@@ -22,6 +26,7 @@ const signed = (ms: number) => `${ms > 0 ? "+" : "−"}${(Math.abs(ms) / 1000).t
 
 const CAMERA_LABEL: Record<CameraMode, string> = {
   chase: "Chase cam",
+  diorama: "Diorama",
   onboard: "Onboard",
   map: "Map view",
 };
@@ -97,21 +102,6 @@ function loadSettings(): Settings {
   };
 }
 
-/** Picks a graphics tier from what the device tells us. */
-function detectQuality(coarse: boolean): Quality {
-  const nav = navigator as Navigator & {
-    deviceMemory?: number;
-    connection?: { saveData?: boolean };
-  };
-  // ?gfx=low|medium|high overrides the guess (handy on a device that guesses wrong)
-  const forced = new URLSearchParams(location.search).get("gfx");
-  if (forced === "low" || forced === "medium" || forced === "high") return forced;
-  const cores = nav.hardwareConcurrency ?? 4;
-  const memory = nav.deviceMemory ?? 4;
-  if (cores <= 4 || memory <= 3 || nav.connection?.saveData) return "low";
-  return coarse || cores <= 6 ? "medium" : "high";
-}
-
 interface Split {
   index: number;
   ms: number;
@@ -156,6 +146,9 @@ export default function DriveGame() {
   const [drs, setDrs] = useState<DrsState>("off");
   const [inPit, setInPit] = useState(false);
   const settingsRef = useRef(settings);
+  /** Multiplayer's lap counter, fed the same race events as the HUD. */
+  const netRace = useRef<((u: RaceUpdate) => void) | null>(null);
+  const tagsRef = useRef<HTMLDivElement>(null);
   const driving = phase === "driving";
 
   useEffect(() => {
@@ -213,10 +206,13 @@ export default function DriveGame() {
     import("./engine").then(({ createDriveEngine }) => {
       if (cancelled) return;
       try {
+        // Graphics tier: the GPU's name, memory and screen, or ?gfx=low|medium|high
+        const graphics = detectGraphics(coarse);
         const e = createDriveEngine(
           canvas,
           {
-            quality: detectQuality(coarse),
+            quality: graphics.quality,
+            graphics,
             reducedMotion,
             touch: coarse,
             labels: labelsRef.current!,
@@ -243,7 +239,10 @@ export default function DriveGame() {
               haptic(20);
               say(trophiesFound.length === total ? `Every trophy found · ${total} of ${total}` : `Hidden trophy · ${trophiesFound.length} of ${total}`, "good");
             },
-            onRace: (u: RaceUpdate) => onRace(u),
+            onRace: (u: RaceUpdate) => {
+              onRace(u);
+              netRace.current?.(u);
+            },
             onDrs: (s) => setDrs(s),
             onPit: (p) => setInPit(p),
             onCamera: (m) => setCamera(m),
@@ -331,13 +330,16 @@ export default function DriveGame() {
     };
   }, [driving]);
 
-  const start = () => {
+  const start = () => begin((e) => e.drive(settings.mode));
+  /** Into the car: `go` starts the engine (a hot lap, a free roam, or a shared session). */
+  const begin = (go: (e: DriveEngine) => void) => {
     haptic(10);
     const e = engine.current;
     if (!e) return;
     setSplits([]);
     setLastLap(null);
-    e.drive(settings.mode);
+    setLights(-1);
+    go(e);
     setPhase("driving");
     canvasRef.current?.focus({ preventScroll: true });
     // Phones: go full screen and ask for landscape (Android honours it; iPhone shows the rotate hint)
@@ -356,7 +358,9 @@ export default function DriveGame() {
     }
   };
 
-  const exit = () => {
+  // In a room, leaving opens the room's panel (results, rematch, leave) instead
+  const exit = () => (mp.driving ? mp.setPanel(!mp.panel) : leave());
+  const leave = () => {
     haptic();
     engine.current?.stop();
     setPhase("ready");
@@ -368,7 +372,13 @@ export default function DriveGame() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   };
 
+  const mp = useMultiplayer({ engine, tags: tagsRef, muted: settings.muted, begin, end: leave });
+  useEffect(() => {
+    netRace.current = mp.onRace;
+  });
+
   const chooseMode = (mode: GameMode) => {
+    if (mp.driving) return;
     haptic();
     save({ mode });
     setSplits([]);
@@ -433,7 +443,7 @@ export default function DriveGame() {
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       const k = e.key.toLowerCase();
-      if (e.key === "Enter" && phase === "ready") {
+      if (e.key === "Enter" && phase === "ready" && !mp.open && !mp.inRoom) {
         // Only from the hero itself (or nowhere in particular), never from a button, a link or another game on the page
         const target = e.target instanceof Element ? e.target : null;
         const fromPage = !target || target === document.body || target === document.documentElement;
@@ -478,7 +488,7 @@ export default function DriveGame() {
   if (phase === "unsupported") return <Fallback />;
   const rotate = touch && portrait && driving && !allowPortrait && !photo;
   const showHud = driving && !photo && !rotate;
-  const race = settings.mode === "race";
+  const race = mp.driving ? mp.state.session?.mode === "race" : settings.mode === "race";
 
   return (
     <div
@@ -512,6 +522,8 @@ export default function DriveGame() {
             </div>
           ))}
         </div>
+        {/* Other players' name tags (multiplayer), positioned by the engine's remote-car layer */}
+        <div ref={tagsRef} aria-hidden className={cn("pointer-events-none absolute inset-0 overflow-hidden", photo && "opacity-0")} />
 
         {/* HUD: timing on the left, tools and the map on the right */}
         <div
@@ -523,6 +535,7 @@ export default function DriveGame() {
           <div className="flex flex-col items-start gap-2">
             <TimingCard race={race} lapNo={lapNo} invalid={invalid} best={best} lastLap={lastLap} found={found} timerRef={timerRef} deltaRef={deltaRef} speedRef={speedRef} gearRef={gearRef} revsRef={revsRef} drs={drs} />
             {race && splits.length > 0 && <Splits splits={splits} />}
+            {mp.driving && <NetBoard mp={mp} />}
           </div>
 
           <div className="pointer-events-auto flex flex-col items-end gap-2">
@@ -611,6 +624,9 @@ export default function DriveGame() {
 
         {photo && <PhotoMode engine={engine} onClose={() => setPhoto(false)} />}
 
+        {mp.inRoom && showHud && <NetToasts mp={mp} />}
+        {mp.inRoom && driving && mp.panel && <SessionPanel mp={mp} />}
+
         {sheet && driving && (
           <SettingsSheet
             settings={settings}
@@ -623,6 +639,7 @@ export default function DriveGame() {
             onBrakeAssist={() => setAssist({ brakeAssist: !(settings.brakeAssist ?? touch) })}
             onGhost={() => setAssist({ ghost: !settings.ghost })}
             onPaint={choosePaint}
+            net={mp.driving}
             onMute={toggleMute}
             onRestart={() => {
               haptic();
@@ -682,9 +699,14 @@ export default function DriveGame() {
             </div>
             <p className="mt-2 font-serif text-sm text-paper/65 italic [@media(max-height:560px)]:hidden">{MODES.find((m) => m.id === settings.mode)?.line}</p>
             {best && settings.mode === "race" && <p className="label mt-2 text-[0.52rem] text-paper/55">Your best · {fmt(best)}</p>}
-            <button type="button" onClick={start} disabled={phase === "loading"} className="btn mt-6 bg-ember text-paper hover:bg-paper hover:text-ink disabled:opacity-50 [@media(max-height:560px)]:mt-3">
-              {phase === "loading" ? "Building the circuit…" : "Start the engine"} <Icon name="arrow-right" className="arrow" />
-            </button>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 [@media(max-height:560px)]:mt-3">
+              <button type="button" onClick={start} disabled={phase === "loading"} className="btn bg-ember text-paper hover:bg-paper hover:text-ink disabled:opacity-50">
+                {phase === "loading" ? "Building the circuit…" : "Start the engine"} <Icon name="arrow-right" className="arrow" />
+              </button>
+              <button type="button" onClick={() => mp.setOpen(true)} disabled={phase === "loading"} className="btn text-paper ring-1 ring-paper/40 hover:bg-paper hover:text-ink disabled:opacity-50" data-race-friend>
+                <Icon name="users" /> Race a friend
+              </button>
+            </div>
             <p className="label mt-5 text-[0.52rem] leading-relaxed text-paper/50 [@media(max-height:560px)]:hidden">
               {touch ? "Best in landscape · steer on the left · throttle, brake and DRS on the right" : "W S or arrows drive · Shift DRS · C camera · N time of day · R restart · P photo · Esc leave · gamepads work too"}
             </p>
@@ -697,6 +719,9 @@ export default function DriveGame() {
           </a>
         )}
       </div>
+
+      {/* Multiplayer lobby: make or join a room, wait for everyone */}
+      {mp.open && !driving && <Lobby mp={mp} paint={settings.paint} onPaint={choosePaint} />}
     </div>
   );
 }
@@ -1033,6 +1058,7 @@ function SettingsSheet({
   onBrakeAssist,
   onGhost,
   onPaint,
+  net,
   onMute,
   onRestart,
 }: {
@@ -1046,6 +1072,8 @@ function SettingsSheet({
   onBrakeAssist: () => void;
   onGhost: () => void;
   onPaint: (p: PaintId) => void;
+  /** In a multiplayer session: the host picks the mode, and R only puts you back on track. */
+  net?: boolean;
   onMute: () => void;
   onRestart: () => void;
 }) {
@@ -1068,8 +1096,8 @@ function SettingsSheet({
           </button>
         </div>
 
-        <p className="label mt-7 mb-2 text-[0.55rem] text-ink/50">Mode</p>
-        <div className="space-y-2">
+        <p className={cn("label mt-7 mb-2 text-[0.55rem] text-ink/50", net && "hidden")}>Mode</p>
+        <div className={cn("space-y-2", net && "hidden")}>
           {MODES.map((m) => (
             <button
               key={m.id}
@@ -1085,8 +1113,8 @@ function SettingsSheet({
         </div>
         <button type="button" onClick={onRestart} className="press mt-2 flex w-full items-center justify-between rounded-xl px-4 py-3 text-left ring-1 ring-ink/15">
           <span>
-            <span className="block font-serif text-lg leading-tight">{settings.mode === "race" ? "Back to the grid" : "Back on track"}</span>
-            <span className="font-serif text-sm text-ink/60">{settings.mode === "race" ? "Restart from the start lights (R)" : "Put the car back on the racing line (R)"}</span>
+            <span className="block font-serif text-lg leading-tight">{settings.mode === "race" && !net ? "Back to the grid" : "Back on track"}</span>
+            <span className="font-serif text-sm text-ink/60">{settings.mode === "race" && !net ? "Restart from the start lights (R)" : "Put the car back on the racing line (R)"}</span>
           </span>
           <Icon name="refresh" className="h-5 w-5 text-ink/60" />
         </button>

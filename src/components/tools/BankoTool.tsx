@@ -14,7 +14,7 @@ const KINDS: { value: Kind; label: string }[] = [
 ];
 const QUICK = ["500", "1,000", "5,000"];
 
-/** A pocket version of BankoSantiago's dashboard: balances, transfers and a ledger that must reconcile. */
+/** A pocket version of BankoSantiago's accounting logic: balances, transfers and a ledger that must reconcile. */
 export default function BankoTool({ compact }: { compact?: boolean }) {
   const [bank, setBank] = useState<Bank>(sampleBank);
   const [kind, setKind] = useState<Kind>("transfer");

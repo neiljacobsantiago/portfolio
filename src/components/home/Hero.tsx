@@ -11,7 +11,7 @@ import { site } from "@/lib/site";
 import Darkroom from "./Darkroom";
 import Icon from "@/components/ui/Icon";
 
-const lines = ["I build web systems,", "design networks", "& frame light."];
+const lines = ["I map networks,", "build web systems", "& frame light."];
 
 /**
  * The first screen. The headline masks up, two prints fan out from behind the
@@ -66,8 +66,8 @@ export default async function Hero({ prints = [], collections }: { prints?: Phot
           </h1>
 
           <p className="animate-rise-in mt-10 max-w-xl font-serif text-xl leading-relaxed text-ink/80 md:text-[1.4rem]" style={{ animationDelay: "500ms" }}>
-            I&apos;m <strong className="font-medium text-ink">Neil Jacob Santiago</strong>, a third-year BSIT student at CLSU. By day I build web systems and design networks; after hours I
-            direct coverage for the ITSC Media Group and photograph concerts, campus life and the night sky.
+            I&apos;m <strong className="font-medium text-ink">Neil Jacob Santiago</strong>, a third-year BSIT student at CLSU. I plan networks, from the topology and cabling to the
+            subnets, and I build web systems with AI-assisted coding. After class I run coverage for the ITSC Media Group and photograph concerts, campus life and the night sky.
           </p>
 
           {/* Phones: two equal buttons side by side; larger screens: natural widths */}

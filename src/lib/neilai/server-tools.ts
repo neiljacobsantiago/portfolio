@@ -11,7 +11,7 @@ import { ALGORITHMS, allocate, type Algorithm } from "@/lib/tools/memory";
 import { screen } from "@/lib/tools/pathoscan";
 import { quote } from "@/lib/tools/quote";
 import { subnet, vlsm } from "@/lib/tools/subnet";
-import { certificateFacts, fixFacts, gearList, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "./facts";
+import { certificateFacts, fixFacts, gearList, HOW_NEIL_WORKS, PATHOSCAN_THRESHOLD, PRICING, THIRD_PARTIES } from "./facts";
 import { pick, sample } from "./random";
 import { resolveTopic, type Source, type SourceKind } from "./sources";
 
@@ -187,7 +187,7 @@ function profile(topic: string) {
       workingTowards: inProgress.map((c) => `${c.title} (${c.detail})`),
       certificatesPage: "/about#credentials",
     }),
-    ...((all || topic === "skills") && { toolkit: toolkit.map((g) => `${g.group}: ${g.tools.map((t) => t.name).join(", ")}`) }),
+    ...((all || topic === "skills") && { toolkit: toolkit.map((g) => `${g.group}: ${g.tools.map((t) => t.name).join(", ")}`), howHeWorks: Object.values(HOW_NEIL_WORKS) }),
     ...((all || topic === "gear") && {
       gear: gearList.map((g) => `${g.brand}: ${g.items.join(", ")}`),
       gearNotes: "The iPhone 14 Pro Max shows up in landscapes and video, not at concerts (the concert collection is shot on Nikon and Canon). Don't describe it as a ProRAW camera.",
