@@ -40,6 +40,7 @@ import { buildCity, buildSky, buildStars, buildWater } from "./city";
 import { createGlows } from "./glow";
 import { clamp, LIGHTS } from "./kit";
 import { type Animated, buildPavilions } from "./landmarks";
+import type { RemoteLayer } from "./net/remote-cars";
 import { createRace, type Ghost, type RaceEvents } from "./race";
 import {
   BRAKE,
@@ -117,6 +118,23 @@ export interface HudNodes {
   revs: HTMLElement | null;
 }
 
+/** This car as the multiplayer code sees it (see ./net). */
+export interface NetSelf {
+  x: number;
+  z: number;
+  heading: number;
+  speed: number;
+  steer: number;
+  /** Arc length along the centre line. */
+  s: number;
+  lap: number;
+  braking: boolean;
+  drs: boolean;
+  inPit: boolean;
+  held: boolean;
+  driving: boolean;
+}
+
 export interface DriveEngine {
   drive: (mode: GameMode) => void;
   /** Back to the title view: the car laps on its own, input off, sound paused. */
@@ -136,6 +154,15 @@ export interface DriveEngine {
   look: (dx: number, dy: number) => void;
   setPaint: (id: PaintId) => void;
   capture: () => string | null;
+  /** Multiplayer: the other players' cars, drawn and labelled by the layer (null to remove). */
+  setRemotes: (layer: RemoteLayer | null) => void;
+  getNetState: () => NetSelf;
+  /**
+   * Multiplayer: start a shared session from a given spot. In a race the lights
+   * run on the given times (performance.now() ms), so every player sees lights
+   * out together; R puts the car back on track instead of restarting.
+   */
+  netStart: (o: { game: GameMode; x: number; z: number; heading: number; lightsAt?: number; goAt?: number }) => void;
   dispose: () => void;
 }
 
@@ -351,6 +378,9 @@ export function createDriveEngine(
   let onScreen = true;
   /** Test hook only: lets the autopilot drive in drive mode. */
   const dev = { auto: false };
+  /** Multiplayer: other cars, and whether a shared session is on. */
+  let remotes: RemoteLayer | null = null;
+  let net = false;
 
   /* ───────── input ───────── */
   const typing = () => {
@@ -525,6 +555,7 @@ export function createDriveEngine(
       mm.arc(X(ghostPose.x), Z(ghostPose.z), 3, 0, Math.PI * 2);
       mm.fill();
     }
+    remotes?.minimap(mm, X, Z);
     mm.save();
     mm.translate(X(st.x), Z(st.z));
     mm.rotate(-st.heading);
@@ -558,7 +589,7 @@ export function createDriveEngine(
   }
   function reset() {
     if (mode !== "drive") return;
-    if (game === "race") {
+    if (game === "race" && !net) {
       place(GRID.x, GRID.z, GRID.heading);
       race.start(performance.now());
       emitRace({});
@@ -898,7 +929,7 @@ export function createDriveEngine(
         }
       }
       // Ghost
-      ghostShown = assist.ghost && race.phase === "running" && race.ghostAt(race.elapsed(now), ghostPose);
+      ghostShown = assist.ghost && !net && race.phase === "running" && race.ghostAt(race.elapsed(now), ghostPose);
       ghostMesh.visible = ghostShown && Math.hypot(ghostPose.x - x, ghostPose.z - z) > 2.5;
       if (ghostShown) {
         ghostMesh.position.set(ghostPose.x, 0, ghostPose.z);
@@ -1113,6 +1144,7 @@ export function createDriveEngine(
     }
     if (steps === 5) acc = 0;
     frameUpdate(dt, now / 1000, acc / FIXED, now);
+    remotes?.frame({ dt, t: now / 1000, camera, width: canvas.clientWidth, height: canvas.clientHeight, me: car.car.position, night: cur.lights });
     renderer.render(scene, camera);
     placeLabels();
     if (frame % 3 === 0 && mode === "drive") drawMinimap();
@@ -1177,6 +1209,7 @@ export function createDriveEngine(
     setTime,
     stop: () => {
       mode = "attract";
+      net = false;
       keys.clear();
       Object.assign(controls, { throttle: 0, steer: 0, drs: false });
       race.stop();
@@ -1210,8 +1243,26 @@ export function createDriveEngine(
       look.yaw = clamp(look.yaw - dx * 0.006, -max, max);
       look.pitch = clamp(look.pitch - dy * 0.004, -0.4, 0.45);
     },
+    setRemotes: (layer) => {
+      remotes?.unmount();
+      remotes = layer;
+      layer?.mount(scene);
+    },
+    getNetState: () => ({ x: st.x, z: st.z, heading: st.heading, speed: st.v, steer: st.steer, s: st.s, lap: race.lap, braking: st.braking, drs: st.drs > 0.5, inPit: st.inPit, held: st.held, driving: mode === "drive" }),
+    netStart: (o) => {
+      if (mode !== "drive") return;
+      net = true;
+      setGame(o.game);
+      place(o.x, o.z, o.heading);
+      if (o.game === "race" && o.lightsAt !== undefined && o.goAt !== undefined) {
+        race.start(performance.now(), { lightsAt: o.lightsAt, goAt: o.goAt });
+        emitRace({});
+      }
+    },
     dispose: () => {
       disposed = true;
+      remotes?.unmount();
+      remotes = null;
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
