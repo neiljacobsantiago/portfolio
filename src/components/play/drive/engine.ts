@@ -37,7 +37,8 @@ import { buildCity, buildSky, buildStars, buildWater, REFLECT_LAYER } from "./ci
 import { cityEnvironments } from "./env";
 import { buildFoliage } from "./foliage";
 import { createGlows } from "./glow";
-import { clamp, LIGHTS, setKitTier } from "./kit";
+import { RACE_FAMILY, raceFontReady } from "./fonts";
+import { clamp, LIGHTS, setKitTier, setRaceFont } from "./kit";
 import { type Animated, buildPavilions } from "./landmarks";
 import type { RemoteLayer } from "./net/remote-cars";
 import { canPost, createPost } from "./post";
@@ -238,6 +239,7 @@ export function createDriveEngine(
 
   // Physically based world on medium and high, Lambert on budget phones; texture sizes to match
   setKitTier(tier);
+  setRaceFont(RACE_FAMILY, raceFontReady);
   const scene = new Scene();
   const fog = new Fog(TIMES.night.fog, TIMES.night.near, TIMES.night.far);
   scene.fog = fog;

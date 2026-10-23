@@ -17,9 +17,8 @@ import {
   TorusGeometry,
   Vector3,
 } from "three";
-import { RACE_FAMILY, raceFontReady } from "./fonts";
 import type { Glows } from "./glow";
-import { Batch, BoardAtlas, bevelBox, C, rng, rod, Soup, std, worldMaterial } from "./kit";
+import { Batch, BoardAtlas, bevelBox, C, RACE, rng, rod, Soup, std, worldMaterial } from "./kit";
 import { type Claim, fanZones, lanterns, toWorld } from "./layout";
 import type { Landmark } from "./track";
 
@@ -190,7 +189,7 @@ function screenTexture() {
     g.fillStyle = C.ember;
     g.fillRect(0, 0, 512, 40);
     g.fillStyle = C.paper;
-    g.font = `italic 900 26px ${RACE_FAMILY}`;
+    g.font = `italic 900 26px ${RACE.family}`;
     g.textBaseline = "middle";
     g.fillText("BAY STREET CIRCUIT · LIVE", 16, 21);
     // A timing tower
@@ -206,19 +205,19 @@ function screenTexture() {
       g.fillStyle = k === 0 ? C.paper : "rgba(253,240,213,0.12)";
       g.fillRect(16, y, 210, 34);
       g.fillStyle = k === 0 ? C.ink : C.paper;
-      g.font = `900 22px ${RACE_FAMILY}`;
+      g.font = `900 22px ${RACE.family}`;
       g.fillText(p, 26, y + 18);
       g.fillText(n, 58, y + 18);
-      g.font = `600 20px ${RACE_FAMILY}`;
+      g.font = `600 20px ${RACE.family}`;
       g.fillText(t, 128, y + 18);
     });
     g.fillStyle = C.paper;
-    g.font = `italic 900 58px ${RACE_FAMILY}`;
+    g.font = `italic 900 58px ${RACE.family}`;
     g.fillText("FAN", 262, 120);
     g.fillStyle = "#ff8a7a";
     g.fillText("ZONE", 262, 178);
     g.fillStyle = "rgba(253,240,213,0.7)";
-    g.font = `600 18px ${RACE_FAMILY}`;
+    g.font = `600 18px ${RACE.family}`;
     g.fillText("Neil's projects, trackside", 264, 230);
     g.fillStyle = "rgba(0,0,0,0.25)";
     for (let x = 0; x < 512; x += 3) g.fillRect(x, 0, 1, 288);
@@ -230,7 +229,7 @@ function screenTexture() {
   t.anisotropy = 4;
   let alive = true;
   t.addEventListener("dispose", () => (alive = false));
-  raceFontReady().then(() => {
+  RACE.ready().then(() => {
     if (!alive) return;
     draw();
     t.needsUpdate = true;

@@ -22,7 +22,6 @@ import {
   Vector3,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { RACE_FAMILY, raceFontReady } from "./fonts";
 
 // Small shared tools for building the circuit: the site palette, a batcher
 // that bakes colour and "floodlight" into vertices and merges everything of
@@ -42,6 +41,17 @@ export const C = {
   concrete: "#b9b3a6",
   steel: "#8e98a3",
 };
+
+/**
+ * The race font for canvas lettering. Set by the engine from fonts.ts (a
+ * next/font module, so it stays out of anything the node tests import);
+ * until then boards draw in the fallback faces.
+ */
+export const RACE = { family: '"Arial Narrow", Arial, sans-serif', ready: (): Promise<void> => Promise.resolve() };
+export function setRaceFont(family: string, ready: () => Promise<void>) {
+  RACE.family = family;
+  RACE.ready = ready;
+}
 
 /** Uniforms every lit material shares; the engine eases them with the time of day. */
 export const LIGHTS = {
@@ -578,12 +588,12 @@ function drawBoard(g: CanvasRenderingContext2D, l: BoardLine, x: number, y: numb
   }
   const font = l.font ?? "italic 900";
   let px = Math.round(h * (l.size ?? 0.58));
-  g.font = `${font} ${px}px ${RACE_FAMILY}`;
+  g.font = `${font} ${px}px ${RACE.family}`;
   const max = w - inset * 2;
   const tw = g.measureText(l.text).width;
   if (tw > max) {
     px = Math.floor((px * max) / tw);
-    g.font = `${font} ${px}px ${RACE_FAMILY}`;
+    g.font = `${font} ${px}px ${RACE.family}`;
   }
   g.fillStyle = l.fg;
   g.textAlign = l.align === "left" ? "left" : "center";
@@ -615,7 +625,7 @@ export function textTexture(lines: BoardLine[], w: number, h: number) {
   t.anisotropy = KIT.tier === 2 ? 8 : 4;
   let alive = true;
   t.addEventListener("dispose", () => (alive = false));
-  raceFontReady().then(() => {
+  RACE.ready().then(() => {
     if (!alive) return;
     draw();
     t.needsUpdate = true;
