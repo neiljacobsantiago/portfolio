@@ -1,16 +1,18 @@
 // The car's sound, synthesised with Web Audio (no files to download): a
-// high-revving engine note that follows the gearbox (it drops on every
-// upshift), a turbo whine on throttle, tyre scrub at the limit, kerb rumble,
-// wall impacts, the start-light beeps and lights out, the DRS flap, and
-// chimes for sectors, laps and trophies.
+// high-revving engine note that follows the gearbox, with a rasp on load,
+// a torque-cut dip on every upshift and a throttle blip on each downshift,
+// crackle on the overrun, a turbo whine on throttle, tyre scrub at the limit,
+// kerb rumble, wall impacts, the start-light beeps and lights out, the DRS
+// flap, and chimes for sectors, laps and trophies.
 
 export interface DriveAudio {
-  update: (s: { rpm: number; throttle: number; slip: number; kerb: boolean; speed: number }) => void;
+  update: (s: { rpm: number; throttle: number; slip: number; kerb: boolean; speed: number; brake?: number }) => void;
   impact: (strength: number) => void;
   /** One more start light (1–5), or lights out (0). */
   light: (n: number) => void;
   drs: (open: boolean) => void;
-  shift: () => void;
+  /** A gear change: up (torque cut) or down (blip). */
+  shift: (up?: boolean) => void;
   chime: (kind: "sector" | "best" | "lap" | "trophy" | "warn") => void;
   setMuted: (muted: boolean) => void;
   suspend: () => void;
@@ -26,15 +28,34 @@ export function createAudio(): DriveAudio | null {
   master.gain.value = 0.5;
   master.connect(ctx.destination);
 
-  // Engine: a saw for the bark, a square an octave down for body, through a
-  // resonant low-pass that opens with the throttle
+  // Engine: two slightly detuned saws for the bark, a square an octave down
+  // for body, through a resonant low-pass that opens with the throttle and a
+  // soft clipper that adds rasp under load; a shift stage dips for upshifts
   const engineGain = ctx.createGain();
   engineGain.gain.value = 0;
+  const shiftGain = ctx.createGain();
+  shiftGain.gain.value = 1;
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
   filter.Q.value = 3;
+  const drive = ctx.createGain();
+  drive.gain.value = 1;
+  const shaper = ctx.createWaveShaper();
+  {
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) {
+      const x = (i / (curve.length - 1)) * 2 - 1;
+      curve[i] = Math.tanh(x * 2.2) / Math.tanh(2.2);
+    }
+    shaper.curve = curve;
+    shaper.oversample = "2x";
+  }
   const o1 = ctx.createOscillator();
   o1.type = "sawtooth";
+  const o1b = ctx.createOscillator();
+  o1b.type = "sawtooth";
+  const o1bg = ctx.createGain();
+  o1bg.gain.value = 0.6;
   const o2 = ctx.createOscillator();
   o2.type = "square";
   const o2g = ctx.createGain();
@@ -42,10 +63,15 @@ export function createAudio(): DriveAudio | null {
   const o3 = ctx.createOscillator();
   o3.type = "triangle";
   o1.connect(filter);
+  o1b.connect(o1bg);
+  o1bg.connect(filter);
   o2.connect(o2g);
   o2g.connect(filter);
   o3.connect(filter);
-  filter.connect(engineGain);
+  filter.connect(drive);
+  drive.connect(shaper);
+  shaper.connect(shiftGain);
+  shiftGain.connect(engineGain);
   engineGain.connect(master);
   // Turbo: a thin sine high above
   const turbo = ctx.createOscillator();
@@ -54,7 +80,7 @@ export function createAudio(): DriveAudio | null {
   turboGain.gain.value = 0;
   turbo.connect(turboGain);
   turboGain.connect(master);
-  for (const o of [o1, o2, o3, turbo]) o.start();
+  for (const o of [o1, o1b, o2, o3, turbo]) o.start();
 
   // Noise for scrub, rumble, impacts and the DRS whoosh
   const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
@@ -112,17 +138,27 @@ export function createAudio(): DriveAudio | null {
 
   let lastImpact = 0;
   let kerbPhase = 0;
+  let blipUntil = 0;
+  let lastCrackle = 0;
   return {
     update({ rpm, throttle, slip, kerb, speed }) {
       const t = now();
-      // Six cylinders: three firing pulses per revolution
+      // Six cylinders: three firing pulses per revolution (heard an octave down)
       const f = (rpm / 60) * 1.5;
-      o1.frequency.setTargetAtTime(f, t, 0.03);
-      o2.frequency.setTargetAtTime(f * 0.5, t, 0.03);
-      o3.frequency.setTargetAtTime(f * 2.01, t, 0.03);
-      const th = Math.max(0, throttle);
-      filter.frequency.setTargetAtTime(500 + rpm * 0.12 + th * 1800, t, 0.05);
-      engineGain.gain.setTargetAtTime(0.035 + th * 0.05 + Math.min(0.03, rpm / 400000), t, 0.06);
+      o1.frequency.setTargetAtTime(f, t, 0.025);
+      o1b.frequency.setTargetAtTime(f * 1.006, t, 0.025);
+      o2.frequency.setTargetAtTime(f * 0.5, t, 0.025);
+      o3.frequency.setTargetAtTime(f * 2.01, t, 0.025);
+      const blip = t < blipUntil ? 1 : 0;
+      const th = Math.max(0, throttle, blip * 0.8);
+      filter.frequency.setTargetAtTime(450 + rpm * 0.12 + th * 1900, t, 0.04);
+      drive.gain.setTargetAtTime(0.8 + th * 1.6, t, 0.05);
+      engineGain.gain.setTargetAtTime(0.03 + th * 0.045 + Math.min(0.03, rpm / 400000), t, 0.06);
+      // Overrun: off the throttle at high revs the exhaust crackles
+      if (throttle < 0.05 && rpm > 7500 && speed > 15 && t - lastCrackle > 0.05 && Math.random() < 0.22) {
+        lastCrackle = t;
+        burst(t, 0.025 + Math.random() * 0.03, "bandpass", 900 + Math.random() * 2200, 0.025 + Math.random() * 0.03);
+      }
       turbo.frequency.setTargetAtTime(2600 + rpm * 0.25, t, 0.1);
       turboGain.gain.setTargetAtTime(th * 0.008 * Math.min(1, rpm / 9000), t, 0.15);
       scrub.gain.setTargetAtTime(Math.min(0.09, Math.max(0, slip - 0.15) * 0.25), t, 0.05);
@@ -146,8 +182,20 @@ export function createAudio(): DriveAudio | null {
       const t = now();
       burst(t, 0.25, "highpass", open ? 2200 : 1200, 0.06);
     },
-    shift() {
-      burst(now(), 0.06, "bandpass", 900, 0.05);
+    shift(up = true) {
+      const t = now();
+      if (up) {
+        // The torque cut: a short dip in the note, a click from the gearbox
+        shiftGain.gain.cancelScheduledValues(t);
+        shiftGain.gain.setValueAtTime(1, t);
+        shiftGain.gain.linearRampToValueAtTime(0.35, t + 0.015);
+        shiftGain.gain.linearRampToValueAtTime(1, t + 0.085);
+        burst(t, 0.05, "bandpass", 1100, 0.045);
+      } else {
+        // Downshift: a throttle blip and a pop
+        blipUntil = t + 0.11;
+        burst(t + 0.02, 0.04, "bandpass", 700 + Math.random() * 800, 0.05);
+      }
     },
     chime(kind) {
       const t = now();
