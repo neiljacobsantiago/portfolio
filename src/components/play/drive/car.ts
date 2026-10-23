@@ -53,7 +53,7 @@ export const PAINTS = {
 export type PaintId = keyof typeof PAINTS;
 
 /** Car geometry the engine needs: wheel radius, axle positions, the onboard (T-camera) eye point. */
-export const CAR = { wheelR: 0.36, frontZ: -1.8, rearZ: 1.8, eye: new Vector3(0, 1.1, 0.2) };
+export const CAR = { wheelR: 0.36, frontZ: -1.8, rearZ: 1.8, eye: new Vector3(0, 1.16, 0.3) };
 
 /** Livery slots: painted with the car's colours, or a fixed colour. */
 const P = 0;

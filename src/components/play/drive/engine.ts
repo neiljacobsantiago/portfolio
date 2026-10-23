@@ -711,6 +711,8 @@ export function createDriveEngine(
   let fov = 60;
   /** The chase camera's fore-aft lag (m): out under acceleration, in under braking. */
   let chaseLag = 0;
+  /** The chase camera's offset from the car. */
+  const chaseOff = new Vector3(0, 2, 7);
   let shot = 0;
   let shotStart = 0;
   let tvSpot = new Vector3();
@@ -909,11 +911,13 @@ export function createDriveEngine(
       camYaw = angleLerp(camYaw, travel + look.yaw, damp(5.5, dt));
       chaseLag += (clamp(st.accel * 0.032, -0.55, 0.4) - chaseLag) * damp(3, dt);
       const far = portrait ? 1.35 : 1;
-      const dist = (6.4 + speed * 0.026 + (opts.reducedMotion ? 0 : chaseLag)) * far;
+      const dist = (6.2 + speed * 0.018 + (opts.reducedMotion ? 0 : chaseLag)) * far;
       const height = (2.0 + speed * 0.005) * far + look.pitch * 4;
-      want.set(x + Math.sin(camYaw) * dist, height, z + Math.cos(camYaw) * dist);
-      if (snapCam) camPos.copy(want);
-      else camPos.lerp(want, damp(10, dt));
+      // Smoothed relative to the car, so the lag is a feel, not a fixed distance that grows with speed
+      want.set(Math.sin(camYaw) * dist, height, Math.cos(camYaw) * dist);
+      if (snapCam) chaseOff.copy(want);
+      else chaseOff.lerp(want, damp(10, dt));
+      camPos.set(x + chaseOff.x, chaseOff.y, z + chaseOff.z);
       camera.position.copy(camPos);
       // A little buffeting at speed, more over the kerbs (a smooth wobble, not a jitter)
       if (!opts.reducedMotion) {
@@ -923,7 +927,7 @@ export function createDriveEngine(
       }
       camTarget.set(x + fx * 4, 0.85, z + fz * 4);
       camera.lookAt(camTarget);
-      fovTarget = (opts.reducedMotion ? 60 : 57 + Math.min(14, speed * 0.17) + st.drs * 6) + (portrait ? 14 : 0);
+      fovTarget = (opts.reducedMotion ? 60 : 57 + Math.min(12, speed * 0.15) + st.drs * 6) + (portrait ? 14 : 0);
     } else if (camMode === "diorama") {
       // High three-quarter view, like a model on a table: it follows the car's turns slowly, never spins with them
       dioYaw = angleLerp(dioYaw, heading + look.yaw, damp(1.3, dt));
