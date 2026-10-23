@@ -1,4 +1,5 @@
 import {
+  BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
@@ -543,14 +544,14 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
           const ry = Math.atan2(a.nx, a.nz);
           const h = FENCE_TOP - WALL_H;
           const tilt = Math.atan2(lean, h);
-          misc.add(bevelBox(0.11, h + 0.3, 0.11, 0.02).translate(0, h / 2, 0).applyMatrix4(new Matrix4().makeRotationX(tilt)).applyMatrix4(new Matrix4().makeRotationY(ry).setPosition(ma.x, WALL_H - 0.1, ma.z)), steel, 0.35);
-          if (tier > 0) misc.add(bevelBox(0.08, 0.9, 0.08, 0.015).translate(0, 0.45, 0).applyMatrix4(new Matrix4().makeRotationX(0.9)).applyMatrix4(new Matrix4().makeRotationY(ry).setPosition(fa.x, FENCE_TOP, fa.z)), steel, 0.35);
+          misc.add(new BoxGeometry(0.11, h + 0.3, 0.11).translate(0, h / 2, 0).applyMatrix4(new Matrix4().makeRotationX(tilt)).applyMatrix4(new Matrix4().makeRotationY(ry).setPosition(ma.x, WALL_H - 0.1, ma.z)), steel, 0.35);
+          if (tier > 0) misc.add(new BoxGeometry(0.08, 0.9, 0.08).translate(0, 0.45, 0).applyMatrix4(new Matrix4().makeRotationX(0.9)).applyMatrix4(new Matrix4().makeRotationY(ry).setPosition(fa.x, FENCE_TOP, fa.z)), steel, 0.35);
         }
         if (tier > 0) {
           // Top rail along the fence
           const mx = (fa.x + fb.x) / 2;
           const mz = (fa.z + fb.z) / 2;
-          misc.place(bevelBox(0.07, 0.07, len + 0.04, 0.015), steel, 0.35, mx, FENCE_TOP, mz, Math.atan2(fb.x - fa.x, fb.z - fa.z));
+          misc.place(new BoxGeometry(0.07, 0.07, len + 0.04), steel, 0.35, mx, FENCE_TOP, mz, Math.atan2(fb.x - fa.x, fb.z - fa.z));
         }
       }
       along += len;
@@ -669,10 +670,8 @@ export function buildCircuit(opts: { quality: number; tier: 0 | 1 | 2; glows: Gl
     }
     if (tyres.length && tier > 0) {
       const b = new Batch();
-      for (let h = 0; h < 4; h++) {
-        b.add(new CylinderGeometry(0.33, 0.33, 0.24, 12, 1, true).translate(0, 0.12 + h * 0.25, 0), h === 3 ? "#d9d6cf" : "#1d1e21", 0.4);
-        b.add(new RingGeometry(0.17, 0.33, 12).rotateX(-Math.PI / 2).translate(0, 0.24 + h * 0.25, 0), "#26272b", 0.4);
-      }
+      for (let h = 0; h < 4; h++) b.add(new CylinderGeometry(0.33, 0.33, 0.24, 9, 1, true).translate(0, 0.12 + h * 0.25, 0), h === 3 ? "#d9d6cf" : "#1d1e21", 0.4);
+      b.add(new RingGeometry(0.17, 0.33, 9).rotateX(-Math.PI / 2).translate(0, 0.99, 0), "#26272b", 0.4);
       const inst = new InstancedMesh(b.build(), worldMaterial({ flatShading: false }), tyres.length);
       tyres.forEach((m, k) => inst.setMatrixAt(k, m));
       inst.computeBoundingSphere();

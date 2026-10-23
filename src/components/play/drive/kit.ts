@@ -455,7 +455,7 @@ export function concreteMaps(size = KIT.tex / 2, panel: "none" | "vertical" | "g
   const g = c.getContext("2d")!;
   const img = g.createImageData(size, size);
   for (let i = 0; i < h.length; i++) {
-    const v = 0.82 + (h[i] - 0.5) * 0.35 + (rand() - 0.5) * 0.06;
+    const v = 0.86 + (h[i] - 0.5) * 0.22 + (rand() - 0.5) * 0.05;
     const a = Math.max(0, Math.min(255, v * 255));
     img.data[i * 4] = a;
     img.data[i * 4 + 1] = a * 0.99;
@@ -469,7 +469,7 @@ export function concreteMaps(size = KIT.tex / 2, panel: "none" | "vertical" | "g
     const w = 4 + rand() * size * 0.08;
     const grad = g.createLinearGradient(0, 0, 0, size);
     grad.addColorStop(0, "rgba(40,36,30,0)");
-    grad.addColorStop(0.6 + rand() * 0.3, `rgba(40,36,30,${0.05 + rand() * 0.08})`);
+    grad.addColorStop(0.6 + rand() * 0.3, `rgba(40,36,30,${0.03 + rand() * 0.04})`);
     grad.addColorStop(1, "rgba(40,36,30,0)");
     g.fillStyle = grad;
     g.fillRect(x, 0, w, size);

@@ -1,5 +1,6 @@
 import {
   BackSide,
+  BoxGeometry,
   BufferGeometry,
   CanvasTexture,
   CatmullRomCurve3,
@@ -263,7 +264,10 @@ function facadeMaterial(atlas: ReturnType<typeof facadeAtlas>) {
           vec2 bay = vFUv / vFacade.zw;
           vec2 id = floor(bay);
           vec2 f = fract(bay);
-          float h = fHash(id + vFacade.y);
+          // Rooms span two to four bays: neighbours share their light
+          float shift = floor(fHash(vec2(id.y, vFacade.y)) * 3.0);
+          vec2 room = vec2(floor((id.x + shift) / 3.0), id.y);
+          float h = fHash(room * 1.13 + vFacade.y);
           float variant = floor(h * 8.0);
           int row = int(vFacade.x + 0.5);
           vec2 auv = (vec2(variant, 7.0 - float(row)) + f) / 8.0;
@@ -272,7 +276,7 @@ function facadeMaterial(atlas: ReturnType<typeof facadeAtlas>) {
           diffuseColor.rgb *= textureGrad(uAlbedo, auv, gx, gy).rgb;
           // Whole floors go dark now and then; each lit window a little brighter or dimmer
           float floorOn = step(0.16, fHash(vec2(id.y * 1.7, vFacade.y)));
-          float k = (0.6 + 0.8 * fHash(id * 1.37 + vFacade.y)) * floorOn;
+          float k = (0.8 + 0.4 * fHash(room * 1.37 + vFacade.y)) * floorOn;
           facadeGlow = textureGrad(uGlowMap, auv, gx, gy).rgb * k;
           facadeRough = uRough[row];
         }`,
@@ -440,7 +444,7 @@ export function buildSky() {
         vec2 q = d.xz / (d.y + 0.18) * 2.2;
         float cl = vn(q) * 0.6 + vn(q * 2.3 + 7.1) * 0.4;
         cl = smoothstep(0.45, 0.85, cl) * smoothstep(0.02, 0.12, d.y) * smoothstep(0.7, 0.2, d.y);
-        col = mix(col, mix(uHorizon * 1.15, uGlow * 1.4 + uHorizon * 0.6, uNight), cl * 0.55);
+        col = mix(col, mix(uHorizon * 1.15, uGlow * 0.75 + uHorizon * 0.8, uNight), cl * 0.4);
         float s = max(dot(d, uSunDir), 0.0);
         col += uSunColor * (smoothstep(0.9993 - 0.0006 * uSunSize, 0.9997, s) * 2.0 + pow(s, 14.0) * 0.3 / uSunSize);
         gl_FragColor = vec4(col, 1.0);
@@ -1133,7 +1137,7 @@ export function buildCity(opts: { tier: 0 | 1 | 2; glows: Glows; shadows: boolea
       const ry = Math.atan2(bx - ax, bz - az);
       b.place(bevelBox(0.8, 2.2, l + 0.6, 0.06), "#a49e92", 0.25, (ax + bx) / 2, -1.15, (az + bz) / 2, ry);
       b.place(bevelBox(0.08, 0.08, l, 0.02), "#c9ccd1", 0.4, (ax + bx) / 2, 1.0, (az + bz) / 2, ry);
-      for (let t = 0; t < l; t += 2.5) b.place(bevelBox(0.06, 1.0, 0.06, 0.01), "#c9ccd1", 0.35, ax + ((bx - ax) * t) / l, 0.5, az + ((bz - az) * t) / l, ry);
+      if (tier > 0) for (let t = 0; t < l; t += 4) b.place(new BoxGeometry(0.06, 1.0, 0.06), "#c9ccd1", 0.35, ax + ((bx - ax) * t) / l, 0.5, az + ((bz - az) * t) / l, ry);
     }
     group.add(new Mesh(b.build(), mat));
   }

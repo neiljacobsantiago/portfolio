@@ -285,7 +285,7 @@ export function createDriveEngine(
   const props = buildProps({ glows, lanterns: T.lanterns, bigGlow: tier > 0 });
   scene.add(props.group);
   scene.add(glows.mesh);
-  for (const o of [glows.mesh, sky.mesh, stars]) o.layers.enable(REFLECT_LAYER);
+  for (const o of [glows.mesh, sky.mesh]) o.layers.enable(REFLECT_LAYER);
 
   /* ───────── the car, its ghost, its shadow and sparks ───────── */
   const car = buildCar({ shadows, detail: [0.3, 0.7, 1][tier] });
@@ -386,7 +386,7 @@ export function createDriveEngine(
   const padPrev: boolean[] = [];
   let onScreen = true;
   /** Test hook only: lets the autopilot drive in drive mode. */
-  const dev = { auto: false };
+  const dev: { auto: boolean; cam?: number[] } = { auto: false };
   /** Multiplayer: other cars, and whether a shared session is on. */
   let remotes: RemoteLayer | null = null;
   let net = false;
@@ -1103,6 +1103,13 @@ export function createDriveEngine(
       camera.position.copy(camPos);
       camera.lookAt(camTarget.set(x + fx * 40, 0, z + fz * 40));
       fovTarget = portrait ? 70 : 50;
+    }
+    // Test hook (development only): a fixed camera for screenshots of the world
+    if (dev.cam) {
+      camera.position.set(dev.cam[0], dev.cam[1], dev.cam[2]);
+      camera.lookAt(dev.cam[3], dev.cam[4], dev.cam[5]);
+      fovTarget = dev.cam[6] ?? 50;
+      camPos.copy(camera.position);
     }
     if (mode === "drive") snapCam = false;
     st.shake *= 1 - damp(6, dt);
