@@ -24,10 +24,10 @@ import {
   Vector3,
   Vector4,
 } from "three";
-import { type Footprint, inFootprint } from "./circuit";
 import { Batch, LIGHTS, rng, worldMaterial } from "./kit";
+import { claims, planTrees, toWorld, treeFits, vergeDepth, WALKWAY } from "./layout";
 import type { TierSettings } from "./quality";
-import { drivable, inWater, landmarks, locate, N, pit, PIT_HALF, pitDist, sampleAt, samples, SET, wallOffset, water } from "./track";
+import { drivable, inWater, locate, N, pit, PIT_HALF, sampleAt, samples, SET, wallOffset, water } from "./track";
 
 // Parkland round the circuit, in the spirit of a hand-made diorama: turf
 // verges behind the walls, clumps of grass blades that sway, trees and shrubs
@@ -347,7 +347,7 @@ function canopyGeometry(cardsPerPuff: number, seed: number) {
  * the circuit: verges behind the walls and the infield green, with the
  * track, pit lane, water, stands, plinths and poles cut out.
  */
-function grassMask(footprints: Footprint[], poles: [number, number][]) {
+function grassMask() {
   let x0 = Infinity;
   let x1 = -Infinity;
   let z0 = Infinity;
@@ -392,10 +392,10 @@ function grassMask(footprints: Footprint[], poles: [number, number][]) {
       const j = (i + 2) % N;
       const di = vergeDepth(i, side);
       const dj = vergeDepth(j, side);
-      const a = at(i, (wallOffset(i, side) + 1.4) * side);
+      const a = at(i, (wallOffset(i, side) + WALKWAY + 0.5) * side);
       const b = at(i, (wallOffset(i, side) + di) * side);
       const e = at(j, (wallOffset(j, side) + dj) * side);
-      const f = at(j, (wallOffset(j, side) + 1.4) * side);
+      const f = at(j, (wallOffset(j, side) + WALKWAY + 0.5) * side);
       if (Math.hypot(a.x - f.x, a.z - f.z) > 12) continue;
       const grad = g.createLinearGradient(a.x, a.z, b.x, b.z);
       grad.addColorStop(0, "rgb(255,166,0)");
@@ -409,7 +409,7 @@ function grassMask(footprints: Footprint[], poles: [number, number][]) {
   g.strokeStyle = "#000";
   for (let i = 0; i < N; i += 2) {
     const j = (i + 2) % N;
-    quad(at(i, -(wallOffset(i, -1) + 1.4)), at(i, wallOffset(i, 1) + 1.4), at(j, wallOffset(j, 1) + 1.4), at(j, -(wallOffset(j, -1) + 1.4)));
+    quad(at(i, -(wallOffset(i, -1) + WALKWAY + 0.5)), at(i, wallOffset(i, 1) + WALKWAY + 0.5), at(j, wallOffset(j, 1) + WALKWAY + 0.5), at(j, -(wallOffset(j, -1) + WALKWAY + 0.5)));
   }
   g.lineWidth = (PIT_HALF + 1.6) * 2;
   g.lineJoin = g.lineCap = "round";
@@ -420,21 +420,17 @@ function grassMask(footprints: Footprint[], poles: [number, number][]) {
   water.forEach(([x, z], k) => (k ? g.lineTo(x, z) : g.moveTo(x, z)));
   g.closePath();
   g.fill();
-  for (const f of footprints) {
-    g.save();
-    g.translate(f.x, f.z);
-    // The footprint's frame turns by ry about y; on the map (x right, z down) that's a turn of −ry
-    g.rotate(-f.ry);
-    g.fillRect(f.x0, f.z0, f.x1 - f.x0, f.z1 - f.z0);
-    g.restore();
+  // Everything planned stands on its own ground: stands, plazas, promenades, posts, buildings
+  for (const c of claims) {
+    if (c.round) {
+      g.beginPath();
+      g.arc(c.x, c.z, c.hw + 0.3, 0, Math.PI * 2);
+      g.fill();
+      continue;
+    }
+    const p = [toWorld(c, -c.hw - 0.5, -c.hd - 0.5), toWorld(c, c.hw + 0.5, -c.hd - 0.5), toWorld(c, c.hw + 0.5, c.hd + 0.5), toWorld(c, -c.hw - 0.5, c.hd + 0.5)];
+    quad(p[0], p[1], p[2], p[3]);
   }
-  const circle = (x: number, z: number, r: number) => {
-    g.beginPath();
-    g.arc(x, z, r, 0, Math.PI * 2);
-    g.fill();
-  };
-  for (const l of landmarks) circle(l.x, l.z, 11.5);
-  for (const [x, z] of poles) circle(x, z, 1.2);
   const texture = new CanvasTexture(c);
   texture.flipY = false;
   texture.generateMipmaps = false;
@@ -442,40 +438,30 @@ function grassMask(footprints: Footprint[], poles: [number, number][]) {
   return { texture, rect: new Vector4(x0, z0, x1 - x0, z1 - z0) };
 }
 
-/** How deep the verge runs behind the wall, varying smoothly round the lap. */
-const vergeDepth = (i: number, side: number) => 10 + 3.5 * Math.sin(i * 0.031 + side * 1.7) + 2 * Math.sin(i * 0.11 + side);
 
 /* ───────────── the parkland ───────────── */
 
 /** Canopy colours: blossom, ember and wine among deep greens. */
 const TREE_COLORS: [string, number][] = [
-  ["#2f5d3a", 0.17],
-  ["#3e7444", 0.13],
-  ["#24493a", 0.12],
-  ["#ec8fb0", 0.16],
-  ["#d0447a", 0.12],
-  ["#c1121f", 0.13],
-  ["#8a1426", 0.09],
-  ["#f2b8c6", 0.08],
+  ["#2c5233", 0.2],
+  ["#3a6a3e", 0.17],
+  ["#22433a", 0.15],
+  ["#4d6b34", 0.1],
+  ["#d0447a", 0.1],
+  ["#b8243a", 0.1],
+  ["#ec8fb0", 0.08],
+  ["#e7a03c", 0.06],
 ];
 
-export function buildFoliage(opts: { tier: TierSettings; calm: boolean; footprints: Footprint[]; poles: [number, number][]; off?: string[] }) {
+export function buildFoliage(opts: { tier: TierSettings; calm: boolean; off?: string[] }) {
   const { tier } = opts;
   const group = new Group();
   const rand = rng(2025);
   const disposables: { dispose: () => void }[] = [];
   AMBIENT.uWind.value = opts.calm ? 0 : 1;
 
-  /* Where things may grow: off the track and pit lane, out of the water, clear of buildings */
-  const clearOf = (x: number, z: number, r: number) => {
-    if (inWater(x, z) || inWater(x + r, z) || inWater(x - r, z) || inWater(x, z + r) || inWater(x, z - r)) return false;
-    if (drivable(x, z) < r + 0.9) return false;
-    if (pitDist(x, z).d < r + 1.5) return false;
-    for (const f of opts.footprints) if (inFootprint(f, x, z, r)) return false;
-    for (const l of landmarks) if (Math.hypot(l.x - x, l.z - z) < 12.5 + r) return false;
-    for (const [px, pz] of opts.poles) if (Math.hypot(px - x, pz - z) < 1.6 + r) return false;
-    return true;
-  };
+  /* Where things may grow: off the track and pit lane, out of the water, clear of everything planned */
+  const clearOf = (x: number, z: number, r: number) => treeFits(x, z, r);
   /** Floodlight on a spot: strongest right behind the wall, gone 25 m out. */
   const floodAt = (x: number, z: number) => {
     const h = locate(x, z);
@@ -496,8 +482,8 @@ export function buildFoliage(opts: { tier: TierSettings; calm: boolean; footprin
     const col: number[] = [];
     const lit: number[] = [];
     const c = new Color();
-    const turfA = new Color("#34502f");
-    const turfB = new Color("#3e5a2c");
+    const turfA = new Color("#2b4429");
+    const turfB = new Color("#344b2a");
     const quad = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number, dx: number, dz: number, y: number, color: Color, la: number, lb: number) => {
       pos.push(ax, y, az, bx, y, bz, cx, y, cz, ax, y, az, cx, y, cz, dx, y, dz);
       for (let k = 0; k < 6; k++) col.push(color.r, color.g, color.b);
@@ -509,9 +495,9 @@ export function buildFoliage(opts: { tier: TierSettings; calm: boolean; footprin
         const j = (i + step) % N;
         const da = depthAt(i, side);
         const db = depthAt(j, side);
-        const a0 = verge(i, side, 0.4);
+        const a0 = verge(i, side, WALKWAY + 0.3);
         const a1 = verge(i, side, da);
-        const b0 = verge(j, side, 0.4);
+        const b0 = verge(j, side, WALKWAY + 0.3);
         const b1 = verge(j, side, db);
         if ([a0, a1, b0, b1].some((p) => inWater(p.x, p.z))) continue;
         if (Math.hypot(a0.x - b0.x, a0.z - b0.z) > 12) continue;
@@ -550,102 +536,23 @@ export function buildFoliage(opts: { tier: TierSettings; calm: boolean; footprin
     group.add(turf);
   }
 
-  /* ── trees and shrubs ── */
+  /* ── trees and shrubs: where the plan puts them ── */
   type Tree = { x: number; z: number; s: number; color: Color; lit: number; shrub: boolean };
-  const trees: Tree[] = [];
   const palette = TREE_COLORS.map(([c, w]) => [new Color(c), w] as const);
   const pickColor = (warmth: number) => {
     // warmth > 0 leans to blossom, < 0 to greens
     let x = rand();
     for (const [c, w] of palette) {
       const isGreen = c.g > c.r;
-      const ww = w * (isGreen ? 1 - warmth : 1 + warmth);
+      const ww = w * (isGreen ? 1 - warmth * 0.6 : 1 + warmth * 0.6);
       if ((x -= ww) <= 0) return c.clone().offsetHSL((rand() - 0.5) * 0.02, 0, (rand() - 0.5) * 0.05);
     }
     return palette[0][0].clone();
   };
-  const addTree = (x: number, z: number, s: number, shrub: boolean, warmth = 0) => {
-    for (const t of trees) if (Math.hypot(t.x - x, t.z - z) < (t.s + s) * 0.75) return false;
-    trees.push({ x, z, s, color: pickColor(warmth), lit: floodAt(x, z), shrub });
-    return true;
-  };
-  // Along the verges: groves of two or three, with gaps, so the walls aren't lined like a hedge
-  {
-    let guard = 0;
-    const want = Math.round(tier.trees * 0.62);
-    while (trees.length < want && guard++ < want * 30) {
-      const i = Math.floor(rand() * N);
-      const side = rand() < 0.5 ? 1 : -1;
-      if (Math.sin(i * 0.045 + side * 2.1) < -0.35) continue; // open stretches
-      const behind = 3.2 + rand() * (depthAt(i, side) - 4);
-      const p = verge(i, side, behind);
-      const s = 2.1 + rand() * 1.4;
-      if (!clearOf(p.x, p.z, s * 0.7)) continue;
-      addTree(p.x, p.z, s, false, Math.sin(i * 0.02) * 0.5);
-    }
-  }
-  // The infield park: a ring of trees round the green and a few inside
-  {
-    const g = SET.green;
-    let guard = 0;
-    const want = trees.length + Math.round(tier.trees * 0.24);
-    while (trees.length < want && guard++ < 6000) {
-      let x = g.x0 + rand() * (g.x1 - g.x0);
-      let z = g.z0 + rand() * (g.z1 - g.z0);
-      if (rand() < 0.7) {
-        // Snap to the nearest edge of the green, give or take
-        const e = [x - g.x0, g.x1 - x, z - g.z0, g.z1 - z];
-        const k = e.indexOf(Math.min(...e));
-        if (k === 0) x = g.x0 + 2 + rand() * 4;
-        else if (k === 1) x = g.x1 - 2 - rand() * 4;
-        else if (k === 2) z = g.z0 + 2 + rand() * 4;
-        else z = g.z1 - 2 - rand() * 4;
-      }
-      const s = 2.4 + rand() * 1.8;
-      if (!clearOf(x, z, s * 0.6)) continue;
-      addTree(x, z, s, false, 0.3);
-    }
-  }
-  // Along the river and the bay's north shore
-  {
-    let guard = 0;
-    const want = trees.length + Math.round(tier.trees * 0.14);
-    while (trees.length < want && guard++ < 6000) {
-      const w = water[Math.floor(rand() * water.length)];
-      const x = w[0] + (rand() - 0.5) * 40;
-      const z = w[1] + (rand() - 0.5) * 40;
-      const s = 2.2 + rand() * 1.5;
-      if (!clearOf(x, z, s * 0.6)) continue;
-      addTree(x, z, s, false, -0.3);
-    }
-  }
-  const treeCount = trees.length;
-  // Shrubs: low, round, tucked behind the walls and round the pavilions
-  {
-    let guard = 0;
-    const want = treeCount + tier.shrubs;
-    while (trees.length < want && guard++ < tier.shrubs * 40) {
-      let x: number;
-      let z: number;
-      if (rand() < 0.3) {
-        // Round a pavilion's plinth
-        const l = landmarks[Math.floor(rand() * landmarks.length)];
-        const a = rand() * Math.PI * 2;
-        const d = 13.5 + rand() * 3;
-        x = l.x + Math.cos(a) * d;
-        z = l.z + Math.sin(a) * d;
-      } else {
-        const i = Math.floor(rand() * N);
-        const side = rand() < 0.5 ? 1 : -1;
-        const p = verge(i, side, 1.4 + rand() * 4);
-        x = p.x;
-        z = p.z;
-      }
-      const s = 0.9 + rand() * 0.8;
-      if (!clearOf(x, z, s * 0.6)) continue;
-      addTree(x, z, s, true, 0.4);
-    }
-  }
+  const planned = planTrees({ trees: tier.trees, shrubs: tier.shrubs });
+  // Trees first (they have trunks), shrubs after
+  const trees: Tree[] = [...planned.filter((t) => !t.shrub), ...planned.filter((t) => t.shrub)].map((t) => ({ x: t.x, z: t.z, s: t.s, shrub: t.shrub, color: pickColor(t.warmth), lit: floodAt(t.x, t.z) }));
+  const treeCount = trees.filter((t) => !t.shrub).length;
 
   const leafTex = leafTexture();
   disposables.push(leafTex);
@@ -751,7 +658,7 @@ export function buildFoliage(opts: { tier: TierSettings; calm: boolean; footprin
   }
 
   /* ── grass: two blade grids round the camera, on a painted turf mask ── */
-  const mask = grassMask(opts.footprints, opts.poles);
+  const mask = grassMask();
   disposables.push(mask.texture);
   const template = bladeTemplate();
   disposables.push(template);
