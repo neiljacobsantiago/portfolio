@@ -1065,3 +1065,77 @@ html.lenis body {
   75% { transform: scale(1.02) rotate(-0.2deg); }
   100% { opacity: 1; transform: none; }
 }
+
+/* ---------- Bay Street Circuit (the /play racing game only) ----------
+   Broadcast-style race graphics. Everything here is used only inside the
+   game, whose root sets --font-race (components/play/drive/fonts.ts); the
+   rest of the site keeps its own type. */
+/* Screen sizes for the race graphics: "roomy" is a tablet or laptop (not a
+   phone on its side, which is wide but short); "wide" a big desktop;
+   "short" a phone on its side. */
+@custom-variant roomy (@media (min-width: 48rem) and (min-height: 35.0625rem));
+@custom-variant wide (@media (min-width: 80rem) and (min-height: 45rem));
+@custom-variant short (@media (max-height: 35rem));
+@utility font-race {
+  font-family: var(--font-race), "Arial Narrow", Arial, sans-serif;
+}
+/* Small capitals for captions and buttons in the race graphics */
+@utility race-cap {
+  font-family: var(--font-race), "Arial Narrow", Arial, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+/* Heavy, slanted race numerals and headlines; digits keep one width so times don't jitter */
+@utility race-num {
+  font-family: var(--font-race), "Arial Narrow", Arial, sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+/* Parallelogram panels and buttons, cut the way broadcast graphics are */
+@utility slant {
+  clip-path: polygon(var(--slant, 10px) 0, 100% 0, calc(100% - var(--slant, 10px)) 100%, 0 100%);
+}
+@utility slant-r {
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--slant, 10px)) 100%, 0 100%);
+}
+/* A chequered strip, squares sized by --chq */
+@utility chequer {
+  background-color: var(--color-paper);
+  background-image: conic-gradient(var(--color-ink) 25%, transparent 0 50%, var(--color-ink) 0 75%, transparent 0);
+  background-size: calc(var(--chq, 6px) * 2) calc(var(--chq, 6px) * 2);
+}
+/* Kerb stripes, ember and paper */
+@utility kerb {
+  background-image: repeating-linear-gradient(-60deg, var(--color-ember) 0 7px, var(--color-paper) 7px 14px);
+}
+@utility animate-race-wipe {
+  animation: race-wipe 0.45s var(--ease-out-expo) both;
+}
+@utility animate-race-rise {
+  animation: race-rise 0.5s var(--ease-out-expo) both;
+}
+@keyframes race-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes race-rise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+}
+@keyframes race-shift {
+  50% { opacity: 0.2; }
+}
+/* Rev lights: with the last one lit it's time to change up, so they all flash */
+.race-revs:has(> :last-child[data-on="true"]) > * {
+  animation: race-shift 0.16s steps(1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .race-revs:has(> :last-child[data-on="true"]) > * {
+    animation: none;
+  }
+}
