@@ -137,7 +137,7 @@ export function SettingsSheet({
         <PaintPicker value={settings.paint} onChange={onPaint} />
 
         <SheetHeading>Sound</SheetHeading>
-        <Toggle on={!settings.muted} onClick={onMute} label="Engine and effects" detail="M" />
+        <Toggle on={!settings.muted} onClick={onMute} label="Engine and effects" detail={touch ? undefined : "M mutes and unmutes"} />
 
         {!touch && (
           <p className="mt-6 border-t border-paper/10 pt-4 text-[0.85rem] leading-relaxed text-paper/65">
