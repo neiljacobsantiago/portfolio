@@ -41,7 +41,7 @@ import {
 import type { Glows } from "./glow";
 import { Batch, bevelBox, C, KIT, LIGHTS, litMaterial, rng, worldMaterial } from "./kit";
 import { type Building, buildings, farTowers, STREETS } from "./layout";
-import { inWater, locate, pitDist, samples, SET, wallOffset, water, WATER_LEVEL } from "./track";
+import { clearance, inWater, locate, pitDist, samples, SET, wallOffset, water, WATER_LEVEL } from "./track";
 
 // The city around the circuit:
 //   · a night sky with the city's glow and a lit cloud deck on the horizon,
@@ -1136,8 +1136,15 @@ export function buildCity(opts: { tier: 0 | 1 | 2; glows: Glows; shadows: boolea
       if (l < 0.5) continue;
       const ry = Math.atan2(bx - ax, bz - az);
       b.place(bevelBox(0.8, 2.2, l + 0.6, 0.06), "#a49e92", 0.25, (ax + bx) / 2, -1.15, (az + bz) / 2, ry);
-      b.place(bevelBox(0.08, 0.08, l, 0.02), "#c9ccd1", 0.4, (ax + bx) / 2, 1.0, (az + bz) / 2, ry);
-      if (tier > 0) for (let t = 0; t < l; t += 4) b.place(new BoxGeometry(0.06, 1.0, 0.06), "#c9ccd1", 0.35, ax + ((bx - ax) * t) / l, 0.5, az + ((bz - az) * t) / l, ry);
+      // The railing runs in 4 m lengths, and stops where the circuit crosses the water
+      for (let t = 0; t < l; t += 4) {
+        const t1 = Math.min(l, t + 4);
+        const px = ax + ((bx - ax) * (t + t1)) / 2 / l;
+        const pz = az + ((bz - az) * (t + t1)) / 2 / l;
+        if (clearance(px, pz) < 3) continue;
+        b.place(new BoxGeometry(0.08, 0.08, t1 - t), "#c9ccd1", 0.4, px, 1.0, pz, ry);
+        if (tier > 0) b.place(new BoxGeometry(0.06, 1.0, 0.06), "#c9ccd1", 0.35, ax + ((bx - ax) * t) / l, 0.5, az + ((bz - az) * t) / l, ry);
+      }
     }
     group.add(new Mesh(b.build(), mat));
   }
