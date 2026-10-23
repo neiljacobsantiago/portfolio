@@ -16,7 +16,6 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PCFShadowMap,
-  PMREMGenerator,
   PerspectiveCamera,
   PlaneGeometry,
   Points,
@@ -30,15 +29,15 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { haptic } from "@/lib/haptics";
 import { createAudio, type DriveAudio } from "./audio";
 import { buildCar, CAR, type PaintId } from "./car";
 import { buildCircuit } from "./circuit";
-import { buildCity, buildSky, buildStars, buildWater } from "./city";
+import { buildCity, buildSky, buildStars, buildWater, REFLECT_LAYER } from "./city";
+import { cityEnvironments } from "./env";
 import { buildFoliage } from "./foliage";
 import { createGlows } from "./glow";
-import { clamp, LIGHTS } from "./kit";
+import { clamp, LIGHTS, setKitTier } from "./kit";
 import { type Animated, buildPavilions } from "./landmarks";
 import type { RemoteLayer } from "./net/remote-cars";
 import { canPost, createPost } from "./post";
@@ -194,7 +193,7 @@ interface TimePreset {
   exposure: number;
 }
 const TIMES: Record<TimeOfDay, TimePreset> = {
-  night: { top: "#03070f", horizon: "#141c33", glow: "#5a3a26", fog: "#0b1224", near: 260, far: 2300, hemiSky: "#8796c4", hemiGround: "#1b1a20", hemiI: 0.5, sun: "#dfe6ff", sunI: 0.5, sunDir: [0.18, 1, 0.3], flood: 1.6, lights: 1, deep: "#0a1828", stars: 1, exposure: 1.05 },
+  night: { top: "#02050c", horizon: "#161a2e", glow: "#6b3f28", fog: "#121527", near: 180, far: 2100, hemiSky: "#6f7fb0", hemiGround: "#16151a", hemiI: 0.42, sun: "#c9d6ff", sunI: 0.35, sunDir: [0.18, 1, 0.3], flood: 1.45, lights: 1, deep: "#071422", stars: 1, exposure: 1.08 },
   golden: { top: "#35538a", horizon: "#f0a066", glow: "#ff9a5a", fog: "#cf9478", near: 380, far: 2600, hemiSky: "#ffd2a8", hemiGround: "#4a3528", hemiI: 0.85, sun: "#ffb37a", sunI: 2.2, sunDir: [-0.55, 0.22, 0.8], flood: 0.3, lights: 0.45, deep: "#1b3550", stars: 0.08, exposure: 1.0 },
   day: { top: "#6fa7d1", horizon: "#f1e6d0", glow: "#000000", fog: "#e2dccd", near: 500, far: 3000, hemiSky: "#fff6e5", hemiGround: "#8a7d68", hemiI: 1.15, sun: "#fff1d6", sunI: 2.4, sunDir: [0.45, 0.8, 0.35], flood: 0, lights: 0, deep: "#2d6c92", stars: 0, exposure: 1 },
 };
@@ -237,6 +236,8 @@ export function createDriveEngine(
   renderer.info.autoReset = false;
   const post = usePost ? createPost(renderer, { mips: T.bloomMips }) : null;
 
+  // Physically based world on medium and high, Lambert on budget phones; texture sizes to match
+  setKitTier(tier);
   const scene = new Scene();
   const fog = new Fog(TIMES.night.fog, TIMES.night.near, TIMES.night.far);
   scene.fog = fog;
@@ -259,14 +260,12 @@ export function createDriveEngine(
     sun.shadow.normalBias = 0.03;
   }
   scene.add(hemi, sun, sun.target);
-  // A soft studio environment, only seen by the car's glossy materials (the world is Lambert)
-  const pmrem = new PMREMGenerator(renderer);
-  const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  pmrem.dispose();
-  scene.environment = envTex;
+  // What glossy things reflect: the city at night (and a daylight version), prefiltered once
+  const envs = cityEnvironments(renderer);
+  scene.environment = envs.night;
 
   /* ───────── world ───────── */
-  const glows = createGlows([800, 1250, 1700][tier]);
+  const glows = createGlows([1100, 1600, 2100][tier]);
   const sky = buildSky();
   scene.add(sky.mesh);
   const stars = buildStars([300, 600, 900][tier]);
@@ -275,16 +274,18 @@ export function createDriveEngine(
   scene.add(circuit.group);
   const city = buildCity({ tier, glows, shadows });
   scene.add(city.group);
-  const bay = buildWater(city.reflected, [6, 12, 16][tier]);
+  // The bay: a mirror of the skyline on high, analytic sky and glints below that
+  const bay = buildWater(city.reflected, [6, 12, 10][tier], tier === 2 && !gfx.off.includes("mirror"));
   scene.add(bay.mesh);
   const animated: Animated[] = [];
   const pavilions = buildPavilions(landmarks, glows, animated);
-  scene.add(pavilions.staticMesh, pavilions.boards, ...pavilions.groups);
-  const foliage = buildFoliage({ tier: T, calm: gfx.calm || opts.reducedMotion, footprints: circuit.footprints, poles: circuit.poles, off: gfx.off });
+  scene.add(pavilions.staticMesh, pavilions.boards, ...pavilions.extras, ...pavilions.groups);
+  const foliage = buildFoliage({ tier: T, calm: gfx.calm || opts.reducedMotion, off: gfx.off });
   scene.add(foliage.group);
-  const props = buildProps({ glows, footprints: circuit.footprints, poles: circuit.poles, lanterns: T.lanterns, bigGlow: tier > 0 });
+  const props = buildProps({ glows, lanterns: T.lanterns, bigGlow: tier > 0 });
   scene.add(props.group);
   scene.add(glows.mesh);
+  for (const o of [glows.mesh, sky.mesh, stars]) o.layers.enable(REFLECT_LAYER);
 
   /* ───────── the car, its ghost, its shadow and sparks ───────── */
   const car = buildCar({ shadows, detail: [0.3, 0.7, 1][tier] });
@@ -700,7 +701,9 @@ export function createDriveEngine(
     stars.visible = cur.stars > 0.02;
     if (circuit.fenceMaterial) circuit.fenceMaterial.color.setScalar(0.35 + 0.45 * cur.flood + 0.4 * (1 - cur.lights));
     renderer.toneMappingExposure = cur.exposure;
-    scene.environmentIntensity = 0.35 + 0.5 * (1 - cur.lights) + 0.15 * cur.lights;
+    // The city's night light, or daylight once the lamps are mostly off
+    scene.environment = cur.lights > 0.5 ? envs.night : envs.day;
+    scene.environmentIntensity = cur.lights > 0.5 ? 0.9 : 0.55 + 0.4 * (1 - cur.lights);
   };
 
   /* ───────── vehicle physics (one fixed step) ───────── */
@@ -1311,7 +1314,10 @@ export function createDriveEngine(
           x.dispose();
         }
       });
-      envTex.dispose();
+      envs.dispose();
+      circuit.dispose();
+      city.dispose();
+      bay.dispose();
       post?.dispose();
       foliage.dispose();
       renderer.dispose();

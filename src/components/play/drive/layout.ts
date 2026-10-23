@@ -186,7 +186,6 @@ class Registry {
 /* ───────────── the plan ───────────── */
 
 const reg = new Registry();
-const at = (frac: number) => samples[((Math.round(frac * N) % N) + N) % N];
 const fracOf = (metres: number) => metres / LENGTH;
 
 /** A rectangle beside the track (see besideRect), as a claim. */
