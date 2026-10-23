@@ -317,6 +317,101 @@ export function drivable(x: number, z: number, hint = -1) {
   return Math.min(track, pitDist(x, z).d);
 }
 
+/* ───────────── clearance: room between a point and everything drivable ───────────── */
+
+/** The concrete walls' thickness, behind their face. */
+export const WALL_T = 0.45;
+/** Beyond this, clearance() stops measuring and reports the cap: nothing near. */
+export const CLEAR_CAP = 26;
+const CL_CELL = 24;
+const CL_REACH = CLEAR_CAP + 22;
+const clGrid: number[][] = (() => {
+  const g: number[][] = Array.from({ length: GW * GH }, () => []);
+  for (let i = 0; i < N; i++) {
+    const a = samples[i];
+    const b = at(i + 1);
+    const cx0 = Math.max(0, Math.floor((Math.min(a.x, b.x) - CL_REACH - bounds.x0) / CELL));
+    const cx1 = Math.min(GW - 1, Math.floor((Math.max(a.x, b.x) + CL_REACH - bounds.x0) / CELL));
+    const cz0 = Math.max(0, Math.floor((Math.min(a.z, b.z) - CL_REACH - bounds.z0) / CELL));
+    const cz1 = Math.min(GH - 1, Math.floor((Math.max(a.z, b.z) + CL_REACH - bounds.z0) / CELL));
+    for (let cz = cz0; cz <= cz1; cz++) for (let cx = cx0; cx <= cx1; cx++) g[cz * GW + cx].push(i);
+  }
+  return g;
+})();
+void CL_CELL;
+
+/**
+ * How far a point is beyond the face of the circuit's walls, measured
+ * against every stretch of track nearby (not just the nearest), so a spot
+ * between two stretches answers for both. Negative inside the walls.
+ */
+export function trackClearance(x: number, z: number) {
+  const cx = Math.floor((x - bounds.x0) / CELL);
+  const cz = Math.floor((z - bounds.z0) / CELL);
+  if (cx < 0 || cz < 0 || cx >= GW || cz >= GH) return CLEAR_CAP;
+  let best = CLEAR_CAP;
+  for (const i of clGrid[cz * GW + cx]) {
+    const a = samples[i];
+    const j = (i + 1) % N;
+    const b = samples[j];
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const l2 = dx * dx + dz * dz || 1;
+    const u = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / l2));
+    const px = a.x + dx * u;
+    const pz = a.z + dz * u;
+    const dist = Math.hypot(x - px, z - pz);
+    const side = (x - px) * -dz + (z - pz) * dx >= 0 ? 1 : -1;
+    const w = wallOffset(i, side) + (wallOffset(j, side) - wallOffset(i, side)) * u;
+    best = Math.min(best, dist - w);
+  }
+  return best;
+}
+
+/** Room between a point and the nearest wall face of the circuit or the pit lane (negative: on the drivable side). */
+export const clearance = (x: number, z: number) => Math.min(trackClearance(x, z), pitDist(x, z).d);
+
+/** A rectangle set down beside the track: its centre, its turn (local +z faces the track) and how far it sits from the centre line. */
+export interface Plot {
+  x: number;
+  z: number;
+  ry: number;
+  i: number;
+  dist: number;
+}
+
+/**
+ * Sets a rectangle (half width `hw` along the track, half depth `hd`) beside
+ * the track at an arc fraction, squared to the local direction of the track,
+ * and pushed back until every part of it is at least `gap` beyond the walls.
+ */
+export function besideRect(frac: number, side: 1 | -1, hw: number, hd: number, gap: number): Plot {
+  const i = ((Math.round(frac * N) % N) + N) % N;
+  const k = Math.max(1, Math.ceil(hw / 3));
+  const a = at(i - k);
+  const b = at(i + k);
+  const l = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+  const tx = (b.x - a.x) / l;
+  const tz = (b.z - a.z) / l;
+  // Away from the track, on that side
+  const nx = -tz * side;
+  const nz = tx * side;
+  const p = at(i);
+  let o = 0;
+  for (let j = -k; j <= k; j++) o = Math.max(o, wallOffset((i + j + N) % N, side));
+  o += gap + hd;
+  for (let it = 0; it < 60; it++) {
+    const cx = p.x + nx * o;
+    const cz = p.z + nz * o;
+    let worst = Infinity;
+    for (let u = -1; u <= 1.001; u += 0.25)
+      for (const v of [-1, -0.5, 0, 0.5, 1]) worst = Math.min(worst, clearance(cx + tx * u * hw - nx * v * hd, cz + tz * u * hw - nz * v * hd));
+    if (worst >= gap - 1e-3) break;
+    o += gap - worst + 0.1;
+  }
+  return { x: p.x + nx * o, z: p.z + nz * o, ry: Math.atan2(-nx, -nz), i, dist: o };
+}
+
 /** A point beside the track: arc fraction, side (+1 right) and distance from the centre line. */
 export function besideTrack(frac: number, side: number, offset: number) {
   const i = Math.round(frac * N) % N;
@@ -430,6 +525,8 @@ export const SET = {
   float: { x: 92 * S, z: 216 * S, w: 74 * S, d: 40 * S },
   /** A footbridge across the bay's east arm. */
   bridge: { x: 430 * S, z0: 150 * S, z1: 304 * S },
+  /** The colonial quarter by the river: a theatre with a clock tower, a long colonnaded block. */
+  colonial: { x: -178, z: 118, hw: 46, hd: 40 },
   /** The open green in the infield. */
   green: { x0: -120 * S, z0: -180 * S, x1: 40 * S, z1: -60 * S },
 };
@@ -463,36 +560,54 @@ export interface Landmark {
   heading: number;
   /** Driving inside this radius offers the link. */
   zone: number;
+  /** Where it stands: arc fraction and side of the track, and the fan zone it belongs to. */
+  frac: number;
+  side: 1 | -1;
+  fanZone: string;
 }
 
-const pavilion = (frac: number, side: 1 | -1) => {
-  const p = besideTrack(frac, side, 0);
-  const off = wallOffset(p.i, side) + 13;
-  const q = besideTrack(frac, side, off);
-  // A rotation.y that turns the pavilion's front (+z) towards the centre line
-  return { x: q.x, z: q.z, heading: Math.atan2(samples[q.i].x - q.x, samples[q.i].z - q.z), zone: off + 8 };
+/**
+ * A pavilion's plot: 26 m along the track by 20 m deep, its front edge a
+ * clear walkway's width behind the debris fence, squared to the track.
+ */
+export const PLOT = { hw: 13, hd: 10, gap: 4.5 };
+/** Pavilions sit in three fan zones of three, on the infield side, 73 m apart. */
+const pavilion = (frac: number, side: 1 | -1, zone: string) => {
+  const r = besideRect(frac, side, PLOT.hw, PLOT.hd, PLOT.gap);
+  // Driving anywhere across the track abreast of it offers the link
+  return { x: r.x, z: r.z, heading: r.ry, zone: r.dist + 8, frac, side, fanZone: zone };
 };
 
+/** The fan zones: a promenade behind the wall with three pavilions on it. */
+export const FAN_ZONES = [
+  { id: "paddock", name: "Paddock Club", from: 0.03, to: 0.12, side: 1 as const },
+  { id: "bay", name: "Bay Fan Zone", from: 0.44, to: 0.53, side: 1 as const },
+  { id: "village", name: "River Village", from: 0.785, to: 0.875, side: 1 as const },
+];
+
 export const landmarks: Landmark[] = [
-  { id: "about", kind: "monument", title: "About Neil", line: "Third-year BSIT at CLSU and Production Director of the ITSC Media Group.", href: "/about", ...pavilion(0.035, 1) },
-  { id: "photography", kind: "camera", title: "Photography", line: "Concerts, portraits, campus life and the night sky.", href: "/photography", ...pavilion(0.115, -1) },
-  { id: "buildit", kind: "pc", title: "BuildIT", line: "A PC builder that grew from a C program into a cloud storefront.", href: "/work/buildit", ...pavilion(0.255, 1) },
-  { id: "memory", kind: "memory", title: "Memory Allocation", line: "First-, Best- and Worst-Fit, made visible.", href: "/work/memory-allocation-simulator", ...pavilion(0.345, 1) },
-  { id: "aurora", kind: "stage", title: "Aurora Fest 2026", line: "Six OPM acts from the front barrier, shot in manual.", href: "/work/aurora-fest-2026", ...pavilion(0.455, -1) },
-  { id: "pathoscan", kind: "petri", title: "PathoScan", line: "An offline AI that names fungal species from a photo — turned over to DA PhilMech.", href: "/work/pathoscan", ...pavilion(0.545, 1) },
-  { id: "cyber", kind: "shield", title: "Cyber Awareness", line: "Six short videos that make data privacy make sense.", href: "/work/cyber-awareness-series", ...pavilion(0.69, 1) },
-  { id: "lab", kind: "lab", title: "The Lab", line: "Working tools grown from real projects.", href: "/lab", ...pavilion(0.775, -1) },
-  { id: "contact", kind: "mailbox", title: "Say hello", line: "Projects, events, portraits — Neil reads every message.", href: "/contact", ...pavilion(0.87, 1) },
+  { id: "about", kind: "monument", title: "About Neil", line: "Third-year BSIT at CLSU and Production Director of the ITSC Media Group.", href: "/about", ...pavilion(0.045, 1, "paddock") },
+  { id: "photography", kind: "camera", title: "Photography", line: "Concerts, portraits, campus life and the night sky.", href: "/photography", ...pavilion(0.075, 1, "paddock") },
+  { id: "buildit", kind: "pc", title: "BuildIT", line: "A PC builder that grew from a C program into a cloud storefront.", href: "/work/buildit", ...pavilion(0.105, 1, "paddock") },
+  { id: "aurora", kind: "stage", title: "Aurora Fest 2026", line: "Six OPM acts from the front barrier, shot in manual.", href: "/work/aurora-fest-2026", ...pavilion(0.455, 1, "bay") },
+  { id: "pathoscan", kind: "petri", title: "PathoScan", line: "An offline AI that names fungal species from a photo — turned over to DA PhilMech.", href: "/work/pathoscan", ...pavilion(0.485, 1, "bay") },
+  { id: "memory", kind: "memory", title: "Memory Allocation", line: "First-, Best- and Worst-Fit, made visible.", href: "/work/memory-allocation-simulator", ...pavilion(0.515, 1, "bay") },
+  { id: "cyber", kind: "shield", title: "Cyber Awareness", line: "Six short videos that make data privacy make sense.", href: "/work/cyber-awareness-series", ...pavilion(0.8, 1, "village") },
+  { id: "lab", kind: "lab", title: "The Lab", line: "Working tools grown from real projects.", href: "/lab", ...pavilion(0.83, 1, "village") },
+  { id: "contact", kind: "mailbox", title: "Say hello", line: "Projects, events, portraits — Neil reads every message.", href: "/contact", ...pavilion(0.86, 1, "village") },
 ];
 
 /** Named stretches of the lap, announced in free roam: [from, to) as arc fractions. */
 export const places: { name: string; line: string; from: number; to: number }[] = [
-  { name: "Main straight", line: "past the pits and the start gantry", from: 0.97, to: 0.06 },
-  { name: "The S-bends", line: "left, right, left — use the kerbs", from: 0.09, to: 0.17 },
+  { name: "Main straight", line: "past the pits and the start gantry", from: 0.97, to: 0.03 },
+  { name: "Paddock Club", line: "three of Neil's projects, on your right", from: 0.03, to: 0.12 },
+  { name: "The S-bends", line: "left, right, left — use the kerbs", from: 0.12, to: 0.17 },
   { name: "Harbour hairpin", line: "the hardest stop on the lap", from: 0.38, to: 0.42 },
-  { name: "Bay sweep", line: "the skyline over the water", from: 0.44, to: 0.6 },
+  { name: "Bay Fan Zone", line: "three more projects, the skyline across the water", from: 0.44, to: 0.53 },
+  { name: "Bay sweep", line: "the skyline over the water", from: 0.53, to: 0.6 },
   { name: "River bridge", line: "steel arches overhead", from: 0.635, to: 0.665 },
-  { name: "The chicane", line: "short-cut it and the lap won't count", from: 0.74, to: 0.79 },
+  { name: "The chicane", line: "short-cut it and the lap won't count", from: 0.74, to: 0.785 },
+  { name: "River Village", line: "the last three pavilions, on your right", from: 0.785, to: 0.875 },
 ];
 
 /** Hidden trophies, found in free roam and remembered: [x, z]. */
