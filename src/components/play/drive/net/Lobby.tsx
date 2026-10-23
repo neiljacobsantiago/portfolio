@@ -8,14 +8,19 @@ import { CODE_PREFIX, MAX_PLAYERS, NAME_MAX, normalizeCode, PAINT_IDS, type Play
 import type { Multiplayer } from "./useMultiplayer";
 
 // The lobby: pick a name and a paint, make a room or join one, then wait for
-// everyone to be ready. A sheet over the title card, readable on a 390px phone.
+// everyone to be ready. A dark race-control sheet over the title card,
+// readable on a 390px phone.
 
 const QUALITY = {
-  good: { label: "Good", dot: "bg-sky" },
-  fair: { label: "Fair", dot: "bg-[#e0a92e]" },
+  good: { label: "Good", dot: "bg-[#2fd27a]" },
+  fair: { label: "Fair", dot: "bg-[#ffd23f]" },
   poor: { label: "Weak", dot: "bg-ember" },
-  unknown: { label: "Checking", dot: "bg-ink/25" },
+  unknown: { label: "Checking", dot: "bg-paper/30" },
 } as const;
+
+const FIELD = "bg-paper/[0.06] ring-1 ring-paper/20 focus-within:ring-2 focus-within:ring-ember";
+const PRIMARY = "press flex min-h-12 w-full items-center justify-between gap-2 bg-ember px-4 text-paper transition-colors hover:bg-[#d8222f] disabled:opacity-50 disabled:hover:bg-ember";
+const SECONDARY = "race-cap press min-h-11 w-full px-4 ring-1 ring-paper/25 transition-colors hover:bg-paper/5";
 
 export default function Lobby({ mp, paint, onPaint }: { mp: Multiplayer; paint: PaintId; onPaint: (p: PaintId) => void }) {
   const s = mp.state;
@@ -34,22 +39,26 @@ export default function Lobby({ mp, paint, onPaint }: { mp: Multiplayer; paint: 
   });
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/60 backdrop-blur-sm md:items-center md:p-6" onClick={close}>
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[#020a10]/70 backdrop-blur-sm md:items-center md:p-6" onClick={close}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="lobby-title"
         data-lenis-prevent
         onClick={(e) => e.stopPropagation()}
-        className={cn("animate-pop-in max-h-[100svh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-3xl bg-paper text-ink shadow-2xl md:max-h-[92svh] md:rounded-3xl", mp.inRoom && "md:max-w-3xl")}
-        style={{
-          paddingTop: "max(20px, env(safe-area-inset-top))",
-          paddingBottom: "max(20px, env(safe-area-inset-bottom))",
-          paddingLeft: "max(20px, env(safe-area-inset-left))",
-          paddingRight: "max(20px, env(safe-area-inset-right))",
-        }}
+        className={cn("animate-pop-in max-h-[100svh] w-full max-w-md overflow-y-auto overscroll-contain bg-[#06121c] text-paper shadow-2xl ring-1 ring-paper/10 md:max-h-[92svh]", mp.inRoom && "md:max-w-3xl")}
       >
-        {mp.inRoom ? <Room mp={mp} paint={paint} onPaint={onPaint} /> : busy ? <Connecting mp={mp} /> : <Start mp={mp} paint={paint} onPaint={onPaint} onClose={close} />}
+        <div aria-hidden className="chequer sticky top-0 z-10 h-2.5 [--chq:5px]" />
+        <div
+          style={{
+            paddingTop: "max(16px, env(safe-area-inset-top))",
+            paddingBottom: "max(20px, env(safe-area-inset-bottom))",
+            paddingLeft: "max(18px, env(safe-area-inset-left))",
+            paddingRight: "max(18px, env(safe-area-inset-right))",
+          }}
+        >
+          {mp.inRoom ? <Room mp={mp} paint={paint} onPaint={onPaint} /> : busy ? <Connecting mp={mp} /> : <Start mp={mp} paint={paint} onPaint={onPaint} onClose={close} />}
+        </div>
       </div>
     </div>
   );
@@ -59,18 +68,22 @@ function Header({ title, onClose }: { title: string; onClose?: () => void }) {
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <p className="label text-[0.55rem] text-ember">Bay Street Circuit · together</p>
-        <h2 id="lobby-title" className="mt-1 font-display text-3xl leading-tight">
+        <p className="race-cap text-[#ff8a7a]">Bay Street Circuit · together</p>
+        <h2 id="lobby-title" className="race-num mt-1.5 text-[2rem] leading-none uppercase">
           {title}
         </h2>
       </div>
       {onClose && (
-        <button type="button" onClick={onClose} aria-label="Close" className="press flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-1 ring-ink/15">
+        <button type="button" onClick={onClose} aria-label="Close" className="press flex h-10 w-10 shrink-0 items-center justify-center ring-1 ring-paper/20 hover:bg-paper/10">
           <Icon name="close" />
         </button>
       )}
     </div>
   );
+}
+
+function Caption({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <p className={cn("race-cap mb-2 flex items-center gap-2 text-paper/60", className)}>{children}</p>;
 }
 
 function Paints({ value, onChange }: { value: PaintId; onChange: (p: PaintId) => void }) {
@@ -85,9 +98,9 @@ function Paints({ value, onChange }: { value: PaintId; onChange: (p: PaintId) =>
           aria-label={PAINTS[id].name}
           title={PAINTS[id].name}
           onClick={() => onChange(id)}
-          className="press flex aspect-square items-center justify-center rounded-xl ring-1 ring-ink/15 aria-checked:ring-2 aria-checked:ring-ember"
+          className="press flex aspect-[4/3] items-center justify-center ring-1 ring-paper/15 hover:bg-paper/5 aria-checked:ring-2 aria-checked:ring-ember"
         >
-          <span className="block h-6 w-8 rounded-md" style={{ background: `linear-gradient(180deg, ${PAINTS[id].primary} 0 58%, ${PAINTS[id].secondary} 58% 80%, ${PAINTS[id].accent} 80%)` }} />
+          <span className="block h-5 w-9 -skew-x-12" style={{ background: `linear-gradient(180deg, ${PAINTS[id].primary} 0 58%, ${PAINTS[id].secondary} 58% 80%, ${PAINTS[id].accent} 80%)` }} />
         </button>
       ))}
     </div>
@@ -126,17 +139,17 @@ function Start({ mp, paint, onPaint, onClose }: { mp: Multiplayer; paint: PaintI
   return (
     <>
       <Header title={linked ? `Join room ${linked}` : "Race a friend"} onClose={onClose} />
-      <p className="mt-2 font-serif text-lg leading-snug text-ink/75">Up to four players, each on their own phone or computer. No sign-up: pick a name and a colour, then share the room code.</p>
+      <p className="mt-3 text-[1rem] leading-snug text-paper/80">Up to four players, each on their own phone or computer. No sign-up: pick a name and a colour, then share the room code.</p>
 
       {err && (
-        <div role="alert" className="mt-5 rounded-2xl bg-ember/10 p-4 ring-1 ring-ember/30">
-          <p className="font-display text-xl leading-tight text-wine">{err.title}</p>
-          <p className="mt-1.5 font-serif text-base leading-snug text-ink/80">{err.detail}</p>
+        <div role="alert" className="mt-5 border-l-4 border-ember bg-ember/15 p-4">
+          <p className="text-[1.05rem] leading-tight font-bold">{err.title}</p>
+          <p className="mt-1.5 text-[0.95rem] leading-snug text-paper/85">{err.detail}</p>
           {err.tips && (
-            <ul className="mt-2 space-y-1.5 font-serif text-sm leading-snug text-ink/75">
+            <ul className="mt-2 space-y-1.5 text-[0.9rem] leading-snug text-paper/80">
               {err.tips.map((t) => (
                 <li key={t} className="flex gap-2">
-                  <Icon name="chevron-right" className="mt-0.5 h-3.5 w-3.5 text-ember" />
+                  <Icon name="chevron-right" className="mt-0.5 h-3.5 w-3.5 text-[#ff8a7a]" />
                   <span>{t}</span>
                 </li>
               ))}
@@ -146,43 +159,45 @@ function Start({ mp, paint, onPaint, onClose }: { mp: Multiplayer; paint: PaintI
       )}
 
       <label className="mt-6 block">
-        <span className="label text-[0.55rem] text-ink/55">Your nickname</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (linked ? join(linked) : create())}
-          maxLength={NAME_MAX * 2}
-          autoComplete="nickname"
-          enterKeyHint="go"
-          placeholder="What your friends call you"
-          className="mt-1.5 block w-full rounded-xl bg-white/60 px-4 py-3 font-serif text-lg ring-1 ring-ink/15 outline-none placeholder:text-ink/35 focus:ring-2 focus:ring-ember"
-        />
+        <span className="race-cap text-paper/60">Your nickname</span>
+        <span className={cn("mt-1.5 block", FIELD)}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && (linked ? join(linked) : create())}
+            maxLength={NAME_MAX * 2}
+            autoComplete="nickname"
+            enterKeyHint="go"
+            placeholder="What your friends call you"
+            className="block w-full bg-transparent px-4 py-3 text-[1.1rem] font-semibold text-paper outline-none placeholder:font-normal placeholder:text-paper/40"
+          />
+        </span>
       </label>
-      <p className="label mt-5 mb-2 text-[0.55rem] text-ink/55">Your paint · {PAINTS[paint].name}</p>
+      <Caption className="mt-5">Your paint · {PAINTS[paint].name}</Caption>
       <Paints value={paint} onChange={onPaint} />
 
       {problem && (
-        <p role="alert" className="mt-4 font-serif text-base text-wine">
+        <p role="alert" className="mt-4 text-[0.95rem] font-semibold text-[#ff8a7a]">
           {problem}
         </p>
       )}
 
       {linked ? (
         <>
-          <button type="button" onClick={() => join(linked)} className="btn mt-6 w-full justify-center bg-ember text-paper hover:bg-ink">
-            Join {linked} <Icon name="arrow-right" className="arrow" />
+          <button type="button" onClick={() => join(linked)} className={cn(PRIMARY, "mt-6")}>
+            <span className="race-num text-[1.15rem] uppercase">Join {linked}</span> <Icon name="arrow-right" className="h-5 w-5" />
           </button>
-          <button type="button" onClick={create} className="label press mt-3 w-full rounded-full px-4 py-3 text-[0.55rem] text-ink/65 ring-1 ring-ink/15">
+          <button type="button" onClick={create} className={cn(SECONDARY, "mt-2.5")}>
             Make a new room instead
           </button>
         </>
       ) : (
         <>
-          <button type="button" onClick={create} className="btn mt-6 w-full justify-center bg-ember text-paper hover:bg-ink">
-            Create a room <Icon name="arrow-right" className="arrow" />
+          <button type="button" onClick={create} className={cn(PRIMARY, "mt-6")}>
+            <span className="race-num text-[1.15rem] uppercase">Create a room</span> <Icon name="arrow-right" className="h-5 w-5" />
           </button>
-          <p className="label mt-6 mb-2 flex items-center gap-3 text-[0.5rem] text-ink/45">
-            <span className="h-px flex-1 bg-ink/15" /> or join with a code <span className="h-px flex-1 bg-ink/15" />
+          <p className="race-cap mt-6 mb-2 flex items-center gap-3 text-paper/50">
+            <span className="h-px flex-1 bg-paper/15" /> or join with a code <span className="h-px flex-1 bg-paper/15" />
           </p>
           <form
             className="flex gap-2"
@@ -191,8 +206,8 @@ function Start({ mp, paint, onPaint, onClose }: { mp: Multiplayer; paint: PaintI
               join(code);
             }}
           >
-            <label className="flex min-w-0 flex-1 items-center rounded-xl bg-white/60 ring-1 ring-ink/15 focus-within:ring-2 focus-within:ring-ember">
-              <span className="pl-4 font-mono text-lg text-ink/45" aria-hidden>
+            <label className={cn("flex min-w-0 flex-1 items-center", FIELD)}>
+              <span className="race-num pl-4 text-[1.2rem] text-paper/50" aria-hidden>
                 {CODE_PREFIX}
               </span>
               <input
@@ -204,10 +219,10 @@ function Start({ mp, paint, onPaint, onClose }: { mp: Multiplayer; paint: PaintI
                 spellCheck={false}
                 enterKeyHint="go"
                 placeholder="7KQ2"
-                className="w-full min-w-0 bg-transparent py-3 pr-3 font-mono text-lg tracking-[0.2em] uppercase outline-none placeholder:text-ink/30"
+                className="race-num w-full min-w-0 bg-transparent py-3 pr-3 text-[1.2rem] tracking-[0.15em] text-paper uppercase outline-none placeholder:text-paper/30"
               />
             </label>
-            <button type="submit" className="label press shrink-0 rounded-xl bg-ink px-5 text-[0.55rem] text-paper">
+            <button type="submit" className="race-cap press shrink-0 bg-paper px-5 text-ink hover:bg-white">
               Join
             </button>
           </form>
@@ -223,11 +238,11 @@ function Connecting({ mp }: { mp: Multiplayer }) {
     <>
       <Header title={mp.state.role === "host" ? "Opening a room" : `Joining ${mp.state.code ?? ""}`} />
       <div className="mt-8 flex items-center gap-4" role="status" aria-live="polite">
-        <span className="h-8 w-8 shrink-0 animate-spin rounded-full border-2 border-ink/15 border-t-ember" aria-hidden />
-        <p className="font-serif text-lg text-ink/80">{mp.state.step ?? "Connecting…"}</p>
+        <span className="h-8 w-8 shrink-0 animate-spin rounded-full border-2 border-paper/15 border-t-ember" aria-hidden />
+        <p className="text-[1.05rem] font-semibold text-paper/85">{mp.state.step ?? "Connecting…"}</p>
       </div>
-      <p className="mt-4 font-serif text-sm leading-snug text-ink/60">This usually takes a few seconds. On mobile data it can take up to fifteen.</p>
-      <button type="button" onClick={() => mp.leave(true)} className="label press mt-8 w-full rounded-full px-4 py-3 text-[0.55rem] ring-1 ring-ink/15">
+      <p className="mt-4 text-[0.9rem] leading-snug text-paper/65">This usually takes a few seconds. On mobile data it can take up to fifteen.</p>
+      <button type="button" onClick={() => mp.leave(true)} className={cn(SECONDARY, "mt-8")}>
         Cancel
       </button>
     </>
@@ -274,43 +289,43 @@ function Room({ mp, paint, onPaint }: { mp: Multiplayer; paint: PaintId; onPaint
   return (
     <>
       <Header title="Your room" />
-      <div className="md:mt-4 md:grid md:grid-cols-2 md:gap-7">
+      <div className="md:mt-5 md:grid md:grid-cols-2 md:gap-7">
         <div className="min-w-0">
-          <div className="mt-4 rounded-2xl bg-ink p-4 text-paper md:mt-0">
-            <p className="label text-[0.5rem] text-paper/55">Room code</p>
-            <p className="mt-1 font-mono text-[2rem] leading-none tracking-[0.12em]" data-room-code>
+          <div className="mt-4 bg-paper p-4 text-ink md:mt-0">
+            <p className="race-cap text-ink/60">Room code</p>
+            <p className="race-num mt-1 text-[2.4rem] tracking-[0.06em]" data-room-code>
               {code}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button type="button" onClick={share} className="label press flex items-center justify-center gap-1.5 rounded-full bg-ember px-3 py-2.5 text-[0.52rem] text-paper">
+              <button type="button" onClick={share} className="race-cap press flex min-h-11 items-center justify-center gap-1.5 bg-ember px-3 text-paper hover:bg-wine">
                 <Icon name="share" /> {copied === "link" ? "Link copied" : "Share link"}
               </button>
-              <button type="button" onClick={() => copy(code, "code")} className="label press flex items-center justify-center gap-1.5 rounded-full px-3 py-2.5 text-[0.52rem] ring-1 ring-paper/30">
+              <button type="button" onClick={() => copy(code, "code")} className="race-cap press flex min-h-11 items-center justify-center gap-1.5 px-3 ring-1 ring-ink/25 hover:bg-ink/5">
                 <Icon name={copied === "code" ? "check" : "copy"} /> {copied === "code" ? "Copied" : "Copy code"}
               </button>
             </div>
-            <p className="mt-3 font-serif text-sm leading-snug text-paper/70">Send the code or the link. Everyone needs this page open, on any network.</p>
+            <p className="mt-3 text-[0.875rem] leading-snug text-ink/75">Send the code or the link. Everyone needs this page open, on any network.</p>
           </div>
 
           {s.status === "reconnecting" && (
-            <p role="status" className="mt-4 rounded-xl bg-[#ffd27a]/40 px-4 py-3 font-serif text-base">
+            <p role="status" className="mt-4 border-l-4 border-[#ffd23f] bg-[#ffd23f]/15 px-4 py-3 text-[0.95rem]">
               {s.step}
             </p>
           )}
 
-          <p className="label mt-6 mb-2 flex items-center gap-2 text-[0.55rem] text-ink/55">
-            <Icon name="users" className="h-3.5 w-3.5" /> Drivers · {s.players.length} of {MAX_PLAYERS}
-          </p>
-          <ul className="divide-y divide-ink/10 rounded-2xl ring-1 ring-ink/15" data-players>
-            {Array.from({ length: MAX_PLAYERS }, (_, i) => s.players[i] ?? null).map((p, i) => (p ? <Row key={p.slot} p={p} me={p.slot === s.me} /> : <EmptyRow key={`empty-${i}`} />))}
+          <Caption className="mt-6">
+            <Icon name="users" className="h-3.5 w-3.5" /> Starting grid · {s.players.length} of {MAX_PLAYERS}
+          </Caption>
+          <ul className="divide-y divide-paper/10 ring-1 ring-paper/15" data-players>
+            {Array.from({ length: MAX_PLAYERS }, (_, i) => s.players[i] ?? null).map((p, i) => (p ? <Row key={p.slot} p={p} n={i + 1} me={p.slot === s.me} /> : <EmptyRow key={`empty-${i}`} n={i + 1} />))}
           </ul>
         </div>
 
         <div className="min-w-0">
-          <p className="label mt-5 mb-2 text-[0.55rem] text-ink/55 md:mt-0">Your paint · {PAINTS[meP?.paint ?? paint].name}</p>
+          <Caption className="mt-6 md:mt-0">Your paint · {PAINTS[meP?.paint ?? paint].name}</Caption>
           <Paints value={meP?.paint ?? paint} onChange={choosePaint} />
 
-          <p className="label mt-6 mb-2 text-[0.55rem] text-ink/55">What we&apos;re playing</p>
+          <Caption className="mt-6">What we&apos;re playing</Caption>
           {host ? (
             <div className="space-y-2">
               <div role="radiogroup" aria-label="Mode" className="grid grid-cols-2 gap-2">
@@ -321,16 +336,16 @@ function Room({ mp, paint, onPaint }: { mp: Multiplayer; paint: PaintId; onPaint
                     role="radio"
                     aria-checked={s.settings.mode === m}
                     onClick={() => mp.setSettings({ mode: m })}
-                    className="press rounded-xl px-3 py-2.5 text-left ring-1 ring-ink/15 aria-checked:bg-ink aria-checked:text-paper aria-checked:ring-ink"
+                    className="press relative px-3 py-2.5 text-left ring-1 ring-paper/20 hover:bg-paper/5 aria-checked:bg-paper aria-checked:text-ink aria-checked:ring-paper"
                   >
-                    <span className="block font-display text-lg leading-tight">{m === "race" ? "Race" : "Free roam"}</span>
-                    <span className="font-serif text-sm opacity-70">{m === "race" ? "Start lights, positions, a winner" : "Drive around together, no clock"}</span>
+                    <span className="race-num block text-[1.15rem] uppercase">{m === "race" ? "Race" : "Free roam"}</span>
+                    <span className="mt-0.5 block text-[0.85rem] leading-snug opacity-75">{m === "race" ? "Start lights, positions, a winner" : "Drive around together, no clock"}</span>
                   </button>
                 ))}
               </div>
               {s.settings.mode === "race" && (
                 <div role="radiogroup" aria-label="Laps" className="flex items-center gap-2">
-                  <span className="font-serif text-base text-ink/70">Laps</span>
+                  <span className="race-cap text-paper/70">Laps</span>
                   {[3, 5].map((n) => (
                     <button
                       key={n}
@@ -338,7 +353,7 @@ function Room({ mp, paint, onPaint }: { mp: Multiplayer; paint: PaintId; onPaint
                       role="radio"
                       aria-checked={s.settings.laps === n}
                       onClick={() => mp.setSettings({ laps: n })}
-                      className="label press rounded-full px-4 py-2 text-[0.55rem] ring-1 ring-ink/15 aria-checked:bg-ink aria-checked:text-paper"
+                      className="race-num press h-10 w-12 text-[1.1rem] ring-1 ring-paper/20 hover:bg-paper/5 aria-checked:bg-paper aria-checked:text-ink"
                     >
                       {n}
                     </button>
@@ -347,42 +362,42 @@ function Room({ mp, paint, onPaint }: { mp: Multiplayer; paint: PaintId; onPaint
               )}
             </div>
           ) : (
-            <p className="font-serif text-lg" data-settings>
-              {s.settings.mode === "race" ? `A race, ${s.settings.laps} laps` : "Free roam, no clock"} <span className="text-ink/55">· the host picks</span>
+            <p className="text-[1.05rem] font-semibold" data-settings>
+              {s.settings.mode === "race" ? `A race, ${s.settings.laps} laps` : "Free roam, no clock"} <span className="font-normal text-paper/60">· the host picks</span>
             </p>
           )}
 
-          {raceOn && <p className="mt-4 rounded-xl bg-sky/20 px-4 py-3 font-serif text-base">A race is on right now. You&apos;ll be on the grid for the next one.</p>}
+          {raceOn && <p className="mt-4 border-l-4 border-sky bg-sky/15 px-4 py-3 text-[0.95rem]">A race is on right now. You&apos;ll be on the grid for the next one.</p>}
 
           {host ? (
             <>
-              <button type="button" onClick={mp.start} disabled={waiting.length > 0} className="btn mt-6 w-full justify-center bg-ember text-paper hover:bg-ink disabled:opacity-45 disabled:hover:bg-ember">
-                {s.settings.mode === "race" ? "Start the race" : "Start free roam"} <Icon name="flag" />
+              <button type="button" onClick={mp.start} disabled={waiting.length > 0} className={cn(PRIMARY, "mt-6")}>
+                <span className="race-num text-[1.15rem] uppercase">{s.settings.mode === "race" ? "Start the race" : "Start free roam"}</span> <Icon name="flag" className="h-5 w-5" />
               </button>
-              <p className="mt-2 text-center font-serif text-sm text-ink/60" aria-live="polite">
+              <p className="mt-2 text-center text-[0.875rem] text-paper/65" aria-live="polite">
                 {guests.length === 0 ? "Nobody else yet. You can start alone, or wait for someone to join." : waiting.length ? `Waiting for ${waiting.map((p) => p.name).join(", ")} to get ready.` : "Everyone's ready."}
               </p>
             </>
           ) : (
             !raceOn && (
               <>
-                <button type="button" aria-pressed={!!meP?.ready} onClick={() => mp.setReady(!meP?.ready)} className={cn("btn mt-6 w-full justify-center", meP?.ready ? "bg-sky text-ink" : "bg-ember text-paper hover:bg-ink")}>
-                  {meP?.ready ? (
-                    <>
-                      <Icon name="check" /> Ready
-                    </>
-                  ) : (
-                    "I'm ready"
-                  )}
+                <button
+                  type="button"
+                  aria-pressed={!!meP?.ready}
+                  onClick={() => mp.setReady(!meP?.ready)}
+                  className={cn("press mt-6 flex min-h-12 w-full items-center justify-center gap-2 px-4 transition-colors", meP?.ready ? "bg-[#2fd27a] text-ink" : "bg-ember text-paper hover:bg-[#d8222f]")}
+                >
+                  {meP?.ready && <Icon name="check" className="h-5 w-5" />}
+                  <span className="race-num text-[1.15rem] uppercase">{meP?.ready ? "Ready" : "I'm ready"}</span>
                 </button>
-                <p className="mt-2 text-center font-serif text-sm text-ink/60" aria-live="polite">
+                <p className="mt-2 text-center text-[0.875rem] text-paper/65" aria-live="polite">
                   {meP?.ready ? "Waiting for the host to start. Tap again if you need a minute." : "The host starts once everyone's ready."}
                 </p>
               </>
             )
           )}
 
-          <button type="button" onClick={() => mp.leave(true)} className="label press mt-4 w-full rounded-full px-4 py-3 text-[0.55rem] text-ink/70 ring-1 ring-ink/15">
+          <button type="button" onClick={() => mp.leave(true)} className={cn(SECONDARY, "mt-4 text-paper/80")}>
             {host ? "Close the room" : "Leave the room"}
           </button>
           <Fineprint relay={s.relay} />
@@ -392,22 +407,23 @@ function Room({ mp, paint, onPaint }: { mp: Multiplayer; paint: PaintId; onPaint
   );
 }
 
-function Row({ p, me }: { p: PlayerInfo; me: boolean }) {
+function Row({ p, n, me }: { p: PlayerInfo; n: number; me: boolean }) {
   const q = QUALITY[quality(p.ping)];
   return (
-    <li className="flex items-center gap-3 px-3 py-2.5" data-slot={p.slot}>
-      <span className="h-7 w-7 shrink-0 rounded-full ring-1 ring-ink/20" style={{ background: `linear-gradient(135deg, ${PAINTS[p.paint].primary} 0 60%, ${PAINTS[p.paint].secondary} 60%)` }} aria-hidden />
-      <span className="min-w-0 flex-1">
+    <li className={cn("flex items-center gap-3 pr-3", me && "bg-paper/[0.06]")} data-slot={p.slot}>
+      <span className="race-num flex h-12 w-9 shrink-0 items-center justify-center bg-paper/10 text-[1.1rem]">{n}</span>
+      <span aria-hidden className="h-7 w-1.5 shrink-0" style={{ background: PAINTS[p.paint].primary }} />
+      <span className="min-w-0 flex-1 py-1.5">
         <span className="flex items-center gap-1.5">
-          <span className="truncate font-serif text-lg leading-tight" data-name>
+          <span className="truncate text-[1.05rem] leading-tight font-bold uppercase" data-name>
             {p.name}
           </span>
-          {me && <span className="label shrink-0 rounded-full bg-ink/10 px-1.5 py-0.5 text-[0.45rem]">You</span>}
-          {p.host && <span className="label shrink-0 rounded-full bg-ember px-1.5 py-0.5 text-[0.45rem] text-paper">Host</span>}
+          {me && <span className="race-cap shrink-0 bg-paper/15 px-1.5 py-0.5 text-[0.6rem]">You</span>}
+          {p.host && <span className="race-cap shrink-0 bg-ember px-1.5 py-0.5 text-[0.6rem] text-paper">Host</span>}
         </span>
-        <span className="label mt-0.5 flex items-center gap-1.5 text-[0.48rem] text-ink/55">
+        <span className="race-cap mt-0.5 flex items-center gap-1.5 text-[0.625rem] text-paper/60">
           {p.away ? (
-            <span className="text-wine">Reconnecting…</span>
+            <span className="text-[#ff8a7a]">Reconnecting…</span>
           ) : p.host ? (
             "Hosting"
           ) : (
@@ -420,7 +436,7 @@ function Row({ p, me }: { p: PlayerInfo; me: boolean }) {
         </span>
       </span>
       {!p.host && (
-        <span className={cn("label shrink-0 rounded-full px-2 py-1 text-[0.48rem]", p.ready ? "bg-sky text-ink" : "text-ink/45 ring-1 ring-ink/15")} data-ready={p.ready}>
+        <span className={cn("race-cap shrink-0 px-2 py-1 text-[0.625rem]", p.ready ? "bg-[#2fd27a] text-ink" : "text-paper/55 ring-1 ring-paper/20")} data-ready={p.ready}>
           {p.ready ? "Ready" : "Not ready"}
         </span>
       )}
@@ -428,18 +444,19 @@ function Row({ p, me }: { p: PlayerInfo; me: boolean }) {
   );
 }
 
-function EmptyRow() {
+function EmptyRow({ n }: { n: number }) {
   return (
-    <li className="flex items-center gap-3 px-3 py-2.5 text-ink/40">
-      <span className="h-7 w-7 shrink-0 rounded-full border border-dashed border-ink/25" aria-hidden />
-      <span className="font-serif text-base italic">Open seat</span>
+    <li className="flex items-center gap-3 text-paper/40">
+      <span className="race-num flex h-12 w-9 shrink-0 items-center justify-center bg-paper/[0.04] text-[1.1rem]">{n}</span>
+      <span aria-hidden className="h-7 w-1.5 shrink-0 border border-dashed border-paper/25" />
+      <span className="race-cap">Open seat</span>
     </li>
   );
 }
 
 function Fineprint({ relay }: { relay?: boolean }) {
   return (
-    <p className="mt-6 font-serif text-xs leading-relaxed text-ink/50">
+    <p className="mt-6 text-[0.8rem] leading-relaxed text-paper/55">
       Your cars talk to each other directly (WebRTC). A public matchmaking server only introduces you; nothing is stored and there are no accounts.
       {relay ? " A relay server is on for this site, for networks that block direct connections." : ""}
     </p>
