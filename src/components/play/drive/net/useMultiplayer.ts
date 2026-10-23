@@ -329,6 +329,8 @@ export function useMultiplayer(o: {
     toasts,
     table,
     lap,
+    /** Race distance (metres since the start line) of a car in the session, for the gaps on the timing tower. */
+    distOf: (slot: number): number | null => (slot === me.current ? race.current.progress.dist : (dists.current.get(slot) ?? null)),
     nick,
     initialCode,
     onRace,

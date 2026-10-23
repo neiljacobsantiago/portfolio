@@ -126,9 +126,9 @@ export function createRemoteCars(opts: { labels: HTMLElement; clock: () => numbe
     el.setAttribute("aria-hidden", "true");
     const pill = document.createElement("span");
     pill.className =
-      "flex items-center gap-1.5 rounded-full bg-[#0b1018]/80 py-1 pr-2.5 pl-1.5 font-mono text-[0.62rem] leading-none whitespace-nowrap text-paper shadow-lg ring-1 ring-paper/15 transition-transform duration-150 data-[honk=true]:scale-125 data-[honk=true]:bg-ember";
+      "race-cap flex items-center gap-1.5 bg-[#06121c]/85 py-1 pr-2 pl-1 leading-none whitespace-nowrap text-paper shadow-lg ring-1 ring-paper/15 transition-transform duration-150 data-[honk=true]:scale-125 data-[honk=true]:bg-ember";
     const dot = document.createElement("span");
-    dot.className = "h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-paper/60";
+    dot.className = "h-3 w-1 shrink-0";
     dot.style.background = PAINTS[paint].primary;
     const text = document.createElement("span");
     // A nickname is only ever text
