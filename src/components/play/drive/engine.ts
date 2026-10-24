@@ -16,7 +16,6 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PCFShadowMap,
-  PMREMGenerator,
   PerspectiveCamera,
   PlaneGeometry,
   Points,
@@ -30,28 +29,25 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { haptic } from "@/lib/haptics";
 import { createAudio, type DriveAudio } from "./audio";
 import { buildCar, CAR, type PaintId } from "./car";
 import { buildCircuit } from "./circuit";
-import { buildCity, buildSky, buildStars, buildWater } from "./city";
+import { buildCity, buildSky, buildStars, buildWater, REFLECT_LAYER } from "./city";
+import { cityEnvironments } from "./env";
 import { buildFoliage } from "./foliage";
 import { createGlows } from "./glow";
-import { clamp, LIGHTS } from "./kit";
+import { RACE_FAMILY, raceFontReady } from "./fonts";
+import { clamp, LIGHTS, setKitTier, setRaceFont } from "./kit";
 import { type Animated, buildPavilions } from "./landmarks";
 import type { RemoteLayer } from "./net/remote-cars";
+import { newCarState, stepCar } from "./physics";
 import { canPost, createPost } from "./post";
 import { buildProps, contactShadowTexture } from "./props";
 import { createGovernor, type GraphicsProfile, type Quality, tierSettings } from "./quality";
 import { createRace, type Ghost, type RaceEvents } from "./race";
 import {
-  BRAKE,
-  drivable,
-  GRIP,
-  HALF,
   headingAt,
-  KERB,
   type Landmark,
   landmarks,
   LENGTH,
@@ -59,8 +55,6 @@ import {
   N,
   pit,
   PIT_BOXES,
-  PIT_LIMIT,
-  pitDist,
   places,
   samples,
   trophies,
@@ -194,15 +188,12 @@ interface TimePreset {
   exposure: number;
 }
 const TIMES: Record<TimeOfDay, TimePreset> = {
-  night: { top: "#03070f", horizon: "#141c33", glow: "#5a3a26", fog: "#0b1224", near: 260, far: 2300, hemiSky: "#8796c4", hemiGround: "#1b1a20", hemiI: 0.5, sun: "#dfe6ff", sunI: 0.5, sunDir: [0.18, 1, 0.3], flood: 1.6, lights: 1, deep: "#0a1828", stars: 1, exposure: 1.05 },
+  night: { top: "#02050c", horizon: "#161a2e", glow: "#6b3f28", fog: "#121527", near: 180, far: 2100, hemiSky: "#6f7fb0", hemiGround: "#16151a", hemiI: 0.42, sun: "#c9d6ff", sunI: 0.35, sunDir: [0.18, 1, 0.3], flood: 1.45, lights: 1, deep: "#071422", stars: 1, exposure: 1.08 },
   golden: { top: "#35538a", horizon: "#f0a066", glow: "#ff9a5a", fog: "#cf9478", near: 380, far: 2600, hemiSky: "#ffd2a8", hemiGround: "#4a3528", hemiI: 0.85, sun: "#ffb37a", sunI: 2.2, sunDir: [-0.55, 0.22, 0.8], flood: 0.3, lights: 0.45, deep: "#1b3550", stars: 0.08, exposure: 1.0 },
   day: { top: "#6fa7d1", horizon: "#f1e6d0", glow: "#000000", fog: "#e2dccd", near: 500, far: 3000, hemiSky: "#fff6e5", hemiGround: "#8a7d68", hemiI: 1.15, sun: "#fff1d6", sunI: 2.4, sunDir: [0.45, 0.8, 0.35], flood: 0, lights: 0, deep: "#2d6c92", stars: 0, exposure: 1 },
 };
 
 const FIXED = 1 / 60;
-const WHEELBASE = 3.6;
-/** Top speed of each gear (m/s); first is a standstill. */
-const GEARS = [0, 19, 29, 38, 47, 56, 65, 75, 92];
 const angleLerp = (a: number, b: number, k: number) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * k;
 const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const damp = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
@@ -237,6 +228,9 @@ export function createDriveEngine(
   renderer.info.autoReset = false;
   const post = usePost ? createPost(renderer, { mips: T.bloomMips }) : null;
 
+  // Physically based world on medium and high, Lambert on budget phones; texture sizes to match
+  setKitTier(tier);
+  setRaceFont(RACE_FAMILY, raceFontReady);
   const scene = new Scene();
   const fog = new Fog(TIMES.night.fog, TIMES.night.near, TIMES.night.far);
   scene.fog = fog;
@@ -259,14 +253,12 @@ export function createDriveEngine(
     sun.shadow.normalBias = 0.03;
   }
   scene.add(hemi, sun, sun.target);
-  // A soft studio environment, only seen by the car's glossy materials (the world is Lambert)
-  const pmrem = new PMREMGenerator(renderer);
-  const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  pmrem.dispose();
-  scene.environment = envTex;
+  // What glossy things reflect: the city at night (and a daylight version), prefiltered once
+  const envs = cityEnvironments(renderer);
+  scene.environment = envs.night;
 
   /* ───────── world ───────── */
-  const glows = createGlows([800, 1250, 1700][tier]);
+  const glows = createGlows([1100, 1600, 2100][tier]);
   const sky = buildSky();
   scene.add(sky.mesh);
   const stars = buildStars([300, 600, 900][tier]);
@@ -275,16 +267,18 @@ export function createDriveEngine(
   scene.add(circuit.group);
   const city = buildCity({ tier, glows, shadows });
   scene.add(city.group);
-  const bay = buildWater(city.reflected, [6, 12, 16][tier]);
+  // The bay: a mirror of the skyline on high, analytic sky and glints below that
+  const bay = buildWater(city.reflected, [6, 12, 10][tier], tier === 2 && !gfx.off.includes("mirror"));
   scene.add(bay.mesh);
   const animated: Animated[] = [];
   const pavilions = buildPavilions(landmarks, glows, animated);
-  scene.add(pavilions.staticMesh, pavilions.boards, ...pavilions.groups);
-  const foliage = buildFoliage({ tier: T, calm: gfx.calm || opts.reducedMotion, footprints: circuit.footprints, poles: circuit.poles, off: gfx.off });
+  scene.add(pavilions.staticMesh, pavilions.boards, ...pavilions.extras, ...pavilions.groups);
+  const foliage = buildFoliage({ tier: T, calm: gfx.calm || opts.reducedMotion, off: gfx.off });
   scene.add(foliage.group);
-  const props = buildProps({ glows, footprints: circuit.footprints, poles: circuit.poles, lanterns: T.lanterns, bigGlow: tier > 0 });
+  const props = buildProps({ glows, lanterns: T.lanterns, bigGlow: tier > 0 });
   scene.add(props.group);
   scene.add(glows.mesh);
+  for (const o of [glows.mesh, sky.mesh]) o.layers.enable(REFLECT_LAYER);
 
   /* ───────── the car, its ghost, its shadow and sparks ───────── */
   const car = buildCar({ shadows, detail: [0.3, 0.7, 1][tier] });
@@ -335,32 +329,8 @@ export function createDriveEngine(
   const trophiesFound = new Set<number>();
 
   /* ───────── state ───────── */
-  const st = {
-    x: GRID.x,
-    z: GRID.z,
-    heading: GRID.heading,
-    v: 0,
-    vR: 0,
-    yawRate: 0,
-    steer: 0,
-    gear: 1,
-    rpm: 4000,
-    drs: 0,
-    pitch: 0,
-    roll: 0,
-    hint: -1,
-    s: 0,
-    d: 0,
-    kerb: false,
-    off: false,
-    inPit: false,
-    slip: 0,
-    shake: 0,
-    accel: 0,
-    lateral: 0,
-    braking: false,
-    held: false,
-  };
+  // The car's state; its handling lives in physics.ts
+  const st = newCarState(GRID.x, GRID.z, GRID.heading);
   const prev = { x: st.x, z: st.z, heading: st.heading };
   const controls: Controls = { throttle: 0, steer: 0, drs: false };
   const keys = new Set<string>();
@@ -385,7 +355,7 @@ export function createDriveEngine(
   const padPrev: boolean[] = [];
   let onScreen = true;
   /** Test hook only: lets the autopilot drive in drive mode. */
-  const dev = { auto: false };
+  const dev: { auto: boolean; cam?: number[] } = { auto: false };
   /** Multiplayer: other cars, and whether a shared session is on. */
   let remotes: RemoteLayer | null = null;
   let net = false;
@@ -586,7 +556,7 @@ export function createDriveEngine(
     st.x = x;
     st.z = z;
     st.heading = heading;
-    st.v = st.vR = st.yawRate = st.steer = 0;
+    st.v = st.vR = st.yawRate = st.steer = st.wheel = st.gas = st.brake = st.accel = st.lateral = st.beta = 0;
     st.gear = 1;
     st.hint = -1;
     const h = locate(x, z);
@@ -700,143 +670,16 @@ export function createDriveEngine(
     stars.visible = cur.stars > 0.02;
     if (circuit.fenceMaterial) circuit.fenceMaterial.color.setScalar(0.35 + 0.45 * cur.flood + 0.4 * (1 - cur.lights));
     renderer.toneMappingExposure = cur.exposure;
-    scene.environmentIntensity = 0.35 + 0.5 * (1 - cur.lights) + 0.15 * cur.lights;
+    // The city's night light, or daylight once the lamps are mostly off
+    scene.environment = cur.lights > 0.5 ? envs.night : envs.day;
+    scene.environmentIntensity = cur.lights > 0.5 ? 0.9 : 0.55 + 0.4 * (1 - cur.lights);
   };
 
-  /* ───────── vehicle physics (one fixed step) ───────── */
+  /* ───────── vehicle physics (one fixed step, see physics.ts) ───────── */
   const carStep = (dt: number) => {
-    const fx = -Math.sin(st.heading);
-    const fz = -Math.cos(st.heading);
-    const rx = Math.cos(st.heading);
-    const rz = -Math.sin(st.heading);
-    const before = st.v;
-
-    // Where on the circuit are we?
-    const h = locate(st.x, st.z, st.hint);
-    st.hint = h.i;
-    st.s = h.s;
-    st.d = h.d;
-    const sample = samples[h.i];
-    const edge = Math.abs(h.d);
-    const kerbSide = h.d > 0 ? sample.kerbR : sample.kerbL;
-    const pd = pitDist(st.x, st.z).d;
-    st.inPit = pd < -0.5 && edge > HALF + KERB + 1.5;
-    st.kerb = kerbSide && edge > HALF - 0.6 && edge < HALF + KERB + 0.6;
-    st.off = !st.inPit && edge > HALF + KERB + 0.6;
-    const runoff = !st.inPit && edge > HALF + (kerbSide ? KERB : 0) + 0.9;
-    const gripF = runoff ? 0.62 : 1;
-
-    // Steering: quicker on a keyboard, smoother on touch
-    st.steer += (input.steer - st.steer) * Math.min(1, dt * (opts.touch ? 7 : 11));
-    let throttle = input.throttle;
-    // Braking assist: brakes for the corner ahead if you're carrying too much speed
-    if (assist.brake && mode === "drive" && !st.inPit) {
-      let target = 99;
-      for (let k = 1; k <= 8; k++) target = Math.min(target, samples[(h.i + k * 2) % N].vmax * 1.04);
-      if (st.v > target + 1) throttle = Math.min(throttle, -clamp((st.v - target) / 6, 0.25, 1));
-    }
-    if (st.held) throttle = Math.min(throttle, 0);
-
-    // DRS: on a straight, with the boost held and the wheel straight
-    const drsZone = sample.drs || game === "free";
-    const drsWant = input.drs && drsZone && st.v > 22 && Math.abs(st.steer) < 0.3 && throttle > 0.2;
-    st.drs += ((drsWant ? 1 : 0) - st.drs) * Math.min(1, dt * (drsWant ? 6 : 12));
-
-    // Longitudinal
-    const vTop = st.inPit ? PIT_LIMIT : 82 + 7 * st.drs;
-    let v = st.v;
-    st.braking = false;
-    if (throttle > 0) {
-      if (v < -0.3) v = Math.min(0, v + 18 * throttle * dt);
-      else {
-        const a = 12 * throttle * (1 - Math.min(1, (v / vTop) ** 2)) * (runoff ? 0.7 : 1);
-        v += a * dt;
-        if (v > vTop) v -= (v - vTop) * 3 * dt;
-      }
-    } else if (throttle < 0) {
-      if (v > 0.4) {
-        st.braking = true;
-        v = Math.max(0, v - (BRAKE.base + BRAKE.aero * v * v) * gripF * -throttle * dt);
-      } else v = Math.max(-9, v + 7 * throttle * dt);
-    }
-    // Drag and engine braking off the throttle; run-off scrubs speed
-    const drag = (throttle > 0 ? 0 : 1.4) + 0.0011 * v * v * (1 - 0.35 * st.drs) * (throttle > 0 ? 0.25 : 1) + (runoff ? 3 + 0.01 * v * v : 0);
-    v -= Math.sign(v) * Math.min(Math.abs(v), drag * dt);
-    if (st.inPit && v > PIT_LIMIT) v -= (v - PIT_LIMIT) * 4 * dt;
-    if (Math.abs(v) < 0.05 && throttle === 0) v = 0;
-
-    // Lateral: a bicycle model, capped by grip that grows with downforce
-    const av = Math.abs(v);
-    const lock = 0.44 / (1 + av / 21);
-    const desired = -(v / WHEELBASE) * Math.tan(st.steer * lock);
-    const latMax = (GRIP.base + GRIP.aero * v * v) * gripF;
-    const maxYaw = latMax / Math.max(av, 2);
-    const yawTarget = clamp(desired, -maxYaw, maxYaw);
-    st.slip = Math.abs(desired) > maxYaw && av > 8 ? Math.min(1, (Math.abs(desired) - maxYaw) / maxYaw) : 0;
-    v -= Math.sign(v) * st.slip * av * 0.45 * dt; // understeer scrubs speed
-    st.yawRate += (yawTarget - st.yawRate) * Math.min(1, dt * 13);
-    st.vR *= Math.exp(-dt * 10);
-
-    st.v = v;
-    st.heading += st.yawRate * dt;
-    let vx = fx * v + rx * st.vR;
-    let vz = fz * v + rz * st.vR;
-    st.x += vx * dt;
-    st.z += vz * dt;
-    st.accel = (v - before) / dt;
-    st.lateral = v * st.yawRate;
-
-    // Walls: two circles along the car against the drivable area
-    let impact = 0;
-    const R = 1.05;
-    for (const o of [1.7, -1.5]) {
-      const cx = st.x + fx * o;
-      const cz = st.z + fz * o;
-      const sd = drivable(cx, cz, st.hint);
-      if (sd <= -R) continue;
-      const e = 0.3;
-      const gx = drivable(cx + e, cz, st.hint) - drivable(cx - e, cz, st.hint);
-      const gz = drivable(cx, cz + e, st.hint) - drivable(cx, cz - e, st.hint);
-      const gl = Math.hypot(gx, gz) || 1;
-      const nx = gx / gl;
-      const nz = gz / gl;
-      const pen = sd + R;
-      st.x -= nx * pen;
-      st.z -= nz * pen;
-      const vn = vx * nx + vz * nz;
-      if (vn > 0) {
-        vx -= 1.25 * vn * nx;
-        vz -= 1.25 * vn * nz;
-        const scrub = 1 - Math.min(0.45, vn * 0.025);
-        vx *= scrub;
-        vz *= scrub;
-        impact = Math.max(impact, vn);
-        // Turn the nose along the wall, so the car slides off it instead of sticking
-        const along = Math.atan2(-vx, -vz);
-        if (Math.hypot(vx, vz) > 2) st.heading = angleLerp(st.heading, v >= 0 ? along : along + Math.PI, 0.35);
-      }
-    }
-    if (impact > 0) {
-      st.v = vx * -Math.sin(st.heading) + vz * -Math.cos(st.heading);
-      st.vR = vx * Math.cos(st.heading) + vz * -Math.sin(st.heading);
-      st.yawRate *= 0.5;
-      if (impact > 2.5) bump(impact);
-    }
-
-    // Body: pitch under braking and acceleration, roll in the corners, a kerb shiver
-    st.pitch += (clamp(st.accel * 0.0016, -0.03, 0.03) - st.pitch) * Math.min(1, dt * 10);
-    st.roll += (clamp(-st.lateral * 0.0006, -0.025, 0.025) - st.roll) * Math.min(1, dt * 10);
-
-    // Gearbox (for the sound and the HUD)
-    const sp = Math.abs(st.v);
-    if (st.gear < 8 && sp > GEARS[st.gear] * 0.97) {
-      st.gear++;
-      audio?.shift();
-    } else if (st.gear > 1 && sp < GEARS[st.gear - 1] * 0.8) st.gear--;
-    const lo = GEARS[st.gear - 1] * 0.8;
-    const ratio = clamp((sp - lo) / (GEARS[st.gear] - lo), 0, 1);
-    const targetRpm = 4200 + ratio * 7800 + (st.held ? Math.max(0, input.throttle) * 6000 : 0);
-    st.rpm += (targetRpm - st.rpm) * Math.min(1, dt * 14);
+    const ev = stepCar(st, input, { assist: assist.brake && mode === "drive", free: game === "free", auto: mode !== "drive" || dev.auto }, dt);
+    if (ev.shift) audio?.shift(ev.shift > 0);
+    if (ev.impact > 2.5) bump(ev.impact);
   };
 
   const bump = (strength: number) => {
@@ -871,6 +714,10 @@ export function createDriveEngine(
   /** After a teleport (grid, reset), the chase camera jumps straight to its spot. */
   let snapCam = true;
   let fov = 60;
+  /** The chase camera's fore-aft lag (m): out under acceleration, in under braking. */
+  let chaseLag = 0;
+  /** The chase camera's offset from the car. */
+  const chaseOff = new Vector3(0, 2, 7);
   let shot = 0;
   let shotStart = 0;
   let tvSpot = new Vector3();
@@ -889,11 +736,14 @@ export function createDriveEngine(
     const fz = -Math.cos(heading);
     car.car.position.set(x, 0, z);
     car.car.rotation.set(0, heading, 0);
-    car.body.rotation.set(st.pitch, 0, st.roll);
-    car.body.position.y = st.kerb && !opts.reducedMotion ? Math.sin(t * 90) * 0.012 : 0;
+    // Body on its springs: pitch, roll, the drop under downforce and the kerbs' jolts; wheels follow the road
+    const jolt = opts.reducedMotion ? 0 : 1;
+    car.body.rotation.set(st.pitch + (st.bump[0] + st.bump[1] - st.bump[2] - st.bump[3]) * 0.04 * jolt, 0, st.roll + (st.bump[1] + st.bump[3] - st.bump[0] - st.bump[2]) * 0.12 * jolt);
+    car.body.position.y = -st.heave + (st.bump[0] + st.bump[1] + st.bump[2] + st.bump[3]) * 0.15 * jolt;
+    car.pivots.forEach((p, i) => (p.position.y = CAR.wheelR + st.bump[i] * jolt));
     car.wheels.forEach((w) => (w.rotation.x -= (st.v * dt) / CAR.wheelR));
-    car.steerers.forEach((s) => (s.rotation.y = -st.steer * (0.44 / (1 + Math.abs(st.v) / 21))));
-    car.animate(t, { drs: st.drs, flash: st.inPit || (input.throttle <= 0 && st.v > 30), braking: st.braking, night: cur.lights });
+    car.steerers.forEach((s) => (s.rotation.y = -st.wheel));
+    car.animate(t, { drs: st.drs, flash: st.inPit || (input.throttle <= 0 && st.v > 30), braking: st.braking, night: cur.lights, heat: st.brakeHeat, speed: st.v });
     const thud = props.update(dt, { x, z, heading, v: st.v });
     if (thud > 4 && mode === "drive") audio?.impact(thud * 0.4);
 
@@ -1027,13 +877,14 @@ export function createDriveEngine(
       if (t - shotStart > 7 || shotStart === 0) {
         shotStart = t;
         shot = (shot + 1) % 3;
-        // Trackside camera: a little way ahead, beyond the wall on the outside
+        // Trackside camera: a little way ahead, over the footpath behind the outside wall
+        // (the verge's trees start beyond the path, so they don't block the shot)
         const h = locate(x, z, st.hint);
         const i = (h.i + 22) % N;
         const s = samples[i];
         const side = s.curv > 0 ? -1 : 1;
-        const o = (wallOffset(i, side) + 6) * side;
-        tvSpot = new Vector3(s.x - s.tz * o, 4.5, s.z + s.tx * o);
+        const o = (wallOffset(i, side) + 2) * side;
+        tvSpot = new Vector3(s.x - s.tz * o, 6, s.z + s.tx * o);
         camPos.copy(shot === 0 ? tvSpot : camPos);
       }
       if (opts.reducedMotion) {
@@ -1060,17 +911,29 @@ export function createDriveEngine(
       camera.position.copy(camPos);
       camera.lookAt(camTarget);
     } else if (camMode === "chase") {
-      camYaw = angleLerp(camYaw, heading + look.yaw, damp(6, dt));
+      // Follows the car's travel more than its nose, so a slide shows its angle;
+      // drops back as the car pulls away and closes in under braking
+      const travel = heading - (speed > 4 ? clamp(st.beta, -0.5, 0.5) * 0.55 : 0);
+      camYaw = angleLerp(camYaw, travel + look.yaw, damp(5.5, dt));
+      chaseLag += (clamp(st.accel * 0.032, -0.55, 0.4) - chaseLag) * damp(3, dt);
       const far = portrait ? 1.35 : 1;
-      const dist = (6.6 + speed * 0.028) * far;
-      const height = (2.15 + speed * 0.006) * far + look.pitch * 4;
-      want.set(x + Math.sin(camYaw) * dist, height, z + Math.cos(camYaw) * dist);
-      if (snapCam) camPos.copy(want);
-      else camPos.lerp(want, damp(10, dt));
+      const dist = (6.2 + speed * 0.018 + (opts.reducedMotion ? 0 : chaseLag)) * far;
+      const height = (2.0 + speed * 0.005) * far + look.pitch * 4;
+      // Smoothed relative to the car, so the lag is a feel, not a fixed distance that grows with speed
+      want.set(Math.sin(camYaw) * dist, height, Math.cos(camYaw) * dist);
+      if (snapCam) chaseOff.copy(want);
+      else chaseOff.lerp(want, damp(10, dt));
+      camPos.set(x + chaseOff.x, chaseOff.y, z + chaseOff.z);
       camera.position.copy(camPos);
-      camTarget.set(x + fx * 4, 0.9, z + fz * 4);
+      // A little buffeting at speed, more over the kerbs (a smooth wobble, not a jitter)
+      if (!opts.reducedMotion) {
+        const buffet = ((speed / 90) ** 2 * 0.022 + (st.kerb ? 0.03 : 0)) * far;
+        camera.position.x += (Math.sin(t * 23.1) + Math.sin(t * 37.7) * 0.5) * buffet;
+        camera.position.y += (Math.sin(t * 29.3) + Math.sin(t * 41.9) * 0.5) * buffet;
+      }
+      camTarget.set(x + fx * 4, 0.85, z + fz * 4);
       camera.lookAt(camTarget);
-      fovTarget = (opts.reducedMotion ? 60 : 58 + Math.min(16, speed * 0.2) + st.drs * 3) + (portrait ? 14 : 0);
+      fovTarget = (opts.reducedMotion ? 60 : 57 + Math.min(12, speed * 0.15) + st.drs * 6) + (portrait ? 14 : 0);
     } else if (camMode === "diorama") {
       // High three-quarter view, like a model on a table: it follows the car's turns slowly, never spins with them
       dioYaw = angleLerp(dioYaw, heading + look.yaw, damp(1.3, dt));
@@ -1090,9 +953,15 @@ export function createDriveEngine(
       camera.position.copy(seat);
       camPos.copy(seat);
       car.body.getWorldQuaternion(qBody);
-      eLook.set(-0.06 + look.pitch, look.yaw, 0, "YXZ");
+      // The camera pod buzzes at speed and jolts over kerbs; the view leans into the corner a touch
+      if (!opts.reducedMotion) {
+        const buzz = (speed / 90) ** 2 * 0.004 + (st.kerb ? 0.006 : 0);
+        camera.position.y += Math.sin(t * 61.3) * buzz + (st.bump[0] + st.bump[1]) * 0.5;
+        camera.position.x += Math.sin(t * 47.9) * buzz * 0.6;
+      }
+      eLook.set(-0.07 + look.pitch, look.yaw - st.steer * 0.08, 0, "YXZ");
       camera.quaternion.copy(qBody).multiply(qLook.setFromEuler(eLook));
-      fovTarget = (portrait ? 78 : 70) + (opts.reducedMotion ? 0 : Math.min(8, speed * 0.1));
+      fovTarget = (portrait ? 78 : 70) + (opts.reducedMotion ? 0 : Math.min(8, speed * 0.1) + st.drs * 4);
     } else {
       // Map view: high above, following the car, north up
       want.set(x + fx * 40, 280 + speed, z + fz * 40 + 110);
@@ -1100,6 +969,13 @@ export function createDriveEngine(
       camera.position.copy(camPos);
       camera.lookAt(camTarget.set(x + fx * 40, 0, z + fz * 40));
       fovTarget = portrait ? 70 : 50;
+    }
+    // Test hook (development only): a fixed camera for screenshots of the world
+    if (dev.cam) {
+      camera.position.set(dev.cam[0], dev.cam[1], dev.cam[2]);
+      camera.lookAt(dev.cam[3], dev.cam[4], dev.cam[5]);
+      fovTarget = dev.cam[6] ?? 50;
+      camPos.copy(camera.position);
     }
     if (mode === "drive") snapCam = false;
     st.shake *= 1 - damp(6, dt);
@@ -1127,7 +1003,7 @@ export function createDriveEngine(
     foliage.update(t, camera, hemi, sun);
     if (post) post.uniforms.uBloom.value = 0.25 + 0.3 * cur.lights;
 
-    if (mode === "drive") audio?.update({ rpm: st.rpm, throttle: input.throttle, slip: st.slip, kerb: st.kerb && speed > 8, speed });
+    if (mode === "drive") audio?.update({ rpm: st.rpm, throttle: st.held ? Math.max(0, input.throttle) : st.gas, slip: st.slip, kerb: st.kerb && speed > 8, speed, brake: st.brake });
   };
 
   /* Adaptive quality: effects go before pixels, with a floor (see quality.ts) */
@@ -1311,7 +1187,10 @@ export function createDriveEngine(
           x.dispose();
         }
       });
-      envTex.dispose();
+      envs.dispose();
+      circuit.dispose();
+      city.dispose();
+      bay.dispose();
       post?.dispose();
       foliage.dispose();
       renderer.dispose();
