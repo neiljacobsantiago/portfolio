@@ -179,8 +179,21 @@ class Registry {
   }
   /** Room for it: off the circuit by its kind's margin, out of the water, clear of everything planned. */
   fits(c: Claim) {
-    return worstClearance(c) >= MIN_CLEAR[c.kind] && !wet(c) && !this.hits(c);
+    return clearEnough(c) && !wet(c) && !this.hits(c);
   }
+}
+
+/**
+ * worstClearance(c) >= the kind's margin, without sampling the whole
+ * footprint when its middle is plainly far enough out. Clearance changes at
+ * most about a metre per metre moved (a little more where the walls step
+ * out), so the middle's clearance less 1.25 × the footprint's radius is a
+ * safe lower bound. Planning at load time drops from seconds to milliseconds.
+ */
+function clearEnough(c: Claim) {
+  const need = MIN_CLEAR[c.kind];
+  if (clearance(c.x, c.z) - radius(c) * 1.25 >= need) return true;
+  return worstClearance(c) >= need;
 }
 
 /* ───────────── the plan ───────────── */

@@ -283,8 +283,14 @@ export function locate(x: number, z: number, hint = -1): Hit {
 /** Wall offset on one side of sample i (centre line to the wall's face). */
 export const wallOffset = (i: number, side: 1 | -1) => HALF + KERB + (side > 0 ? at(i).runR : at(i).runL);
 
+/** The pit lane's bounding box, so far-away points skip the search. */
+const pitBox = pit.reduce((b, p) => ({ x0: Math.min(b.x0, p.x), x1: Math.max(b.x1, p.x), z0: Math.min(b.z0, p.z), z1: Math.max(b.z1, p.z) }), { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity });
+
 /** Signed distance to the pit lane corridor (negative inside), and the nearest pit index. */
 export function pitDist(x: number, z: number) {
+  // Well clear of the lane's box (past clearance()'s cap): that distance is close enough, as callers only act on small values
+  const box = Math.hypot(Math.max(pitBox.x0 - x, 0, x - pitBox.x1), Math.max(pitBox.z0 - z, 0, z - pitBox.z1));
+  if (box > 40) return { d: box - PIT_HALF, i: 0 };
   let best = Infinity;
   let bi = 0;
   for (let i = 0; i < pit.length - 1; i += 3) {
