@@ -877,13 +877,14 @@ export function createDriveEngine(
       if (t - shotStart > 7 || shotStart === 0) {
         shotStart = t;
         shot = (shot + 1) % 3;
-        // Trackside camera: a little way ahead, beyond the wall on the outside
+        // Trackside camera: a little way ahead, over the footpath behind the outside wall
+        // (the verge's trees start beyond the path, so they don't block the shot)
         const h = locate(x, z, st.hint);
         const i = (h.i + 22) % N;
         const s = samples[i];
         const side = s.curv > 0 ? -1 : 1;
-        const o = (wallOffset(i, side) + 6) * side;
-        tvSpot = new Vector3(s.x - s.tz * o, 4.5, s.z + s.tx * o);
+        const o = (wallOffset(i, side) + 2) * side;
+        tvSpot = new Vector3(s.x - s.tz * o, 6, s.z + s.tx * o);
         camPos.copy(shot === 0 ? tvSpot : camPos);
       }
       if (opts.reducedMotion) {
